@@ -127,7 +127,9 @@ const styles = StyleSheet.create({
   },
   row: {
     flexDirection: 'row',
-    alignItems: 'center',
+    // Por la base, no por el centro: así las cinco etiquetas comparten línea
+    // aunque el botón de crear sea mucho más alto que una pestaña.
+    alignItems: 'flex-end',
     minHeight: BAR_HEIGHT,
     // En pantalla ancha la barra no se estira: sigue el ancho del contenido.
     width: '100%',
@@ -137,15 +139,19 @@ const styles = StyleSheet.create({
   tabItem: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'flex-end',
     gap: spacing.xs,
-    paddingVertical: spacing.sm,
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.md,
   },
   createSlot: {
     flex: 1,
     alignItems: 'center',
+    justifyContent: 'flex-end',
     gap: spacing.xs,
-    // Sube el botón para que asome por encima del borde de la barra.
+    // El mismo hueco inferior que una pestaña: alinea la etiqueta con las demás.
+    paddingBottom: spacing.md,
+    // El alto que sobra sale por arriba, hacia la zona transparente.
     marginTop: -CREATE_OVERHANG,
   },
   createButton: {

@@ -25,10 +25,17 @@ if (!url || !anonKey) {
 }
 
 const stamp = Date.now().toString(36);
-const email = process.argv[2] ?? `oveng-f11-${stamp}@example.com`;
+/**
+ * Supabase rechaza `example.com` y otros dominios reservados con "Email address
+ * is invalid". Se prueban varios hasta que uno sea aceptado; el primero que
+ * cuele es el que se usa para el resto de la verificación.
+ */
+const TEST_DOMAINS = ['ovengtest.dev', 'oveng-envhealth.com', 'mailinator.com', 'proton.me'];
+const explicitEmail = process.argv[2];
 const password = `Verif-${stamp}-2026`;
 const username = `test_${stamp}`.slice(0, 30);
 const displayName = 'Cuenta de prueba F1.1';
+let email = explicitEmail ?? `oveng-f11-${stamp}@${TEST_DOMAINS[0]}`;
 
 // Sin persistencia: cada ejecución parte de cero, como un navegador limpio.
 const supabase = createClient(url, anonKey, {
@@ -45,7 +52,6 @@ const info = (msg) => console.log(`  · ${msg}`);
 const step = (msg) => console.log(`\n${msg}`);
 
 console.log(`Proyecto : ${url}`);
-console.log(`Cuenta   : ${email}`);
 console.log(`Username : ${username}`);
 
 // --- 1. ¿Está aplicada la migración 001? -------------------------------------
@@ -86,15 +92,41 @@ if (anonInsert) {
 // --- 3. Registro y trigger ---------------------------------------------------
 step('3. Registro y creación automática del perfil');
 
-const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-  email,
-  password,
-  options: { data: { username, display_name: displayName } },
-});
+const candidates = explicitEmail
+  ? [explicitEmail]
+  : TEST_DOMAINS.map((domain) => `oveng-f11-${stamp}@${domain}`);
 
-if (signUpError) {
-  bad(`signUp falló: ${signUpError.message}`);
-  if (signUpError.message.toLowerCase().includes('database error saving new user')) {
+let signUpData = null;
+let signUpError = null;
+
+for (const candidate of candidates) {
+  const attempt = await supabase.auth.signUp({
+    email: candidate,
+    password,
+    options: { data: { username, display_name: displayName } },
+  });
+
+  if (!attempt.error) {
+    email = candidate;
+    signUpData = attempt.data;
+    signUpError = null;
+    info(`email aceptado: ${candidate}`);
+    break;
+  }
+
+  signUpError = attempt.error;
+
+  if (/email address .* is invalid|email_address_invalid/i.test(attempt.error.message)) {
+    info(`dominio rechazado por Supabase: ${candidate.split('@')[1]}`);
+    continue;
+  }
+
+  break;
+}
+
+if (signUpError || !signUpData) {
+  bad(`signUp falló: ${signUpError?.message ?? 'sin datos'}`);
+  if (signUpError?.message.toLowerCase().includes('database error saving new user')) {
     info('Eso apunta al trigger on_auth_user_created: revisa que 001 se aplicó entera.');
   }
   process.exit(1);

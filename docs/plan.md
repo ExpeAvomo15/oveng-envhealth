@@ -26,24 +26,30 @@ Convención de commit: `F<fase>.<tarea>: descripción`.
       **Las migraciones las aplica el autor a mano** (instrucciones y
       verificación en ese documento).
 
-> **F0 cerrada** con el tag `f0-completa`. Pendiente por decidir antes de las
+- [ ] **F0.2c contraste del theme con los mockups** — releer `src/theme/` y los
+      componentes contra las infografías oficiales cuando se suban a
+      `docs/design/` (tipografía, densidad, sombras, radios, grises) y ajustar lo
+      que difiera. Queda abierta a propósito después del tag de F0: todo lo
+      visual de F0.2, F1.1 y F1.2 se hizo con la spec escrita porque los mockups
+      aún no estaban. **Bloqueada hasta que el autor los suba.**
+
+> **F0 cerrada** con el tag `f0-completa` (salvo F0.2c, que depende de los mockups). Pendiente por decidir antes de las
 > tareas que las tocan: `account_type` en `profiles` (F1.3) y `category` en
 > `posts` (F1.4) — ver limitaciones en @docs/03_MODELO_DATOS.md.
 
 ## F1 — Core social
 
-- [ ] **F1.1 auth** — registro, login y sesión persistente con Supabase Auth.
-      *Código completo y pusheado (`660dedf`).* Pendiente su criterio de cierre:
-      verificar el ciclo contra el proyecto Supabase real. Falta `.env` y saber
-      si las migraciones están aplicadas; hay un script listo,
-      `npm run verify:auth`.
-- [ ] **F1.2 navegación tabs** — las 5 secciones (Inicio, Buscar, Crear, Mapa,
-      Perfil) con expo-router y estética de los mockups.
-      *Código completo:* barra propia con las 4 pestañas más el botón central de
-      Crear (modal), cabecera de Inicio y las cuatro pantallas placeholder.
-      Pendiente su criterio de cierre: **pasada visual en navegador** —no hay
-      navegador en el entorno del agente— y contraste con los mockups, que
-      siguen sin subirse a `docs/design/`.
+- [x] **F1.1 auth** — registro, login y sesión persistente con Supabase Auth.
+      Verificado contra el proyecto Supabase real con `npm run verify:auth`:
+      esquema, RLS en ambos sentidos, el trigger creando el perfil con los
+      metadatos del alta, y el ciclo registro → cerrar sesión → volver a entrar.
+- [x] **F1.2 navegación tabs** — las 5 secciones (Inicio, Buscar, Crear, Mapa,
+      Perfil) con expo-router: barra propia con las 4 pestañas más el botón
+      central de Crear (modal), cabecera de Inicio y las pantallas placeholder.
+      Verificado en Chromium con `npm run verify:ui`: navegación entre secciones,
+      modal que abre y cierra, recarga manteniendo sesión y ruta, y cierre de
+      sesión. Capturas en `docs/verificacion/f1/`.
+      La fidelidad a los mockups queda pendiente en **F0.2c**.
 - [ ] **F1.2b deploy GitHub Pages** — export web estático de Expo y workflow de
       GitHub Actions que publica en Pages en cada push a main.
 - [ ] **F1.3 perfiles + seguir** — perfil de usuario (persona, empresa,

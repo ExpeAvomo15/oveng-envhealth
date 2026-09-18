@@ -28,6 +28,7 @@
   },
   "devDependencies": {
     "@types/react": "~19.2.2",
+    "playwright": "^1.63.0",
     "typescript": "~6.0.3"
   },
   "scripts": {
@@ -38,6 +39,7 @@
     "export:web": "expo export --platform web",
     "typecheck": "tsc --noEmit",
     "verify:auth": "node --env-file=.env scripts/verify-auth.mjs",
+    "verify:ui": "node --env-file=.env scripts/verify-ui.mjs",
     "lint": "expo lint"
   },
   "private": true

@@ -5,6 +5,63 @@ decidió y por qué. Lo más reciente arriba.
 
 ---
 
+## 2026-09-18 — Verificación de F1.1 y F1.2 contra el entorno real
+
+Ambas tareas quedaron cerradas tras verificarlas de verdad: la de auth contra el
+proyecto Supabase real y la de navegación en Chromium. Lo que se aprendió por el
+camino:
+
+- **La Project URL traía `/rest/v1/` pegado.** El valor copiado del dashboard era
+  `https://<ref>.supabase.co/rest/v1/`, que es el endpoint REST, no la URL del
+  proyecto. supabase-js añade `/rest/v1` por su cuenta, así que todas las
+  peticiones habrían ido a `/rest/v1/rest/v1/…`. Se corrigió en el `.env`. Si
+  alguien vuelve a montar el entorno: la variable es la URL **base**.
+- **"Confirm email" estaba activado y agotó el límite de correos.** Cada alta
+  mandaba un email de confirmación y el SMTP integrado del plan gratuito permite
+  muy pocos por hora: al tercer intento, `email rate limit exceeded`. Se
+  desactivó en Authentication → Sign In / Providers → Email. Consecuencia para la
+  demo: el registro devuelve sesión al instante, que es lo que describe F1.1.
+  **Si algún día se reactiva**, hay que dar de alta un SMTP propio o el registro
+  será inusable, y la pantalla de "Revisa tu correo" de `register.tsx` vuelve a
+  ser el camino normal (ya está implementada).
+- **Supabase rechaza `@example.com`.** Devuelve "Email address is invalid": es un
+  dominio reservado y está en su lista negra. Los scripts de verificación prueban
+  varios dominios hasta dar con uno aceptado (`ovengtest.dev` funciona).
+- **Metro cachea el valor incrustado de las variables `EXPO_PUBLIC_*`.** El
+  primer recorrido en navegador falló con `ERR_NAME_NOT_RESOLVED` porque el
+  bundle seguía llevando dentro la URL de prueba (`example.supabase.co`) de una
+  build anterior, pese a que el `.env` ya era correcto. Por eso
+  `scripts/verify-ui.mjs` construye **siempre con `--clear`** y además comprueba
+  que la URL del `.env` aparece dentro del bundle antes de dar nada por bueno.
+  Sin esa comprobación se verifica un artefacto rancio y el resultado no vale
+  nada.
+- **Chromium sin permisos de root.** Faltaban `libnspr4`, `libnss3` y
+  `libasound2t64`, y `sudo` pide contraseña interactiva que el agente no puede
+  dar. Se resolvió con `apt-get download` (no necesita root), extrayendo los
+  `.deb` en `~/.local/chromium-deps` y añadiendo esa ruta al `LD_LIBRARY_PATH`
+  del proceso del navegador (`scripts/lib/browser.mjs`). En una máquina con las
+  librerías del sistema, esa carpeta no existe y el helper no hace nada.
+- **La etiqueta "Crear" estaba desalineada.** Se vio en las capturas, no en el
+  código: la fila de la barra alineaba al centro y el botón de crear es mucho más
+  alto que una pestaña, así que su etiqueta caía unos 25 px por debajo de las
+  otras cuatro. Ahora la fila alinea por la base (`alignItems: 'flex-end'`) y
+  todas las celdas comparten el mismo hueco inferior. Es exactamente el tipo de
+  fallo que no aparece en un typecheck.
+- **El export estático no renderiza contenido, y se deja así.** Todas las páginas
+  salen con el `<div id="root">` vacío y la app se pinta al hidratar, porque en
+  el render del servidor no hay `localStorage`, la sesión nunca está resuelta y
+  el layout raíz devuelve el splash. **Decisión: no se toca el guard.** Para una
+  demo tras login no aporta nada y el guard actual es el que garantiza que no se
+  vea ni un instante la pantalla equivocada. Los enlaces profundos funcionan
+  igual: cada ruta tiene su HTML y el router del cliente toma el control, cosa
+  que se comprobó recargando en `/mapa`. Solo habría que replantearlo si alguna
+  vez importa el SEO de las páginas públicas.
+- **Herramientas nuevas:** `npm run verify:auth` (ciclo de auth sin navegador) y
+  `npm run verify:ui` (recorrido en Chromium con capturas en
+  `docs/verificacion/f1/`). Playwright entra como dependencia de desarrollo.
+
+---
+
 ## 2026-09-18 — F1.2: navegación principal con tabs
 
 - **Los mockups siguen sin estar.** `docs/design/` solo contiene el README de
