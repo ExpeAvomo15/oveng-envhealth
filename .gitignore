@@ -21,3 +21,19 @@ Thumbs.db
 *.log
 npm-debug.log*
 yarn-error.log*
+
+# Expo / RN generados
+expo-env.d.ts
+.metro-health-check*
+*.tsbuildinfo
+/ios
+/android
+.kotlin/
+
+# Credenciales nativas
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.pem

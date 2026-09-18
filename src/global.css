@@ -1,0 +1,11 @@
+/*
+ * Variables de fuente para la build web. En nativo este archivo se ignora;
+ * src/theme/typography.ts las consume vía `var(--font-display)`.
+ * Cuando haya fuente de marca, se cambia aquí y en typography.ts.
+ */
+:root {
+  --font-display:
+    system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif,
+    'Apple Color Emoji', 'Segoe UI Emoji';
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
+}

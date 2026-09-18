@@ -4,8 +4,8 @@ Red social ambiental que conecta personas, empresas e iniciativas verdes: feed
 social, mapa ambiental (aire, agua, suelo, biodiversidad), valoraciones
 comunitarias y huella ecológica personal.
 
-**Estado:** F0.1 completada — estructura del repositorio y documentación. La app
-todavía no existe; se crea en F0.2.
+**Estado:** F0.2 completada — app Expo en marcha con el design system. Todavía
+no hay backend ni navegación: eso es F0.3 y F1.
 
 ## Stack
 
@@ -28,11 +28,45 @@ todavía no existe; se crea en F0.2.
 ## Puesta en marcha
 
 ```bash
+npm install
 cp .env.example .env   # rellenar con las claves de Supabase (a partir de F0.3)
+npm run web            # abre la app en el navegador
+npm start              # dev server: elegir web, Android o iOS (Expo Go)
 ```
 
-Las instrucciones de instalación y arranque se añaden en F0.2, cuando exista la
-app Expo.
+Comprobaciones antes de cada commit:
+
+```bash
+npm run typecheck      # tsc --noEmit, sin errores
+npm run export:web     # export estático a dist/, el mismo que publicará Pages
+```
+
+## Estructura
+
+```
+src/
+├── app/            # rutas de expo-router (+html.tsx = documento de la build web)
+├── components/ui/  # componentes base del design system
+├── theme/          # tokens: color, espaciado, radios, tipografía, sombras
+└── types/          # tipos globales del entorno
+assets/images/      # iconos y splash (placeholder de Expo por ahora)
+docs/               # documentación viva
+```
+
+### Design system
+
+Todo el color, tamaño y radio sale de `src/theme/`: la UI usa tokens con
+significado (`colors.accent`), nunca un hex suelto, y escribe con
+`<Text variant="...">` en vez de `fontSize` a mano. Dos reglas que conviene
+conocer antes de tocar una pantalla:
+
+- **El verde es acento, no fondo.** Las superficies son neutras.
+- **Azul y amarillo son rellenos, nunca color de texto** — no llegan al mínimo
+  de contraste AA — y siempre llevan texto oscuro encima. El razonamiento y las
+  medidas están en la cabecera de `src/theme/colors.ts`.
+
+Los tokens derivan de la paleta fijada en [AGENTS.md](AGENTS.md); al subir los
+mockups oficiales a `docs/design/` hay que contrastarlos con ellos.
 
 ## Cómo se trabaja aquí
 

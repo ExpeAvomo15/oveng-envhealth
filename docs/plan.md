@@ -13,9 +13,11 @@ Convención de commit: `F<fase>.<tarea>: descripción`.
 - [x] **F0.1 estructura + docs** — árbol del repo, AGENTS.md, CLAUDE.md,
       docs vivos (plan, notas, visión, arquitectura), .gitignore, .env.example,
       git inicializado y primer push.
-- [ ] **F0.2 app Expo + design system** — scaffold Expo + TypeScript estricto +
-      expo-router; tokens de diseño (paleta, radios, tipografía, espaciado) y
-      componentes base derivados de los mockups de `docs/design/`.
+- [x] **F0.2 app Expo + design system** — scaffold Expo SDK 57 + TypeScript
+      estricto + expo-router; tokens en `src/theme/` (color, espaciado, radios,
+      tipografía, sombras) y componentes base en `src/components/ui/`
+      (Text, Screen, Card, Button, Badge, Avatar, Divider). Pendiente de
+      reconciliar con los mockups oficiales cuando se suban a `docs/design/`.
 - [ ] **F0.3 Supabase esquema + cliente** — proyecto Supabase, esquema inicial
       con RLS, cliente tipado en la app, `.env.example` completo y
       `docs/03_MODELO_DATOS.md` rellenado.
