@@ -5,6 +5,91 @@ decidió y por qué. Lo más reciente arriba.
 
 ---
 
+## 2026-09-18 — F1.6: cierre del MVP social
+
+### Repaso de calidad
+
+- **Lint configurado y limpio.** `expo lint` nunca se había ejecutado: no había
+  configuración de ESLint. Al activarlo salieron **6 errores, todos de la misma
+  regla**: `react-hooks/set-state-in-effect`. No eran fallos de comportamiento
+  —todo funcionaba y estaba verificado— pero con React Compiler activado, llamar
+  a `setState` de forma síncrona dentro de un efecto provoca renders en cascada.
+  Se arreglaron **derivando** en lugar de sincronizar: el estado cargado se
+  guarda junto a la clave a la que pertenece (id de usuario, `(lector, modo)`,
+  nombre de usuario, id de publicación) y lo visible se calcula comparando. Al
+  cambiar la clave, lo viejo deja de coincidir y desaparece solo, sin efecto de
+  limpieza. De propina, los cargadores pasaron a ser funciones puras que
+  devuelven datos, con el `setState` en el callback de la promesa.
+- **Bug real encontrado por el recorrido E2E: no se podía cerrar sesión.** El
+  menú del perfil se veía, pero el clic no llegaba: el elemento en esas
+  coordenadas era la fila de contadores, que quedaba por encima en el orden de
+  pintado pese al `zIndex`. Un usuario tampoco habría podido pulsarlo. Se
+  cambió por un `Modal`, que además evita el otro problema del mismo patrón: en
+  Android, un hijo posicionado fuera de los límites de su padre no recibe
+  toques. Lo encontró `elementFromPoint`, no la vista.
+- **El feed "Para ti" muestra todo el proyecto**, incluidas las cuentas reales.
+  El primer recorrido E2E falló porque la cuenta sembrada se llamaba igual que
+  una cuenta real del proyecto y el test acabó pulsando la equivocada. El script
+  se endureció: nombres distintivos, navegación por URL en vez de "el primero
+  que salga", y contenido con marca de ejecución. **Una prueba que asume una
+  base de datos vacía no vale para un proyecto que ya está en uso.**
+- **Las aserciones esperan.** El ayudante de comprobación miraba si algo estaba
+  visible en ese instante, lo que convertía cualquier consulta lenta en un falso
+  fallo. Ahora espera hasta 15 segundos. La comprobación instantánea se reservó
+  para afirmar que algo **no** está.
+
+### Stubs que quedan conscientemente para F2
+
+Nada huérfano: todo lo que no hace algo, avisa de que no lo hace.
+
+| Stub | Dónde | Llega en |
+| ---- | ----- | -------- |
+| Comentarios | detalle de publicación (sitio reservado) y contador a 0 en la tarjeta | Después de F2 |
+| Buscar | pestaña Buscar: barra y chips sin función, con aviso | F2.2 |
+| Mapa | pestaña Mapa: leyenda de categorías y aviso | F2.3 |
+| Toque en etiqueta | tarjeta del feed: avisa de que la búsqueda llega en F2 | F2.2 |
+| Puntos OVENG y huella | tarjetas del perfil, con valores por props | F2.4 |
+| Guardados | pestaña interna del perfil | Sin fecha |
+| Notificaciones | campana de la cabecera de Inicio | Sin fecha |
+| Nueva contraseña | el email de recuperación se envía; falta la pantalla que lo recoge | Sin fecha |
+
+### Herramienta de limpieza
+
+`scripts/cleanup-test-users.mjs` borra las cuentas `@ovengtest.dev` que dejan
+los scripts de verificación. Tres decisiones deliberadas:
+
+1. **La `service_role` se lee solo del shell.** Salta RLS: con ella se puede
+   borrar cualquier cosa del proyecto. No va en `.env` —el script se niega a
+   funcionar si la encuentra ahí— ni en variables de GitHub, y por eso este
+   script es el único que **no** se ejecuta con `--env-file`.
+2. **El dominio está fijo en el código.** Si fuera un parámetro, una errata
+   podría llevarse por delante cuentas reales. Y hay cuentas reales: durante el
+   cierre se comprobó que el proyecto ya tiene uso, con publicaciones de verdad.
+3. **Simulacro por defecto.** Enumera lo que borraría; hace falta `--confirm`
+   para que borre.
+
+### Resumen de la fase
+
+Lo que ha marcado F1, mirando hacia atrás:
+
+- **Verificar de verdad cambia lo que se entrega.** De los fallos encontrados,
+  los que importaban no los vio el typecheck: el modal que no se cerraba, el
+  campo que no crecía en web, la etiqueta desalineada de la barra, el anillo de
+  foco negro, el menú que no se podía pulsar. Todos salieron de mirar capturas o
+  de recorrer la app en un navegador.
+- **Medir en vez de opinar sobre color.** Tres veces se cambió una decisión
+  estética por un número de contraste: el azul del agua, el ámbar del contador y
+  el color de texto de cada categoría. La paleta original no daba para todo lo
+  que se le pedía, y decirlo con datos permitió cambiarla sin discusión.
+- **Las decisiones de esquema fueron restar, no sumar.** Ni `account_type` ni
+  `category`: los dos huecos que parecían faltar se resolvieron reconociendo que
+  lo que faltaba era otra tabla (F2.1) o que los hashtags ya lo cubrían.
+- **Lo que sigue pendiente y no es deuda técnica sino trabajo por hacer:** los
+  mockups nunca llegaron, así que toda la estética sale de la spec escrita. F0.2c
+  sigue abierta para contrastar el theme cuando estén.
+
+---
+
 ## 2026-09-18 — F1.5: feed de Inicio
 
 ### La consulta del feed: select anidado, ni vista ni RPC

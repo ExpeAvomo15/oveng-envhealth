@@ -1,6 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 
 import { PostCard } from '@/components/feed';
@@ -15,30 +15,35 @@ export default function PostDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { profile } = useAuth();
 
-  const [post, setPost] = useState<FeedPost | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [notFound, setNotFound] = useState(false);
+  // Se guarda junto al id al que pertenece para poder derivar `loading`.
+  const [loaded, setLoaded] = useState<{ id: string; post: FeedPost | null } | null>(null);
 
   const viewerId = profile?.id ?? null;
+  const current = loaded?.id === id ? loaded : null;
+  const post = current?.post ?? null;
+  const loading = current === null;
+  const notFound = current !== null && current.post === null;
 
-  const load = useCallback(async () => {
+  // El efecto solo encadena la promesa y deja el `setState` en el callback: una
+  // función que hiciera ambas cosas provoca renders en cascada (y lo avisa el
+  // linter de React).
+  useEffect(() => {
     if (!id || !viewerId) return;
 
-    setLoading(true);
-    try {
-      const found = await getPost(id, viewerId);
-      setPost(found);
-      setNotFound(found === null);
-    } catch {
-      setNotFound(true);
-    } finally {
-      setLoading(false);
-    }
-  }, [id, viewerId]);
+    let active = true;
 
-  useEffect(() => {
-    void load();
-  }, [load]);
+    getPost(id, viewerId)
+      .then((found) => {
+        if (active) setLoaded({ id, post: found });
+      })
+      .catch(() => {
+        if (active) setLoaded({ id, post: null });
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [id, viewerId]);
 
   if (loading) {
     return (

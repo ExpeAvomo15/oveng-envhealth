@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Modal, Pressable, StyleSheet, View } from 'react-native';
 
 import { ImpactCard, ProfileCounts, ProfileHeader, ProfileTabs, type ProfileTab } from '@/components/profile';
 import { Button, Callout, Screen, Text } from '@/components/ui';
@@ -103,7 +103,24 @@ export default function ProfileScreen() {
           <Ionicons name="ellipsis-horizontal" size={22} color={colors.text} />
         </Pressable>
 
-        {menuOpen ? (
+      </View>
+
+      {/*
+        El menú va en un Modal, no en una vista absoluta dentro de la cabecera.
+        Dentro, la fila de contadores quedaba por encima en el orden de pintado
+        y se comía el toque: el menú se veía pero no se podía pulsar. Además, en
+        Android un hijo que sobresale de su padre no recibe toques.
+      */}
+      <Modal
+        visible={menuOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setMenuOpen(false)}>
+        <Pressable
+          style={styles.backdrop}
+          accessibilityRole="button"
+          accessibilityLabel="Cerrar el menú"
+          onPress={() => setMenuOpen(false)}>
           <View style={styles.menu}>
             <Pressable
               onPress={handleSignOut}
@@ -113,8 +130,8 @@ export default function ProfileScreen() {
               <Text variant="body">{signingOut ? 'Cerrando sesión…' : 'Cerrar sesión'}</Text>
             </Pressable>
           </View>
-        ) : null}
-      </View>
+        </Pressable>
+      </Modal>
 
       {error ? (
         <View style={styles.inset}>
@@ -213,12 +230,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  backdrop: {
+    flex: 1,
+    alignItems: 'flex-end',
+    paddingTop: 96,
+    paddingHorizontal: screenPadding,
+    backgroundColor: 'rgba(0, 0, 0, 0.15)',
+  },
   menu: {
-    position: 'absolute',
-    right: screenPadding,
-    top: 56,
-    zIndex: 10,
-    minWidth: 200,
+    minWidth: 220,
     padding: spacing.xs,
     borderRadius: radius.md,
     backgroundColor: colors.surface,

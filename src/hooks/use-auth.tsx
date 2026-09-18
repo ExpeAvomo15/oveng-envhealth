@@ -49,11 +49,21 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
-  const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [profileLoading, setProfileLoading] = useState(false);
+
+  /**
+   * Perfil cargado, junto al usuario al que pertenece.
+   *
+   * Se guardan juntos para poder **derivar** el perfil actual y si está
+   * cargando, en vez de sincronizarlos con efectos: al cerrar sesión, el perfil
+   * deja de coincidir con el usuario y desaparece solo, sin un `setState` de por
+   * medio.
+   */
+  const [loaded, setLoaded] = useState<{ userId: string; profile: Profile | null } | null>(null);
 
   const userId = session?.user.id ?? null;
+  const profile = loaded !== null && loaded.userId === userId ? loaded.profile : null;
+  const profileLoading = userId !== null && loaded?.userId !== userId;
 
   // --- Sesión ---------------------------------------------------------------
   useEffect(() => {
@@ -98,22 +108,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (userId === null) {
-      setProfile(null);
-      setProfileLoading(false);
-      return;
-    }
+    if (userId === null) return;
 
     let active = true;
-    setProfileLoading(true);
 
-    loadProfile(userId)
-      .then((value) => {
-        if (active) setProfile(value);
-      })
-      .finally(() => {
-        if (active) setProfileLoading(false);
-      });
+    void loadProfile(userId).then((value) => {
+      if (active) setLoaded({ userId, profile: value });
+    });
 
     return () => {
       active = false;
@@ -202,7 +203,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const refreshProfile = useCallback(async () => {
     if (userId === null) return;
-    setProfile(await loadProfile(userId));
+    setLoaded({ userId, profile: await loadProfile(userId) });
   }, [userId, loadProfile]);
 
   const value = useMemo<AuthContextValue>(

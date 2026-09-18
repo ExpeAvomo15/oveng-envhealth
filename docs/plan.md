@@ -83,10 +83,47 @@ Convención de commit: `F<fase>.<tarea>: descripción`.
       `/post/[id]`. Verificado con `npm run verify:f15` sobre 28 publicaciones
       sembradas: segunda página, persistencia del like en base de datos y filtro
       de "Siguiendo" comprobado con una cuenta seguida y otra no.
-- [ ] **F1.6 cierre MVP** — repaso, pulido, documentación al día y tag anotado
-      `v0.1-mvp`.
+- [x] **F1.6 cierre MVP** — repaso de calidad (lint y typecheck limpios,
+      estados de carga y error revisados, accesibilidad básica), recorrido E2E
+      completo en navegador (`npm run verify:mvp`, capturas en
+      `docs/verificacion/mvp/`), herramienta de limpieza de cuentas de prueba y
+      documentación al día. Tag `v0.1-mvp`.
+
+> **F1 cerrada el 18 de septiembre de 2026** con el tag `v0.1-mvp`. El ciclo
+> social funciona de punta a punta contra Supabase real y la demo está publicada
+> en https://expeavomo15.github.io/oveng-envhealth/.
 
 ## F2 — Demo ambiental
 
-- [ ] Se detalla al cerrar F1 (mapa ambiental: aire, agua, suelo,
-      biodiversidad; valoraciones comunitarias; huella ecológica personal).
+**Propuesta, pendiente de validar.** Es lo que convierte esto en una red social
+*ambiental* y no en una red social más. El orden va de dentro afuera: primero
+los datos, luego las pantallas que los enseñan.
+
+- [ ] **F2.1 modelo de entidades + seed** — tabla propia para empresas e
+      iniciativas (campos, ciclo de vida y permisos distintos de los de una
+      persona; ver la decisión de F1.3), su relación con `profiles` para saber
+      quién administra cada una, y datos de ejemplo suficientes para que el
+      resto de F2 tenga algo que enseñar. Migración `003`.
+- [ ] **F2.2 buscar** — la sección Buscar, hoy un armazón: búsqueda de cuentas,
+      entidades, etiquetas y lugares, más descubrimiento para quien acaba de
+      llegar. Habilita también el toque en las etiquetas del feed, que hoy solo
+      avisa de que no lleva a ninguna parte.
+- [ ] **F2.3 mapa ambiental** — capas de aire, agua, suelo y biodiversidad sobre
+      el territorio, con las entidades y las publicaciones geolocalizadas
+      encima. Exige decidir proveedor de mapa y de dónde salen los datos
+      ambientales (APIs públicas, carga manual o mediciones de la comunidad), y
+      probablemente PostGIS: `location` es hoy texto libre.
+- [ ] **F2.4 perfil ambiental** — huella ecológica y puntos OVENG con datos
+      reales. Los componentes del perfil ya reciben sus valores por props
+      esperando esto.
+- [ ] **F2.5 datos de zona en el feed** — el estado ambiental del entorno junto
+      al contenido social, que es la idea que sostiene el producto: que el dato
+      no viva en un panel aparte.
+
+### Fuera del alcance de F2, anotado para no perderlo
+
+- Comentarios en las publicaciones (el detalle ya les reserva el sitio).
+- Valoraciones comunitarias con puntuación, distintas del "me gusta" actual.
+- Verificación real de cuentas: hoy `verified` lo puede cambiar su propio dueño.
+- Pantalla para elegir contraseña nueva tras el email de recuperación.
+- Notificaciones: la campana de la cabecera todavía no hace nada.

@@ -1,6 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 
 import { ProfileCounts, ProfileHeader, ProfileTabs, type ProfileTab } from '@/components/profile';
@@ -18,57 +18,83 @@ import {
 } from '@/lib/profiles';
 import { colors, radius, screenPadding, spacing } from '@/theme';
 
+type PublicProfileData = {
+  username: string;
+  profile: Profile | null;
+  counts: Counts;
+  following: boolean;
+};
+
+/** Todo lo que hace falta para pintar un perfil ajeno, en una sola llamada. */
+async function loadPublicProfile(
+  username: string,
+  viewerId: string | null,
+): Promise<PublicProfileData> {
+  const profile = await getProfileByUsername(username);
+
+  if (!profile) {
+    return { username, profile: null, counts: EMPTY_COUNTS, following: false };
+  }
+
+  const [counts, following] = await Promise.all([
+    getProfileCounts(profile.id),
+    viewerId && viewerId !== profile.id
+      ? isFollowing(viewerId, profile.id)
+      : Promise.resolve(false),
+  ]);
+
+  return { username, profile, counts, following };
+}
+
 /** Perfil público de otra cuenta. El propio vive en la pestaña Perfil. */
 export default function PublicProfileScreen() {
   const router = useRouter();
   const { username } = useLocalSearchParams<{ username: string }>();
   const { profile: viewer } = useAuth();
 
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [counts, setCounts] = useState<Counts>(EMPTY_COUNTS);
-  const [following, setFollowing] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [notFound, setNotFound] = useState(false);
+  /**
+   * Todo lo que describe el perfil visitado, junto al nombre de usuario al que
+   * pertenece: así `loading` se deriva de que aún no haya datos para el actual,
+   * y cambiar de perfil no necesita limpiar cuatro estados a mano.
+   */
+  const [loaded, setLoaded] = useState<PublicProfileData | null>(null);
+
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [tab, setTab] = useState<ProfileTab>('publicaciones');
 
   const viewerId = viewer?.id ?? null;
+  const current = loaded?.username === username ? loaded : null;
+
+  const profile = current?.profile ?? null;
+  const counts = current?.counts ?? EMPTY_COUNTS;
+  const following = current?.following ?? false;
+  const loading = current === null;
+  const notFound = current !== null && current.profile === null;
   const isOwnProfile = profile !== null && profile.id === viewerId;
 
-  const load = useCallback(async () => {
+  useEffect(() => {
     if (!username) return;
 
-    setLoading(true);
-    setNotFound(false);
+    let active = true;
 
-    try {
-      const found = await getProfileByUsername(username);
+    // La carga es una función pura que devuelve datos; el `setState` vive en el
+    // callback de la promesa. Mezclarlos dentro del efecto dispara renders en
+    // cascada.
+    loadPublicProfile(username, viewerId)
+      .then((data) => {
+        if (active) setLoaded(data);
+      })
+      .catch(() => {
+        if (!active) return;
+        setError('No se ha podido cargar el perfil.');
+        setLoaded({ username, profile: null, counts: EMPTY_COUNTS, following: false });
+      });
 
-      if (!found) {
-        setNotFound(true);
-        return;
-      }
-
-      setProfile(found);
-
-      const [nextCounts, nextFollowing] = await Promise.all([
-        getProfileCounts(found.id),
-        viewerId && viewerId !== found.id ? isFollowing(viewerId, found.id) : Promise.resolve(false),
-      ]);
-
-      setCounts(nextCounts);
-      setFollowing(nextFollowing);
-    } catch {
-      setError('No se ha podido cargar el perfil.');
-    } finally {
-      setLoading(false);
-    }
+    return () => {
+      active = false;
+    };
   }, [username, viewerId]);
-
-  useEffect(() => {
-    void load();
-  }, [load]);
 
   /**
    * Seguir y dejar de seguir se pintan al instante y se corrigen si el servidor
@@ -80,11 +106,15 @@ export default function PublicProfileScreen() {
     const next = !following;
     setBusy(true);
     setError(null);
-    setFollowing(next);
-    setCounts((current) => ({
-      ...current,
-      followers: Math.max(0, current.followers + (next ? 1 : -1)),
-    }));
+
+    const optimistic = {
+      followers: Math.max(0, counts.followers + (next ? 1 : -1)),
+    };
+    setLoaded((previous) =>
+      previous === null
+        ? previous
+        : { ...previous, following: next, counts: { ...previous.counts, ...optimistic } },
+    );
 
     try {
       if (next) {
@@ -94,13 +124,23 @@ export default function PublicProfileScreen() {
       }
 
       // La verdad la tiene la base de datos, no el estado optimista.
-      setCounts(await getProfileCounts(profile.id));
+      const confirmed = await getProfileCounts(profile.id);
+      setLoaded((previous) =>
+        previous === null ? previous : { ...previous, counts: confirmed },
+      );
     } catch {
-      setFollowing(!next);
-      setCounts((current) => ({
-        ...current,
-        followers: Math.max(0, current.followers + (next ? -1 : 1)),
-      }));
+      setLoaded((previous) =>
+        previous === null
+          ? previous
+          : {
+              ...previous,
+              following: !next,
+              counts: {
+                ...previous.counts,
+                followers: Math.max(0, previous.counts.followers + (next ? -1 : 1)),
+              },
+            },
+      );
       setError(next ? 'No se ha podido seguir la cuenta.' : 'No se ha podido dejar de seguir.');
     } finally {
       setBusy(false);

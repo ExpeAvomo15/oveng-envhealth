@@ -17,14 +17,14 @@ export function PostText({ content }: { content: string }) {
   return (
     <Text variant="body">
       {segments.map((segment, index) =>
+        // Los trozos no tienen identidad propia: el índice es la única clave
+        // posible, y la lista se reconstruye entera cuando cambia el texto.
         segment.kind === 'text' ? (
-          // eslint-disable-next-line react/no-array-index-key -- los trozos no tienen id propio
           <Text key={index} variant="body">
             {segment.value}
           </Text>
         ) : (
           <Text
-            // eslint-disable-next-line react/no-array-index-key
             key={index}
             variant="body"
             color="accent"

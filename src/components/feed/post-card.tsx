@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Platform, Pressable, Share, StyleSheet, View } from 'react-native';
 
 import { Avatar, Text } from '@/components/ui';
@@ -24,16 +24,24 @@ export function PostCard({ post, onPressBody }: PostCardProps) {
   const router = useRouter();
   const { profile } = useAuth();
 
-  // Estado optimista propio de la tarjeta: se reinicia si cambia de publicación
-  // (FlatList recicla componentes) o si el servidor trae otra cosa al refrescar.
-  const [liked, setLiked] = useState(post.likedByViewer);
-  const [likes, setLikes] = useState(post.likesCount);
-  const [busy, setBusy] = useState(false);
+  /**
+   * Estado optimista del "me gusta", con la publicación a la que pertenece.
+   *
+   * Guardarlos juntos permite **derivarlo**: si la tarjeta pasa a mostrar otra
+   * publicación —FlatList recicla componentes— el estado deja de coincidir y se
+   * vuelve solo al valor del servidor, sin sincronizar con un efecto.
+   */
+  const [optimistic, setOptimistic] = useState<{
+    postId: string;
+    liked: boolean;
+    likes: number;
+  } | null>(null);
 
-  useEffect(() => {
-    setLiked(post.likedByViewer);
-    setLikes(post.likesCount);
-  }, [post.id, post.likedByViewer, post.likesCount]);
+  const current = optimistic?.postId === post.id ? optimistic : null;
+  const liked = current?.liked ?? post.likedByViewer;
+  const likes = current?.likes ?? post.likesCount;
+
+  const [busy, setBusy] = useState(false);
 
   const authorName = post.author.display_name?.trim() || post.author.username;
 
@@ -42,8 +50,11 @@ export function PostCard({ post, onPressBody }: PostCardProps) {
 
     const next = !liked;
     setBusy(true);
-    setLiked(next);
-    setLikes((current) => Math.max(0, current + (next ? 1 : -1)));
+    setOptimistic({
+      postId: post.id,
+      liked: next,
+      likes: Math.max(0, likes + (next ? 1 : -1)),
+    });
 
     try {
       if (next) {
@@ -53,8 +64,7 @@ export function PostCard({ post, onPressBody }: PostCardProps) {
       }
     } catch {
       // Revertir es lo único honesto: el número que se ve tiene que ser el real.
-      setLiked(!next);
-      setLikes((current) => Math.max(0, current + (next ? -1 : 1)));
+      setOptimistic({ postId: post.id, liked: !next, likes });
       showToast('No se ha podido guardar tu "me gusta".');
     } finally {
       setBusy(false);

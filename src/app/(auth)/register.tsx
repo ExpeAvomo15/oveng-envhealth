@@ -25,12 +25,29 @@ export default function RegisterScreen() {
   const [username, setUsername] = useState('');
   const [displayName, setDisplayName] = useState('');
 
-  const [availability, setAvailability] = useState<UsernameAvailability | 'checking' | null>(null);
+  /**
+   * Último username comprobado y su resultado. El estado visible se **deriva**
+   * de comparar con lo que hay escrito: si no coinciden, es que la comprobación
+   * está en marcha. Así no hace falta encender "comprobando" con un `setState`
+   * dentro del efecto.
+   */
+  const [checked, setChecked] = useState<{
+    username: string;
+    result: UsernameAvailability;
+  } | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [confirmationEmail, setConfirmationEmail] = useState<string | null>(null);
 
   const usernameProblem = username.length > 0 ? validateUsername(username) : null;
+
+  const availability: UsernameAvailability | 'checking' | null =
+    username.length === 0 || validateUsername(username) !== null
+      ? null
+      : checked?.username === username
+        ? checked.result
+        : 'checking';
+
   const emailLooksValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
   const passwordTooShort = password.length > 0 && password.length < PASSWORD_MIN_LENGTH;
 
@@ -40,20 +57,15 @@ export default function RegisterScreen() {
   const requestId = useRef(0);
 
   useEffect(() => {
-    if (username.length === 0 || validateUsername(username) !== null) {
-      setAvailability(null);
-      return;
-    }
+    if (username.length === 0 || validateUsername(username) !== null) return;
 
     const currentRequest = requestId.current + 1;
     requestId.current = currentRequest;
 
-    setAvailability('checking');
-
     const timer = setTimeout(async () => {
       const result = await checkUsernameAvailability(username);
       if (requestId.current === currentRequest) {
-        setAvailability(result);
+        setChecked({ username, result });
       }
     }, USERNAME_DEBOUNCE_MS);
 
