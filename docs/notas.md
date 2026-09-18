@@ -5,6 +5,77 @@ decidió y por qué. Lo más reciente arriba.
 
 ---
 
+## 2026-09-18 — F1.5: feed de Inicio
+
+### La consulta del feed: select anidado, ni vista ni RPC
+
+Cada tarjeta necesita cuatro cosas —la publicación, su autor, cuántos "me
+gusta" tiene y si yo le he dado— y todas salen en **un solo viaje** con un
+`select` anidado de PostgREST:
+
+- `author:profiles!posts_author_id_fkey(...)` incrusta el perfil;
+- `likes_count:likes(count)` devuelve el agregado, no las filas — importante:
+  traerse todos los "me gusta" para contarlos en el cliente funciona con tres y
+  es insostenible con tres mil;
+- `my_like:likes(user_id)` con `.eq('my_like.user_id', …)` devuelve un array
+  vacío o con una fila.
+
+La parte que no era obvia: **filtrar un recurso incrustado no descarta la fila
+padre**. Se comprobó contra la base real antes de construir nada encima —una
+publicación sin "me gusta" del lector sigue apareciendo, con `my_like: []`—
+porque de ese detalle dependía todo el diseño.
+
+Se descartó una vista o una función: exigirían una migración, y en este proyecto
+las migraciones las aplica el autor a mano. Añadir fricción de despliegue para
+ahorrar una anidación no compensa. Si el feed crece —ranking, mezcla de
+fuentes—, el sitio natural pasa a ser un RPC.
+
+### Paginación
+
+- **Cursor sobre `created_at`, no `offset`.** Con offset, publicar algo mientras
+  alguien baja por el feed le repite una tarjeta.
+- **Limitación conocida:** si dos publicaciones compartieran `created_at` exacto,
+  el cursor podría saltarse una. En la práctica no ocurre —`timestamptz` guarda
+  microsegundos y las publicaciones las escriben personas—, pero sembrando datos
+  por script sí pasa: por eso el script de verificación inserta marcas de tiempo
+  explícitas y distintas. Si alguna vez importa, la solución es un cursor
+  compuesto `(created_at, id)`.
+- **"Siguiendo" son dos consultas, no una.** PostgREST no admite subconsultas, así
+  que primero se pide a quién sigo y luego se filtra con `.in('author_id', …)`.
+  La lista se recuerda entre páginas para que la segunda filtre por lo mismo que
+  la primera.
+
+### Lo demás
+
+- **El "me gusta" es optimista y lo gestiona la tarjeta.** Cambia al instante y
+  se revierte si el servidor falla, con un aviso. Se guarda en la tarjeta y no
+  en la lista porque así el detalle de publicación y el feed comparten el mismo
+  componente sin duplicar la lógica; al refrescar, manda el servidor.
+- **No hay `pull-to-refresh` en web**, así que la barra lleva un botón de
+  refrescar que solo aparece ahí. En nativo, `RefreshControl`.
+- **Las imágenes no llevan `loading="lazy"`.** No hace falta: `FlatList` solo
+  monta lo que cabe en pantalla y un poco más, así que una imagen que está a
+  veinte tarjetas de distancia ni siquiera existe en el DOM.
+- **Las etiquetas del texto se pueden pulsar y avisan de que aún no llevan a
+  ningún sitio.** La búsqueda por etiqueta es F2. Avisar es mejor que un
+  elemento que parece pulsable y no hace nada.
+- **Toast global.** `showToast()` lo dispara cualquiera y lo pinta un único
+  `<ToastHost />` en el layout raíz: así no se superponen dos avisos ni cada
+  pantalla lleva el suyo. Lo usan compartir, las etiquetas y los errores de
+  "me gusta".
+- **Compartir se bifurca por plataforma.** En nativo, la hoja de compartir del
+  sistema; en web, copiar el enlace al portapapeles y avisar. La URL se compone
+  con el origen real en web —así compartir desde local copia un enlace local— y
+  con la URL desplegada en nativo.
+- **Esqueletos sin animación.** Un parpadeo a pantalla completa marea más de lo
+  que informa; lo que hace falta es que el hueco tenga la forma de lo que va a
+  llegar para que nada salte al aparecer.
+- **El enganche de F1.4 ya tiene a alguien escuchando:** al publicar, el
+  compositor llama a `refreshFeed()` y el feed recarga su primera página. La
+  publicación nueva aparece arriba, verificado.
+
+---
+
 ## 2026-09-18 — F1.4: composición de publicaciones
 
 ### Decisión de diseño: `posts` no lleva `category`

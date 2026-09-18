@@ -16,6 +16,41 @@
  */
 const HASHTAG_PATTERN = /#([\p{L}\p{M}\p{N}_]+)/gu;
 
+export type TextSegment =
+  | { kind: 'text'; value: string }
+  | { kind: 'hashtag'; value: string; tag: string };
+
+/**
+ * Parte el texto en trozos normales y etiquetas, para poder pintar las segundas
+ * en verde sin tocar el contenido.
+ */
+export function splitByHashtags(content: string): TextSegment[] {
+  const segments: TextSegment[] = [];
+  let lastIndex = 0;
+
+  for (const match of content.matchAll(HASHTAG_PATTERN)) {
+    const start = match.index ?? 0;
+
+    if (start > lastIndex) {
+      segments.push({ kind: 'text', value: content.slice(lastIndex, start) });
+    }
+
+    segments.push({
+      kind: 'hashtag',
+      value: match[0],
+      tag: (match[1] ?? '').toLowerCase(),
+    });
+
+    lastIndex = start + match[0].length;
+  }
+
+  if (lastIndex < content.length) {
+    segments.push({ kind: 'text', value: content.slice(lastIndex) });
+  }
+
+  return segments;
+}
+
 /** Máximo de etiquetas por publicación: más que esto no clasifica, es ruido. */
 export const MAX_HASHTAGS = 10;
 

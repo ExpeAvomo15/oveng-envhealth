@@ -76,8 +76,13 @@ Convención de commit: `F<fase>.<tarea>: descripción`.
       clasificación temática (ver notas). Verificado con `npm run verify:f14`:
       RLS, etiquetas con tildes, imagen accesible en público y límite de 500
       respetado. Capturas en `docs/verificacion/f1/`.
-- [ ] **F1.5 feed** — feed de publicaciones de las cuentas seguidas, con
-      paginación y valoraciones básicas.
+- [x] **F1.5 feed** — feed de Inicio con `FlatList`, selector "Para ti" /
+      "Siguiendo", paginación por cursor (páginas de 20), "me gusta" optimista,
+      compartir, esqueletos de carga y estados vacíos por modo. Tarjeta con
+      etiquetas resaltadas, enlace al perfil del autor y detalle en
+      `/post/[id]`. Verificado con `npm run verify:f15` sobre 28 publicaciones
+      sembradas: segunda página, persistencia del like en base de datos y filtro
+      de "Siguiendo" comprobado con una cuenta seguida y otra no.
 - [ ] **F1.6 cierre MVP** — repaso, pulido, documentación al día y tag anotado
       `v0.1-mvp`.
 

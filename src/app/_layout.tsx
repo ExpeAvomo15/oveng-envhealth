@@ -4,6 +4,7 @@ import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { Logo } from '@/components/brand/logo';
+import { ToastHost } from '@/components/ui/toast';
 import { AuthProvider, useAuth } from '@/hooks/use-auth';
 import { colors } from '@/theme';
 
@@ -13,6 +14,8 @@ export default function RootLayout() {
       <StatusBar style="dark" />
       <AuthProvider>
         <RootNavigator />
+        {/* Un único host para todos los avisos breves de la app. */}
+        <ToastHost />
       </AuthProvider>
     </SafeAreaProvider>
   );
@@ -51,6 +54,7 @@ function RootNavigator() {
         <Stack.Screen name="crear" options={{ presentation: 'modal' }} />
         <Stack.Screen name="editar-perfil" options={{ presentation: 'modal' }} />
         <Stack.Screen name="user/[username]" />
+        <Stack.Screen name="post/[id]" />
       </Stack.Protected>
     </Stack>
   );
