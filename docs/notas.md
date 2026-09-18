@@ -5,6 +5,85 @@ decidió y por qué. Lo más reciente arriba.
 
 ---
 
+## 2026-09-18 — F0.3: esquema de Supabase y cliente
+
+- **La sesión no cabe en SecureStore, así que se trocea.** `expo-secure-store`
+  limita cada valor a 2048 bytes y una sesión de Supabase (access token +
+  refresh token + usuario) ronda los 3–4 KB. La guía oficial de Supabase
+  resuelve esto cifrando la sesión con AES y guardándola en AsyncStorage,
+  dejando solo la clave en SecureStore. Se descartó: añade tres dependencias
+  (`aes-js`, `react-native-get-random-values`, `async-storage`) y saca el
+  contenido del almacén seguro. En su lugar, `src/lib/session-storage.ts`
+  reparte el valor en entradas de 600 unidades UTF-16 (1800 bytes en el peor
+  caso) y guarda una cabecera con el número de trozos. La cabecera se escribe
+  **la última**: si la escritura se corta, no hay cabecera, la sesión se
+  descarta y el usuario vuelve a entrar — nunca se recompone media sesión.
+- **Lectura pública de verdad, incluido el rol `anon`.** La web es visitable sin
+  cuenta, así que perfiles y publicaciones los lee cualquiera. Es decisión de
+  producto: en el MVP no hay contenido privado. Si algún día lo hay, la política
+  de SELECT es el sitio donde se nota.
+- **Sin política de UPDATE en `follows` ni en `likes`.** Esas filas no tienen
+  nada que actualizar: se crean o se borran. Al no haber política, RLS deniega,
+  que es justo el comportamiento correcto — es una omisión deliberada, no un
+  olvido.
+- **`(select auth.uid())` en vez de `auth.uid()`.** Envuelto en un select,
+  Postgres lo evalúa una vez por consulta en lugar de una por fila. Con
+  paginación de feed la diferencia se nota, y no cuesta nada escribirlo así
+  desde el principio.
+- **El registro falla entero si el username está cogido.** El trigger no inventa
+  un username alternativo: prefiere que el registro falle y que la app pida otro
+  a que la cuenta acabe con un nombre que nadie eligió. F1.1 tiene que tratar
+  ese error.
+- **Color de las categorías ambientales, medido.** El encargo era: aire azul,
+  agua "variante de azul", suelo amarillo, biodiversidad verde, residuos gris,
+  ajustando las variantes para que se distingan. Al medirlo salieron dos cosas:
+  1. La idea inicial de usar fondos suaves no sirve. El tinte claro de `aire`
+     (#E1F6F9) y el de `agua` (#E1EFF7) son prácticamente el mismo color: dos
+     categorías indistinguibles. Por eso los chips de categoría van con relleno
+     **sólido** y no se ofrece un token de tinte por categoría.
+  2. `agua` se fijó en **#0277BD** (azul oscuro de la misma familia Material que
+     el resto de la paleta). Frente al cian de `aire` no solo cambia el tono,
+     cambia la luminancia — se distinguen también en gris y con daltonismo, que
+     es lo que el tono por sí solo no garantiza.
+  El color del texto se eligió midiendo el contraste de cada combinación: sale
+  oscuro sobre aire (6.9:1) y suelo (10.1:1), y blanco sobre agua (4.8:1),
+  biodiversidad (5.1:1) y residuos (6.2:1). Los cinco pasan AA. Eso obligó a
+  generalizar la regla de F0.2: no es "azul y amarillo siempre llevan texto
+  oscuro", es "el color del texto se decide por la luminancia del relleno".
+- **La categoría nunca se indica solo con color.** Un punto del color de `aire`
+  sobre la superficie da 2.2:1, por debajo del 3:1 que pide WCAG para un gráfico
+  con significado. Siempre acompañado de su etiqueta de texto.
+- **Tipos escritos a mano, con instrucciones para regenerarlos.** F0.3 no
+  depende de tener el CLI configurado, pero la fuente de verdad es la base de
+  datos: `supabase gen types typescript` manda sobre lo escrito a mano y el
+  comando está documentado en el propio archivo y en 03_MODELO_DATOS.md.
+- **Migraciones con prefijo `001_`/`002_` y aplicación manual.** El nombre lo
+  fijó el encargo. Tiene una consecuencia real: `supabase db push` exige nombres
+  con marca de tiempo y **rechaza** estos prefijos, así que el camino con menos
+  fricción es el SQL Editor del dashboard — que además evita instalar el CLI y
+  enlazar el proyecto. Si algún día se quiere llevar con el CLI, hay que
+  renombrar los archivos. Anotado en 03_MODELO_DATOS.md.
+- **Cada migración va en `begin; … commit;`.** Aplicándolas a mano en un editor,
+  un fallo a media migración dejaría el esquema en un estado intermedio difícil
+  de diagnosticar. Así, o entra todo o no entra nada.
+- **`flowType: 'pkce'`.** Es el flujo recomendado para clientes públicos como una
+  app móvil; el valor por defecto de supabase-js no lo es.
+- **Verificación de la tarea:** `tsc --noEmit` limpio y `expo export --platform
+  web` correcto. Además se comprobó aparte que `src/lib/supabase.ts` **empaqueta
+  de verdad** en la build web (route temporal + `.env` de prueba, ambos
+  borrados): supabase-js y `react-native-url-polyfill` entran sin romper el
+  render estático. El bundle pasa de 1.2 MB a 1.5 MB, dato a tener en cuenta en
+  F1.2b. Las migraciones **no** se ejecutaron: las aplica el autor.
+- **Tres huecos del esquema, anotados y no rellenados.** El encargo fijaba las
+  columnas de cada tabla y no se añadieron otras por cuenta propia: falta
+  `account_type` en `profiles` (lo necesita F1.3), falta `category` en `posts`
+  (lo necesitan F1.4 y F2, y por eso el enumerado de categorías vive de momento
+  solo en el código) y `verified` hoy lo puede cambiar su propio dueño desde la
+  app. Están en las limitaciones de 03_MODELO_DATOS.md con la fase a la que
+  afectan.
+
+---
+
 ## 2026-09-18 — F0.2: app Expo y design system
 
 - **Expo SDK 57** (React Native 0.86, React 19.2, TypeScript 6) desde la

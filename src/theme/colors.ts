@@ -17,9 +17,13 @@
  * - `text` sobre `info` ...................... 6.7:1 ✓
  * - `text` sobre `warning` .................. 10.2:1 ✓
  *
- * De ahí la regla: **azul y amarillo son rellenos, nunca color de texto, y
- * siempre llevan texto oscuro encima.** El verde sí funciona como color de
- * texto sobre superficies claras.
+ * De ahí dos reglas:
+ *
+ * 1. **El azul y el amarillo de la paleta son rellenos, nunca color de texto.**
+ *    El verde sí funciona como texto sobre superficies claras.
+ * 2. **El color del texto sobre un relleno se decide midiendo su luminancia,**
+ *    no por costumbre: estos dos son claros y piden texto oscuro, pero un
+ *    relleno oscuro pide texto blanco (ver `theme/categories.ts`).
  */
 
 const palette = {

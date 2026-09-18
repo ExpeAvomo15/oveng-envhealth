@@ -18,9 +18,17 @@ Convención de commit: `F<fase>.<tarea>: descripción`.
       tipografía, sombras) y componentes base en `src/components/ui/`
       (Text, Screen, Card, Button, Badge, Avatar, Divider). Pendiente de
       reconciliar con los mockups oficiales cuando se suban a `docs/design/`.
-- [ ] **F0.3 Supabase esquema + cliente** — proyecto Supabase, esquema inicial
-      con RLS, cliente tipado en la app, `.env.example` completo y
-      `docs/03_MODELO_DATOS.md` rellenado.
+- [x] **F0.3 Supabase esquema + cliente** — migraciones `001_initial_schema.sql`
+      (profiles, posts, follows, likes, RLS y trigger de registro) y
+      `002_storage.sql` (buckets `avatars` y `post-images`); cliente tipado en
+      `src/lib/`, almacén de sesión para web y nativo, mapeo de categorías
+      ambientales y `docs/03_MODELO_DATOS.md` rellenado.
+      **Las migraciones las aplica el autor a mano** (instrucciones y
+      verificación en ese documento).
+
+> **F0 cerrada** con el tag `f0-completa`. Pendiente por decidir antes de las
+> tareas que las tocan: `account_type` en `profiles` (F1.3) y `category` en
+> `posts` (F1.4) — ver limitaciones en @docs/03_MODELO_DATOS.md.
 
 ## F1 — Core social
 

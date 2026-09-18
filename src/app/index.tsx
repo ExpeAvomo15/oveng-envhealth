@@ -1,7 +1,15 @@
 import { StyleSheet, View } from 'react-native';
 
 import { Avatar, Badge, Button, Card, Divider, Screen, Text } from '@/components/ui';
-import { colors, radius, spacing, typography, type ColorToken } from '@/theme';
+import {
+  colors,
+  environmentalCategories,
+  environmentalCategoryOrder,
+  radius,
+  spacing,
+  typography,
+  type ColorToken,
+} from '@/theme';
 
 /**
  * Pantalla de verificación del design system.
@@ -63,6 +71,25 @@ export default function DesignSystemScreen() {
           <Badge label="Pendiente" tone="warning" />
           <Badge label="Empresa" tone="neutral" />
         </View>
+      </Section>
+
+      <Section title="Categorías ambientales">
+        <View style={styles.row}>
+          {environmentalCategoryOrder.map((key) => {
+            const category = environmentalCategories[key];
+            return (
+              <View key={key} style={[styles.categoryChip, { backgroundColor: category.color }]}>
+                <Text variant="label" color={category.onColor}>
+                  {category.label}
+                </Text>
+              </View>
+            );
+          })}
+        </View>
+        <Text variant="caption" color="textSecondary">
+          Relleno sólido; el color del texto sale de medir la luminancia de cada uno. La categoría
+          nunca se indica solo con color: siempre lleva su etiqueta.
+        </Text>
       </Section>
 
       <Section title="Card y avatar">
@@ -151,6 +178,11 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     borderWidth: 1,
     borderColor: colors.border,
+  },
+  categoryChip: {
+    borderRadius: radius.sm,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
   },
   cardHeader: {
     flexDirection: 'row',

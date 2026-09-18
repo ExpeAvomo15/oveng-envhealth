@@ -4,8 +4,10 @@ Red social ambiental que conecta personas, empresas e iniciativas verdes: feed
 social, mapa ambiental (aire, agua, suelo, biodiversidad), valoraciones
 comunitarias y huella ecológica personal.
 
-**Estado:** F0.2 completada — app Expo en marcha con el design system. Todavía
-no hay backend ni navegación: eso es F0.3 y F1.
+**Estado:** F0 completada — repo, app Expo con design system y esquema de
+Supabase. Las migraciones están escritas pero **se aplican a mano**: ver
+[docs/03_MODELO_DATOS.md](docs/03_MODELO_DATOS.md). Siguiente: F1 (auth,
+navegación y feed).
 
 ## Stack
 
@@ -47,11 +49,24 @@ npm run export:web     # export estático a dist/, el mismo que publicará Pages
 src/
 ├── app/            # rutas de expo-router (+html.tsx = documento de la build web)
 ├── components/ui/  # componentes base del design system
-├── theme/          # tokens: color, espaciado, radios, tipografía, sombras
+├── lib/            # cliente de Supabase, almacén de sesión y tipos de la BD
+├── theme/          # tokens: color, espaciado, radios, tipografía, categorías
 └── types/          # tipos globales del entorno
+supabase/migrations/ # esquema SQL; se aplica a mano desde el SQL Editor
 assets/images/      # iconos y splash (placeholder de Expo por ahora)
 docs/               # documentación viva
 ```
+
+### Backend
+
+`src/lib/supabase.ts` es el único punto de acceso a Supabase. Necesita
+`EXPO_PUBLIC_SUPABASE_URL` y `EXPO_PUBLIC_SUPABASE_ANON_KEY` en `.env` y falla
+al arrancar si faltan.
+
+Esas claves son públicas por diseño: van incrustadas en el bundle. Lo que
+protege los datos es **RLS en Postgres**, así que toda tabla nueva se crea con
+RLS activado y sus políticas en la misma migración. La `service_role` no entra
+nunca en el repositorio.
 
 ### Design system
 
