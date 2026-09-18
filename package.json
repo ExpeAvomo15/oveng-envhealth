@@ -36,6 +36,7 @@
     "web": "expo start --web",
     "export:web": "expo export --platform web",
     "typecheck": "tsc --noEmit",
+    "verify:auth": "node --env-file=.env scripts/verify-auth.mjs",
     "lint": "expo lint"
   },
   "private": true
