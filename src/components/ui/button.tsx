@@ -65,7 +65,8 @@ export function Button({
 
 const styles = StyleSheet.create({
   base: {
-    borderRadius: radius.md,
+    // Píldora: es la forma del botón primario en los mockups.
+    borderRadius: radius.full,
     alignItems: 'center',
     justifyContent: 'center',
     alignSelf: 'flex-start',

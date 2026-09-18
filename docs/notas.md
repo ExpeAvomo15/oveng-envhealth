@@ -5,6 +5,71 @@ decidió y por qué. Lo más reciente arriba.
 
 ---
 
+## 2026-09-18 — F1.1: flujo de autenticación
+
+- **El trigger de 001 ya leía los metadatos: no hace falta migración 003.**
+  `handle_new_user` toma `username` y `display_name` de `raw_user_meta_data`,
+  que es exactamente donde `signUp({ options: { data } })` los deja. Comprobado
+  antes de escribir nada.
+- **Guard con `Stack.Protected`, no con redirecciones.** expo-router 57 permite
+  sacar del árbol el grupo que no toca (`guard={session === null}`), así que sin
+  sesión la zona privada literalmente no existe como ruta. Con el patrón clásico
+  de `useEffect` + `router.replace` siempre hay un instante en que se pinta la
+  pantalla equivocada antes de saltar. Además `(auth)/_layout.tsx` fija
+  `unstable_settings.anchor = 'welcome'` para que esa sea la puerta de entrada.
+- **Las pantallas no navegan tras iniciar o cerrar sesión.** Cambian el estado y
+  ya está: el guard reacciona solo. Navegar a mano además del guard es la receta
+  para las dobles navegaciones.
+- **Dos éxitos distintos en el registro.** Con "Confirm email" activado en
+  Supabase, `signUp` devuelve usuario pero **no** sesión, y el usuario no puede
+  entrar hasta abrir su correo. Por eso `signUp` devuelve
+  `'session' | 'confirm-email' | 'error'` en vez de un booleano: la pantalla
+  enseña una cosa u otra. Si no se distinguiera, el registro parecería colgado.
+- **Email ya registrado, con confirmación activada, no llega como error.** Para
+  no delatar qué direcciones existen, Supabase responde con un usuario cuya
+  lista de `identities` está vacía. Se detecta explícitamente y se traduce a
+  "ya existe una cuenta con ese email".
+- **"Database error saving new user" se traduce apuntando al username.** Es el
+  error genérico que devuelve Supabase cuando el trigger falla, y en este
+  esquema la causa casi segura es el `unique` de `username`. Dejarlo en crudo
+  sería incomprensible para quien se registra.
+- **Nada de `await` dentro de `onAuthStateChange`.** supabase-js advierte de que
+  llamar a sus funciones async dentro de ese callback puede bloquear el cliente.
+  El callback solo guarda la sesión; el perfil se carga en un efecto aparte
+  disparado por el id de usuario.
+- **Contador de petición en la comprobación de username.** Con debounce de
+  450 ms sigue siendo posible que la respuesta de un nombre anterior llegue
+  después que la del actual y lo pise. Un contador descarta las respuestas
+  viejas. La comprobación es optimista de todas formas: entre consultar y
+  registrarse alguien puede quedarse el nombre, y ahí manda el trigger.
+- **`startAutoRefresh`/`stopAutoRefresh` según el AppState (solo nativo).** Era
+  el cabo suelto que dejó F0.3. Sin esto, supabase-js intenta refrescar el token
+  con la app dormida.
+- **Botón píldora y pantallas en blanco.** La estética indicada para auth (fondo
+  blanco, botón primario píldora) obligó a tocar el design system: `Button` pasa
+  de `radius.md` a `radius.full` —para todas las variantes, por coherencia— y
+  `Screen` acepta `background="surface"`, `avoidKeyboard` y `center`.
+- **Componentes nuevos del design system:** `TextField` (con mostrar/ocultar
+  contraseña, estado de error y ayuda) y `Callout` (mensaje destacado). El
+  `Callout` de error usa el **amarillo** de aviso, no rojo: no hay rojo en la
+  paleta, y el mensaje siempre acompaña al campo que falla, así que no depende
+  del color para entenderse.
+- **La pantalla del design system se movió a `/design-system`** dentro de
+  `(tabs)`. Antes vivía en `/`, que ahora es la zona con sesión: dos rutas no
+  pueden ocupar `/`. Se conserva porque sigue siendo la referencia visual.
+- **Logo dibujado con vistas, sin SVG.** No hay assets de marca todavía y la
+  pantalla de bienvenida sin identidad no tiene sentido. Se sustituye cuando
+  lleguen los mockups.
+- **No hay pantalla de nueva contraseña.** F1.1 pedía "envío de email de reset
+  con feedback claro" y eso es lo que hay. Completar el cambio requiere una
+  pantalla que recoja el enlace y llame a `updateUser`, más dar de alta esa URL
+  en Supabase → Authentication → URL Configuration. Queda anotado para F1.6.
+- **Sin mockups otra vez.** `docs/design/` sigue teniendo solo el README: la
+  estética de estas pantallas sale de las indicaciones del encargo y de los
+  tokens de F0.2. Hay que contrastarlas cuando se suban los mockups.
+
+---
+
 ## 2026-09-18 — F0.3: esquema de Supabase y cliente
 
 - **La sesión no cabe en SecureStore, así que se trocea.** `expo-secure-store`
