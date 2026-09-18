@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <title>OVENG EnvHealth</title>
+    <script>
+      // Fallback de SPA para GitHub Pages.
+      //
+      // Pages sirve este archivo cuando la ruta pedida no existe como fichero.
+      // En vez de mostrar un 404, guarda la ruta en la query y vuelve a la raíz
+      // de la app; el script del <head> de index.html la restaura con
+      // history.replaceState antes de que el router lea la URL, así que el
+      // usuario aterriza donde quería sin ver un salto.
+      //
+      // La app vive bajo /oveng-envhealth/, un segmento de ruta: de ahí el 1.
+      var SEGMENTS_IN_BASE_PATH = 1;
+
+      (function (l) {
+        var base = l.pathname.split('/').slice(0, 1 + SEGMENTS_IN_BASE_PATH).join('/');
+        var route = l.pathname.slice(1).split('/').slice(SEGMENTS_IN_BASE_PATH).join('/');
+
+        l.replace(
+          l.protocol +
+            '//' +
+            l.hostname +
+            (l.port ? ':' + l.port : '') +
+            base +
+            '/?/' +
+            route.replace(/&/g, '~and~') +
+            (l.search ? '&' + l.search.slice(1).replace(/&/g, '~and~') : '') +
+            l.hash,
+        );
+      })(window.location);
+    </script>
+  </head>
+  <body></body>
+</html>

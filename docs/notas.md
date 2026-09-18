@@ -5,6 +5,50 @@ decidió y por qué. Lo más reciente arriba.
 
 ---
 
+## 2026-09-18 — F1.2b: despliegue en GitHub Pages
+
+- **Subpath con `experiments.baseUrl`.** La app se sirve desde
+  `https://expeavomo15.github.io/oveng-envhealth/`, un subdirectorio, así que
+  todas las rutas absolutas de assets tienen que llevar ese prefijo.
+  `expo.experiments.baseUrl = "/oveng-envhealth"` lo resuelve de una vez: el
+  JS, el CSS y la fuente de Ionicons salen ya con el prefijo. **Está atado al
+  nombre del repositorio**: si se renombra, hay que tocarlo en `app.json` y en
+  el workflow. Anotado también en el README.
+- **Enlaces profundos: Pages resuelve casi todo solo.** Pages ya sirve
+  `mapa.html` cuando se pide `/mapa`, así que la mayoría de rutas funcionan sin
+  hacer nada. `public/404.html` cubre el resto: guarda la ruta pedida en la
+  query, vuelve a la raíz de la app, y un script en el `<head>`
+  (`src/app/+html.tsx`) la restaura con `history.replaceState` antes de que el
+  router lea la URL. Es el patrón habitual de SPA en Pages, partido en dos
+  mitades que tienen que ir a juego: si se cambia una, hay que cambiar la otra.
+- **Variables, no Secrets.** `EXPO_PUBLIC_SUPABASE_URL` y
+  `EXPO_PUBLIC_SUPABASE_ANON_KEY` van como *Variables* del repositorio. Acaban
+  incrustadas en el bundle que descarga cualquier visitante: no son secretas y
+  tratarlas como tales solo dificultaría verlas y editarlas. Lo que protege los
+  datos sigue siendo RLS. Si faltan, el workflow falla en el primer paso con las
+  instrucciones, en lugar de publicar una app que no conecta con nada.
+- **El smoke test existe por una cicatriz.** El workflow comprueba que la URL de
+  Supabase aparece dentro del bundle antes de publicar. Es exactamente el fallo
+  que se coló en la verificación de F1.1: Metro cachea el valor incrustado de
+  las variables `EXPO_PUBLIC_*` y se llegó a verificar un bundle que apuntaba a
+  un proyecto de prueba. Por eso el export lleva `--clear` **y** además se
+  comprueba el resultado: lo primero previene, lo segundo detecta.
+- **`.nojekyll`.** El export tiene una carpeta `_expo/`, y Jekyll ignora todo lo
+  que empieza por guion bajo. El despliegue por artefacto no pasa por Jekyll,
+  pero el fichero cuesta una línea y elimina una clase entera de fallo difícil
+  de diagnosticar.
+- **`verify:ui` ahora sirve como Pages.** El servidor de verificación monta
+  `dist/` bajo el mismo subpath y cae en `404.html` cuando no encuentra fichero,
+  con estado 404 real. Así el recorrido en navegador prueba de verdad lo que se
+  va a publicar, incluido el fallback. Verificar en la raíz habría dado un verde
+  que no significaba nada.
+- **Aviso de hidratación de React (#418) en consola.** Es el desajuste esperado
+  entre el splash que renderiza el servidor y la ruta que pinta el cliente —
+  consecuencia del guard, ya documentada. No rompe nada y **no se toca el
+  guard**, según lo decidido.
+
+---
+
 ## 2026-09-18 — Verificación de F1.1 y F1.2 contra el entorno real
 
 Ambas tareas quedaron cerradas tras verificarlas de verdad: la de auth contra el

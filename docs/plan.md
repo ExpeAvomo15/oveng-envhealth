@@ -50,8 +50,15 @@ Convención de commit: `F<fase>.<tarea>: descripción`.
       modal que abre y cierra, recarga manteniendo sesión y ruta, y cierre de
       sesión. Capturas en `docs/verificacion/f1/`.
       La fidelidad a los mockups queda pendiente en **F0.2c**.
-- [ ] **F1.2b deploy GitHub Pages** — export web estático de Expo y workflow de
-      GitHub Actions que publica en Pages en cada push a main.
+- [x] **F1.2b deploy GitHub Pages** — export estático bajo el subpath
+      `/oveng-envhealth` (`experiments.baseUrl`), fallback de SPA con
+      `public/404.html` para los enlaces profundos, y workflow `deploy.yml` que
+      publica en cada push a `main` leyendo las credenciales de *Variables* del
+      repositorio. El artefacto se comprueba antes de publicarse (URL de
+      Supabase en el bundle, subpath en los assets, `404.html` presente).
+      Verificado en local con `npm run verify:ui` sirviendo `dist/` como lo hace
+      Pages. **Requiere que el autor active Pages (Source: GitHub Actions) y
+      cree las dos variables.**
 - [ ] **F1.3 perfiles + seguir** — perfil de usuario (persona, empresa,
       iniciativa), edición y relación de seguimiento.
 - [ ] **F1.4 crear posts** — creación de publicaciones con texto e imagen

@@ -1,0 +1,128 @@
+# Publica el export web estático de Expo en GitHub Pages.
+#
+# Las credenciales de Supabase se leen de **Variables** del repositorio, no de
+# Secrets: son públicas por diseño (van incrustadas en el bundle que descarga
+# cualquier visitante) y como variables se ven y se editan sin fricción. Lo que
+# protege los datos es RLS en Postgres.
+name: Deploy web
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Los permisos mínimos que exige actions/deploy-pages.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Un despliegue cada vez. No se cancela el que esté en curso: cancelar a mitad
+# puede dejar Pages sirviendo una versión a medias.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    env:
+      EXPO_PUBLIC_SUPABASE_URL: ${{ vars.EXPO_PUBLIC_SUPABASE_URL }}
+      EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # Sin esto, el build "funcionaría" y publicaría una app que no conecta con
+      # nada: mejor fallar aquí y con un mensaje que diga exactamente qué hacer.
+      - name: Comprobar variables del repositorio
+        run: |
+          faltan=""
+          [ -z "$EXPO_PUBLIC_SUPABASE_URL" ] && faltan="$faltan EXPO_PUBLIC_SUPABASE_URL"
+          [ -z "$EXPO_PUBLIC_SUPABASE_ANON_KEY" ] && faltan="$faltan EXPO_PUBLIC_SUPABASE_ANON_KEY"
+
+          if [ -n "$faltan" ]; then
+            echo "::error::Faltan variables del repositorio:$faltan"
+            echo ""
+            echo "Defínelas en: Settings → Secrets and variables → Actions → pestaña Variables."
+            echo "Los valores están en Supabase → Project Settings → API:"
+            echo "  EXPO_PUBLIC_SUPABASE_URL      = la Project URL, SIN /rest/v1 al final"
+            echo "  EXPO_PUBLIC_SUPABASE_ANON_KEY = la clave anon public / publishable"
+            exit 1
+          fi
+
+          echo "Variables presentes. Proyecto: $EXPO_PUBLIC_SUPABASE_URL"
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      # --clear es obligatorio: Metro cachea el valor incrustado de las
+      # variables EXPO_PUBLIC_*, y sin limpiar se publicaría un bundle
+      # apuntando al proyecto de una build anterior. Pasó en F1.1.
+      - name: Export web
+        run: npx expo export --platform web --clear
+
+      - name: Comprobaciones del artefacto
+        run: |
+          bundle=$(ls dist/_expo/static/js/web/entry-*.js 2>/dev/null | head -1)
+
+          if [ -z "$bundle" ]; then
+            echo "::error::No se ha generado ningún bundle en dist/_expo/static/js/web/"
+            exit 1
+          fi
+
+          # 1. El bundle apunta al Supabase correcto (caza la caché rancia).
+          if ! grep -q "$EXPO_PUBLIC_SUPABASE_URL" "$bundle"; then
+            echo "::error::El bundle no contiene la URL de Supabase de las variables."
+            echo "Suele significar caché de Metro: revisa que el export lleva --clear."
+            exit 1
+          fi
+          echo "✓ el bundle apunta a $EXPO_PUBLIC_SUPABASE_URL"
+
+          # 2. Los assets cuelgan del subpath del repositorio.
+          if ! grep -q '"/oveng-envhealth/_expo/' dist/index.html; then
+            echo "::error::Los assets no usan el subpath /oveng-envhealth/."
+            echo "Revisa expo.experiments.baseUrl en app.json."
+            exit 1
+          fi
+          echo "✓ los assets usan el subpath /oveng-envhealth/"
+
+          # 3. El fallback de SPA viaja en el artefacto.
+          if [ ! -f dist/404.html ]; then
+            echo "::error::Falta dist/404.html: los enlaces profundos darían 404 al recargar."
+            exit 1
+          fi
+          echo "✓ 404.html presente"
+
+      # Pages ignoraría _expo/ por empezar por guion bajo si se colara Jekyll.
+      - name: Desactivar Jekyll
+        run: touch dist/.nojekyll
+
+      - name: Configurar Pages
+        uses: actions/configure-pages@v5
+
+      - name: Subir artefacto
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    name: Deploy
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Desplegar en GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -71,7 +71,12 @@ rmSync(SHOTS, { recursive: true, force: true });
 mkdirSync(SHOTS, { recursive: true });
 
 // --- Servidor y navegador ----------------------------------------------------
-const { server, origin } = await serveStatic(join(ROOT, 'dist'));
+// El mismo subpath con el que se sirve en GitHub Pages: si algo no resuelve
+// bajo él, tiene que fallar aquí y no en producción.
+const basePath = JSON.parse(readFileSync(join(ROOT, 'app.json'), 'utf8')).expo.experiments
+  ?.baseUrl ?? '';
+
+const { server, origin } = await serveStatic(join(ROOT, 'dist'), { basePath });
 const browser = await chromium.launch();
 const context = await browser.newContext({
   viewport: { width: 390, height: 844 },
@@ -118,6 +123,16 @@ try {
     ok('el guard manda a welcome al pedir /perfil sin sesión');
   } else {
     bad(`el guard no protegió /perfil (URL: ${page.url()})`);
+  }
+
+  // --- Fallback de SPA -------------------------------------------------------
+  step('2b. Fallback de 404.html (enlace profundo sin fichero)');
+  await page.goto(`${origin}/ruta-que-no-existe`, { waitUntil: 'networkidle' });
+  await page.waitForTimeout(1200);
+  if (page.url().includes('ruta-que-no-existe') || page.url().endsWith(`${basePath}/`)) {
+    ok(`404.html redirige y la app arranca (URL: ${page.url().replace(origin, '')})`);
+  } else {
+    bad(`el fallback dejó una URL inesperada: ${page.url()}`);
   }
 
   // --- Entrar ----------------------------------------------------------------
