@@ -56,9 +56,8 @@ Convención de commit: `F<fase>.<tarea>: descripción`.
       publica en cada push a `main` leyendo las credenciales de *Variables* del
       repositorio. El artefacto se comprueba antes de publicarse (URL de
       Supabase en el bundle, subpath en los assets, `404.html` presente).
-      Verificado en local con `npm run verify:ui` sirviendo `dist/` como lo hace
-      Pages. **Requiere que el autor active Pages (Source: GitHub Actions) y
-      cree las dos variables.**
+      Verificado en local con `npm run verify:ui` y **en producción**: la demo
+      está publicada en https://expeavomo15.github.io/oveng-envhealth/.
 - [ ] **F1.3 perfiles + seguir** — perfil de usuario (persona, empresa,
       iniciativa), edición y relación de seguimiento.
 - [ ] **F1.4 crear posts** — creación de publicaciones con texto e imagen

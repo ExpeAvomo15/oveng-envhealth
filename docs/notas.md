@@ -42,6 +42,17 @@ decidió y por qué. Lo más reciente arriba.
   con estado 404 real. Así el recorrido en navegador prueba de verdad lo que se
   va a publicar, incluido el fallback. Verificar en la raíz habría dado un verde
   que no significaba nada.
+- **Comprobado en producción, no solo en local.** Tras el primer despliegue con
+  éxito se verificó contra la URL real: la demo carga y renderiza, `/mapa` sin
+  sesión acaba en `/welcome` (el guard funciona igual servido desde Pages), una
+  ruta inexistente arranca la app en vez de mostrar el 404 de GitHub (el
+  fallback hace su trabajo), y el navegador alcanza Supabase. El bundle
+  publicado contiene la URL correcta del proyecto.
+- **El primer intento falló a propósito.** Se empujó antes de que existieran las
+  variables del repositorio y el workflow murió en 14 segundos en el paso de
+  comprobación, con las instrucciones en el log. Es exactamente el
+  comportamiento buscado: sin variables no se publica una app que no conecta con
+  nada.
 - **Aviso de hidratación de React (#418) en consola.** Es el desajuste esperado
   entre el splash que renderiza el servidor y la ruta que pinta el cliente —
   consecuencia del guard, ya documentada. No rompe nada y **no se toca el
