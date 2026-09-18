@@ -33,7 +33,9 @@ Convención de commit: `F<fase>.<tarea>: descripción`.
       visual de F0.2, F1.1 y F1.2 se hizo con la spec escrita porque los mockups
       aún no estaban. **Bloqueada hasta que el autor los suba.**
 
-> **F0 cerrada** con el tag `f0-completa` (salvo F0.2c, que depende de los mockups). Pendiente por decidir antes de las
+> **F0 cerrada** con el tag `f0-completa` (salvo F0.2c, que depende de los mockups).
+> Lo que quedaba pendiente de decidir de F0.3 ya está: `account_type` **no** se
+> añade (F1.3); la columna `category` de `posts` se decide en F1.4. Pendiente por decidir antes de las
 > tareas que las tocan: `account_type` en `profiles` (F1.3) y `category` en
 > `posts` (F1.4) — ver limitaciones en @docs/03_MODELO_DATOS.md.
 
@@ -58,8 +60,14 @@ Convención de commit: `F<fase>.<tarea>: descripción`.
       Supabase en el bundle, subpath en los assets, `404.html` presente).
       Verificado en local con `npm run verify:ui` y **en producción**: la demo
       está publicada en https://expeavomo15.github.io/oveng-envhealth/.
-- [ ] **F1.3 perfiles + seguir** — perfil de usuario (persona, empresa,
-      iniciativa), edición y relación de seguimiento.
+- [x] **F1.3 perfiles + seguir** — perfil completo (portada, avatar, identidad,
+      contadores reales, tarjetas de impacto y pestañas internas), edición con
+      subida de avatar a Storage, perfil público en `/user/[username]` y
+      seguir/dejar de seguir con actualización optimista.
+      **`profiles` modela personas**; empresas e iniciativas serán entidades
+      propias en F2 (ver notas). Verificado con `npm run verify:f13`: RLS,
+      persistencia de la edición, avatar servido en público y contadores
+      cuadrando con la base de datos. Capturas en `docs/verificacion/f1/`.
 - [ ] **F1.4 crear posts** — creación de publicaciones con texto e imagen
       (Supabase Storage).
 - [ ] **F1.5 feed** — feed de publicaciones de las cuentas seguidas, con

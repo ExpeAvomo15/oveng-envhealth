@@ -5,6 +5,75 @@ decidió y por qué. Lo más reciente arriba.
 
 ---
 
+## 2026-09-18 — F1.3: perfiles completos y seguimiento
+
+### Decisión de diseño: `profiles` son personas
+
+**No se añade `account_type`.** Quedaba pendiente desde F0.3 como la forma
+"obvia" de distinguir persona, empresa e iniciativa, y se descarta: `profiles`
+modela **personas**, y empresas e iniciativas serán **entidades propias con su
+propia tabla** en F2, con datos de ejemplo.
+
+El razonamiento: un enumerado en una columna solo sirve mientras los tres tipos
+compartan exactamente los mismos campos, y no los comparten. Una empresa tiene
+CIF, sector, certificaciones y alguien que la administra; una iniciativa tiene
+convocatorias, fechas y voluntariado; una persona tiene huella ecológica. Meter
+todo eso en `profiles` lleva a una tabla llena de columnas nulas donde cada
+consulta tiene que acordarse de filtrar por tipo, y a políticas de RLS que
+mezclan "soy yo" con "administro esta organización". Separar las tablas cuesta
+un join y ahorra esa deuda.
+
+`verified` se queda: sirve igual para marcar una cuenta comprobada.
+Documentado también en @docs/03_MODELO_DATOS.md, donde esto era una limitación
+y ahora es una decisión.
+
+### Lo demás
+
+- **Contadores con `head: true` y `count: 'exact'`.** Las tres consultas solo
+  traen el número, no las filas, y van en paralelo. Contar trayéndose las filas
+  habría funcionado con tres seguidores y sido insostenible con tres mil.
+- **Seguir es optimista pero no crédulo.** El botón y el contador cambian al
+  instante; cuando responde el servidor se vuelven a pedir los contadores reales
+  y, si falló, se revierte. Esperar a la red para mover un botón se nota mucho;
+  dejar el número inventado sin confirmar es peor.
+- **Seguir y dejar de seguir son idempotentes.** Un duplicado choca contra la
+  clave primaria compuesta (`23505`) y se trata como éxito, porque el estado
+  final es el que se pedía. Borrar lo que no existe tampoco es un error. Así un
+  doble toque no deja la interfaz en un estado imposible.
+- **El avatar se reduce antes de tocar la red.** Una foto de móvil son varios
+  megas y el bucket admite 2 MB: se reduce a 512 px por el lado mayor y se
+  recodifica a JPEG con `expo-image-manipulator`. En la verificación, un JPEG de
+  800×800 acabó pesando 7 KB.
+- **Nombre de archivo con marca de tiempo, no fijo.** Con una ruta estable como
+  `{uid}/avatar.jpg`, el navegador seguiría sirviendo la foto anterior desde su
+  caché después de cambiarla. Se sube `avatar-<ts>.jpg` y se borra la anterior
+  después — y solo si estaba en la carpeta del propio usuario.
+- **Base64 decodificado a mano.** `atob` no está garantizado en el motor de
+  JavaScript de React Native, y la alternativa habitual es añadir
+  `base64-arraybuffer`. Son quince líneas: no compensa una dependencia.
+- **Actualizar un perfil ajeno no da error, da cero filas.** RLS filtra en vez
+  de rechazar, así que un `update` sobre el perfil de otro "funciona" y no
+  cambia nada. `updateProfile` pide `.select()` y trata la respuesta vacía como
+  error explícito: si no, un fallo de permisos se vería como un guardado con
+  éxito.
+- **La pantalla de perfil se relee al enfocarse.** La edición ocurre en otra
+  pantalla; sin `useFocusEffect`, al volver se seguirían viendo los datos de
+  antes.
+- **Defecto encontrado en las capturas, no en el código:** los títulos de las dos
+  tarjetas de impacto ocupaban distinto número de líneas y dejaban "Excelente" y
+  "0" a distinta altura. Corregido fijando dos líneas de título. Es la segunda
+  vez que la revisión visual encuentra algo que el typecheck no ve.
+
+### Hueco conocido
+
+**No hay forma de llegar al perfil de otra cuenta desde la interfaz.** `/user/
+[username]` funciona escribiendo la URL, pero nada enlaza ahí todavía: Buscar es
+un placeholder hasta F2 y el feed, que enlazará autor → perfil, es F1.5. No se
+ha añadido un buscador por no invadir el alcance de otra tarea, pero conviene
+saberlo al probar la demo.
+
+---
+
 ## 2026-09-18 — F1.2b: despliegue en GitHub Pages
 
 - **Subpath con `experiments.baseUrl`.** La app se sirve desde

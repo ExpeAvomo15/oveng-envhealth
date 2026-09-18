@@ -9,6 +9,8 @@
     "expo-constants": "~57.0.19",
     "expo-font": "~57.0.4",
     "expo-image": "~57.0.5",
+    "expo-image-manipulator": "~57.0.19",
+    "expo-image-picker": "~57.0.19",
     "expo-linking": "~57.0.10",
     "expo-router": "~57.0.22",
     "expo-secure-store": "~57.0.4",
@@ -40,6 +42,7 @@
     "typecheck": "tsc --noEmit",
     "verify:auth": "node --env-file=.env scripts/verify-auth.mjs",
     "verify:ui": "node --env-file=.env scripts/verify-ui.mjs",
+    "verify:f13": "node --env-file=.env scripts/verify-f13.mjs",
     "lint": "expo lint"
   },
   "private": true

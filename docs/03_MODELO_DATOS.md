@@ -196,10 +196,12 @@ enumerado vive únicamente en el código.
 
 ### Tipo de cuenta
 
-Persona, empresa e iniciativa son los tres tipos de usuario del producto
-(@docs/00_VISION.md), pero **`profiles` no tiene columna `account_type`**:
-tampoco estaba en el esquema de F0.3. Hoy solo hay `verified`, que distingue
-cuentas verificadas pero no dice de qué tipo son. Ver limitaciones.
+**No existe: es deliberado.** `profiles` modela **personas**. Empresas e
+iniciativas son entidades distintas —con campos, ciclo de vida y permisos
+propios— y tendrán su tabla en F2, con datos de ejemplo. `verified` sigue
+sirviendo para marcar cuentas comprobadas.
+
+La decisión y su razonamiento están en @docs/notas.md (F1.3).
 
 ## Migraciones
 
@@ -361,10 +363,10 @@ comprueba que la URL pública lo sirve.
 
 Ninguna bloquea F1, pero conviene decidirlas antes de las tareas que las tocan:
 
-1. **No hay `account_type` en `profiles`.** El producto tiene tres tipos de
-   cuenta (persona, empresa, iniciativa) y el esquema no los distingue. **Afecta
-   a F1.3** (perfiles), que es donde se muestra el tipo de cuenta. Se arregla con
-   una migración `003` que añada la columna y su enumerado.
+1. ~~**No hay `account_type` en `profiles`.**~~ **Resuelto en F1.3, y no con una
+   columna:** `profiles` representa **personas** y nada más. Empresas e
+   iniciativas serán entidades propias con su tabla en F2. Ver la decisión de
+   diseño en @docs/notas.md.
 2. **No hay `category` en `posts`.** El enumerado de categorías ambientales
    existe en `src/theme/categories.ts` pero no tiene columna donde vivir.
    **Afecta a F1.4 y a F2** (el mapa filtra por categoría). Misma solución: una

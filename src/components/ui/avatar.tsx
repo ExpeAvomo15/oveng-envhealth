@@ -5,9 +5,9 @@ import { colors, radius } from '@/theme';
 
 import { Text } from './text';
 
-export type AvatarSize = 'sm' | 'md' | 'lg';
+export type AvatarSize = 'sm' | 'md' | 'lg' | 'xl';
 
-const sizes: Record<AvatarSize, number> = { sm: 32, md: 44, lg: 72 };
+const sizes: Record<AvatarSize, number> = { sm: 32, md: 44, lg: 72, xl: 96 };
 
 export type AvatarProps = {
   /** Nombre de la cuenta: se usa para las iniciales y para accesibilidad. */
@@ -42,7 +42,7 @@ export function Avatar({ name, uri, size = 'md' }: AvatarProps) {
 
   return (
     <View style={[styles.fallback, shape]} accessible accessibilityLabel={name}>
-      <Text variant={size === 'lg' ? 'title' : 'label'} color="text">
+      <Text variant={size === 'sm' ? 'label' : size === 'md' ? 'subtitle' : 'display'} color="text">
         {initials(name)}
       </Text>
     </View>

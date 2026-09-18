@@ -49,6 +49,8 @@ function RootNavigator() {
         <Stack.Screen name="(tabs)" />
         {/* Crear se abre sobre las pestañas, no dentro de ellas: es un modal. */}
         <Stack.Screen name="crear" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="editar-perfil" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="user/[username]" />
       </Stack.Protected>
     </Stack>
   );
