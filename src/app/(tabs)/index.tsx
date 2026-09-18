@@ -1,136 +1,51 @@
-import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { StyleSheet, View } from 'react-native';
 
-import { Avatar, Badge, Button, Callout, Card, Divider, Screen, Text } from '@/components/ui';
-import { useAuth } from '@/hooks/use-auth';
-import { spacing } from '@/theme';
+import { HomeHeader } from '@/components/navigation/home-header';
+import { Screen, Text } from '@/components/ui';
+import { colors, radius, screenPadding, spacing } from '@/theme';
 
-/**
- * Placeholder de la zona con sesión. **F1.2 lo sustituye** por el feed.
- * Existe para poder comprobar el ciclo completo: registro, sesión persistente
- * y cierre de sesión.
- */
-export default function HomePlaceholderScreen() {
-  const router = useRouter();
-  const { user, profile, profileLoading, signOut } = useAuth();
-  const [error, setError] = useState<string | null>(null);
-  const [signingOut, setSigningOut] = useState(false);
-
-  async function handleSignOut() {
-    setSigningOut(true);
-    setError(null);
-
-    const result = await signOut();
-
-    // Si funciona, el guard del layout raíz vuelve a (auth) solo.
-    if (result.error) {
-      setError(result.error);
-      setSigningOut(false);
-    }
-  }
-
-  const name = profile?.display_name ?? profile?.username ?? user?.email ?? 'Tu cuenta';
-
+/** Inicio — el feed. El contenido real llega en F1.5. */
+export default function HomeScreen() {
   return (
-    <Screen>
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <Text variant="display">Sesión iniciada</Text>
-          <Text variant="caption" color="textSecondary">
-            Pantalla provisional de F1.1. El feed llega en F1.2.
-          </Text>
+    <Screen padded={false} scroll={false}>
+      <HomeHeader />
+
+      <View style={styles.empty}>
+        <View style={styles.illustration}>
+          <Ionicons name="leaf-outline" size={40} color={colors.accent} />
         </View>
 
-        <Card>
-          <View style={styles.identity}>
-            <Avatar name={name} uri={profile?.avatar_url} size="lg" />
-            <View style={styles.identityText}>
-              <Text variant="subtitle">{name}</Text>
-              {profile ? (
-                <Text variant="caption" color="textSecondary">
-                  @{profile.username}
-                </Text>
-              ) : null}
-            </View>
-            {profile?.verified ? <Badge label="Verificada" tone="accent" /> : null}
-          </View>
-
-          <View style={styles.gap} />
-          <Divider />
-          <View style={styles.gap} />
-
-          <Text variant="caption" color="textSecondary">
-            Email
-          </Text>
-          <Text variant="body">{user?.email ?? '—'}</Text>
-
-          <View style={styles.gap} />
-
-          <Text variant="caption" color="textSecondary">
-            Perfil en la base de datos
-          </Text>
-          <Text variant="body">
-            {profileLoading
-              ? 'Cargando…'
-              : profile
-                ? `Creado el ${new Date(profile.created_at).toLocaleDateString('es-ES')}`
-                : 'No encontrado'}
-          </Text>
-        </Card>
-
-        {!profileLoading && !profile ? (
-          <Callout tone="error" title="No hay perfil para esta cuenta">
-            La sesión existe pero `profiles` no tiene su fila. Suele significar que las migraciones
-            de F0.3 no están aplicadas o que el trigger on_auth_user_created falló.
-          </Callout>
-        ) : null}
-
-        {error ? <Callout tone="error">{error}</Callout> : null}
-
-        <View style={styles.actions}>
-          <Button
-            label="Cerrar sesión"
-            variant="secondary"
-            size="lg"
-            fullWidth
-            loading={signingOut}
-            onPress={handleSignOut}
-          />
-          <Button
-            label="Ver el design system"
-            variant="ghost"
-            fullWidth
-            onPress={() => router.push('/design-system')}
-          />
-        </View>
+        <Text variant="title" style={styles.centered}>
+          Tu feed aparecerá aquí
+        </Text>
+        <Text variant="body" color="textSecondary" style={styles.centered}>
+          Cuando sigas a personas, empresas e iniciativas, sus publicaciones se verán en esta
+          pantalla.
+        </Text>
       </View>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  empty: {
     flex: 1,
-    gap: spacing.lg,
-    paddingTop: spacing.xl,
-  },
-  header: {
-    gap: spacing.xs,
-  },
-  identity: {
-    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: spacing.md,
+    paddingHorizontal: screenPadding,
   },
-  identityText: {
-    flex: 1,
+  illustration: {
+    width: 88,
+    height: 88,
+    borderRadius: radius.full,
+    backgroundColor: colors.accentTint,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.sm,
   },
-  gap: {
-    height: spacing.md,
-  },
-  actions: {
-    gap: spacing.sm,
-    paddingTop: spacing.md,
+  centered: {
+    textAlign: 'center',
   },
 });

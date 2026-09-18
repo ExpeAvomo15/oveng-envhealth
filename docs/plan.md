@@ -33,8 +33,17 @@ Convención de commit: `F<fase>.<tarea>: descripción`.
 ## F1 — Core social
 
 - [ ] **F1.1 auth** — registro, login y sesión persistente con Supabase Auth.
+      *Código completo y pusheado (`660dedf`).* Pendiente su criterio de cierre:
+      verificar el ciclo contra el proyecto Supabase real. Falta `.env` y saber
+      si las migraciones están aplicadas; hay un script listo,
+      `npm run verify:auth`.
 - [ ] **F1.2 navegación tabs** — las 5 secciones (Inicio, Buscar, Crear, Mapa,
       Perfil) con expo-router y estética de los mockups.
+      *Código completo:* barra propia con las 4 pestañas más el botón central de
+      Crear (modal), cabecera de Inicio y las cuatro pantallas placeholder.
+      Pendiente su criterio de cierre: **pasada visual en navegador** —no hay
+      navegador en el entorno del agente— y contraste con los mockups, que
+      siguen sin subirse a `docs/design/`.
 - [ ] **F1.2b deploy GitHub Pages** — export web estático de Expo y workflow de
       GitHub Actions que publica en Pages en cada push a main.
 - [ ] **F1.3 perfiles + seguir** — perfil de usuario (persona, empresa,

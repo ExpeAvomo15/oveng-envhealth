@@ -33,6 +33,8 @@ export const typography = {
   caption: { fontSize: 14, lineHeight: 20, fontWeight: '400' },
   /** 13/16 semibold — badges, etiquetas, pestañas. */
   label: { fontSize: 13, lineHeight: 16, fontWeight: '600' },
+  /** 11/14 semibold — etiquetas de la barra de navegación. El tamaño mínimo. */
+  micro: { fontSize: 11, lineHeight: 14, fontWeight: '600' },
 } as const satisfies Record<string, TextStyle>;
 
 export type TypographyVariant = keyof typeof typography;

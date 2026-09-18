@@ -5,6 +5,64 @@ decidió y por qué. Lo más reciente arriba.
 
 ---
 
+## 2026-09-18 — F1.2: navegación principal con tabs
+
+- **Los mockups siguen sin estar.** `docs/design/` solo contiene el README de
+  F0.1. Es la tercera tarea seguida cuya estética sale de la spec escrita y de
+  los tokens, no de los mockups. Todo lo visual de F1.2 queda pendiente de
+  contraste cuando se suban.
+- **Iconos: `@expo/vector-icons` (Ionicons).** Hacía falta un juego con pareja
+  relleno/contorno para el estado activo e inactivo, y no había ninguna librería
+  de iconos ni `react-native-svg` en el proyecto. Ionicons trae exactamente esas
+  parejas (`home`/`home-outline`, `search`, `location`, `person`) y es el
+  paquete estándar de Expo. La alternativa —dibujar cinco iconos a mano con
+  vistas— habría dado una casa y un pin mediocres que además habría que tirar al
+  llegar los mockups. Coste: la fuente Ionicons se empaqueta en la build web.
+- **La barra no usa el estado de react-navigation.** En vez de leer `state`,
+  `descriptors` y emitir `tabPress`, la pestaña activa se deduce con
+  `usePathname()` y se navega con el router de expo-router. Es bastante menos
+  código, está tipado con las rutas tipadas y se comporta igual en web y nativo.
+  Lo único que se pierde es el gesto de "pulsar la pestaña activa para volver
+  arriba", que tendrá sentido cuando haya feed (F1.5).
+- **Crear es un modal a nivel de raíz, no una pestaña.** `src/app/crear.tsx`
+  cuelga del Stack raíz dentro del bloque protegido, con
+  `presentation: 'modal'`, así que se abre **sobre** las pestañas y la barra
+  sigue ahí debajo. Como pestaña habría sustituido la pantalla y habría que
+  inventar a dónde "vuelve" al cerrar.
+- **El botón que sobresale, sin recortes.** El contenedor de la barra es
+  transparente y 22 px más alto que la barra visible; la superficie blanca va
+  posicionada en absoluto ocupando solo la parte de abajo. Así el círculo asoma
+  dentro de los límites del propio componente y ningún ancestro con
+  `overflow: hidden` puede cortarlo. Lleva además un aro blanco de 4 px que lo
+  separa del borde de la barra.
+- **Barra con ancho máximo.** En pantalla ancha la fila de pestañas se limita a
+  los mismos 640 px que el contenido (`maxContentWidth`): estirada de lado a
+  lado en un monitor quedaban cinco iconos perdidos en la distancia.
+- **Token tipográfico nuevo: `micro` (11/14).** Las etiquetas de la barra no
+  caben en `label` (13). Se añadió al design system en vez de meter un
+  `fontSize` suelto en la barra.
+- **`Logo` gana la variante `inline`** (símbolo + nombre en horizontal) para la
+  cabecera de Inicio, junto a las que ya tenía.
+- **Hallazgo para F1.2b: el export estático ya no renderiza contenido.** Todas
+  las páginas salen con el `<div id="root">` vacío y el contenido aparece al
+  hidratar. No es un fallo de F1.2: lo causa el guard de F1.1, porque en el
+  render del servidor no hay `localStorage`, la sesión nunca está resuelta y el
+  layout raíz devuelve siempre el splash. Los enlaces profundos siguen
+  funcionando —cada ruta tiene su propio HTML que arranca la app—, pero no hay
+  nada indexable ni primer pintado con contenido. Antes de F1.1 sí se renderizaba
+  (la pantalla de design system salía completa en el HTML). Si el SEO importa
+  para la demo, lo que hay que hacer es que las rutas públicas de `(auth)` se
+  rendericen sin esperar a la sesión. Decisión para F1.2b.
+- **Verificación de la tarea:** `tsc --noEmit` limpio y `expo export --platform
+  web` genera las 12 rutas, con la fuente de Ionicons empaquetada. **No se ha
+  podido comprobar lo visual**: no hay navegador en este entorno y, aunque lo
+  hubiera, la barra solo aparece con sesión iniciada. La pasada visual —barra
+  idéntica a los mockups, navegación entre secciones, modal que abre y cierra,
+  logout, refresco manteniendo ruta— la tiene que hacer el autor con
+  `npm run web`.
+
+---
+
 ## 2026-09-18 — F1.1: flujo de autenticación
 
 - **El trigger de 001 ya leía los metadatos: no hace falta migración 003.**

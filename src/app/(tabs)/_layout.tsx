@@ -1,23 +1,28 @@
-import { Stack } from 'expo-router';
+import { Tabs } from 'expo-router';
 
+import { TabBar } from '@/components/navigation/tab-bar';
 import { colors } from '@/theme';
 
-/**
- * Placeholder de la zona con sesión. **F1.2 lo sustituye** por las 5 secciones
- * en tabs (Inicio, Buscar, Crear, Mapa, Perfil); de momento es un Stack con lo
- * justo para probar el ciclo de sesión completo.
- */
+/** Inicio es la sección por defecto al entrar con sesión. */
 export const unstable_settings = {
   anchor: 'index',
 };
 
 export default function TabsLayout() {
   return (
-    <Stack
+    <Tabs
+      tabBar={() => <TabBar />}
       screenOptions={{
         headerShown: false,
-        contentStyle: { backgroundColor: colors.background },
-      }}
-    />
+        sceneStyle: { backgroundColor: colors.background },
+      }}>
+      <Tabs.Screen name="index" options={{ title: 'Inicio' }} />
+      <Tabs.Screen name="buscar" options={{ title: 'Buscar' }} />
+      <Tabs.Screen name="mapa" options={{ title: 'Mapa' }} />
+      <Tabs.Screen name="perfil" options={{ title: 'Perfil' }} />
+
+      {/* Referencia visual del design system: accesible por URL, fuera de la barra. */}
+      <Tabs.Screen name="design-system" options={{ href: null, title: 'Design system' }} />
+    </Tabs>
   );
 }
