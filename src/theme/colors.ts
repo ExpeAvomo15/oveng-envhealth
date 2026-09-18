@@ -16,6 +16,8 @@
  * - `textInverse` sobre `info` ............... 2.4:1 ✗
  * - `text` sobre `info` ...................... 6.7:1 ✓
  * - `text` sobre `warning` .................. 10.2:1 ✓
+ * - `warningText` sobre blanco ..............  4.9:1 ✓ texto de aviso
+ * - `danger` sobre blanco ...................  5.6:1 ✓ texto de error
  *
  * De ahí dos reglas:
  *
@@ -86,6 +88,20 @@ export const colors = {
   warning: palette.yellow,
   /** Tinte del amarillo para fondos de chip/badge con texto `text`. */
   warningTint: '#FFC1072E',
+  /**
+   * Ámbar oscuro para **texto** de aviso. El amarillo de la paleta da 1.6:1
+   * sobre blanco y es ilegible; este da 4.9:1 y sigue leyéndose como amarillo.
+   */
+  warningText: '#A16207',
+
+  // --- Error (rojo) ---
+  /**
+   * Rojo de error. **No está en la paleta de AGENTS.md**: se añadió en F1.4
+   * porque un contador que ha superado el límite necesita decirlo con un color
+   * que nadie confunda con un aviso. 5.6:1 sobre blanco. Se usa con cuentagotas:
+   * solo para lo que ya está mal, nunca para lo que está a punto de estarlo.
+   */
+  danger: '#C62828',
 
   // --- Estructura ---
   /** Borde y separador. */

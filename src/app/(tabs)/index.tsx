@@ -3,10 +3,15 @@ import { StyleSheet, View } from 'react-native';
 
 import { HomeHeader } from '@/components/navigation/home-header';
 import { Screen, Text } from '@/components/ui';
+import { useFeed } from '@/hooks/use-feed';
 import { colors, radius, screenPadding, spacing } from '@/theme';
 
 /** Inicio — el feed. El contenido real llega en F1.5. */
 export default function HomeScreen() {
+  // Todavía no devuelve nada: es el enganche que F1.5 rellenará. Publicar
+  // desde el compositor ya avisa a este hook.
+  const { posts } = useFeed();
+
   return (
     <Screen padded={false} scroll={false}>
       <HomeHeader />
@@ -17,7 +22,7 @@ export default function HomeScreen() {
         </View>
 
         <Text variant="title" style={styles.centered}>
-          Tu feed aparecerá aquí
+          {posts.length === 0 ? 'Tu feed aparecerá aquí' : 'Tu feed'}
         </Text>
         <Text variant="body" color="textSecondary" style={styles.centered}>
           Cuando sigas a personas, empresas e iniciativas, sus publicaciones se verán en esta

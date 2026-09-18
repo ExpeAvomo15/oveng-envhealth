@@ -34,8 +34,9 @@ Convención de commit: `F<fase>.<tarea>: descripción`.
       aún no estaban. **Bloqueada hasta que el autor los suba.**
 
 > **F0 cerrada** con el tag `f0-completa` (salvo F0.2c, que depende de los mockups).
-> Lo que quedaba pendiente de decidir de F0.3 ya está: `account_type` **no** se
-> añade (F1.3); la columna `category` de `posts` se decide en F1.4. Pendiente por decidir antes de las
+> Lo que quedaba pendiente de decidir de F0.3 ya está resuelto, y en los dos
+> casos sin añadir columnas: `account_type` **no** se añade (F1.3) y `category`
+> en `posts` **tampoco** (F1.4). Pendiente por decidir antes de las
 > tareas que las tocan: `account_type` en `profiles` (F1.3) y `category` en
 > `posts` (F1.4) — ver limitaciones en @docs/03_MODELO_DATOS.md.
 
@@ -68,8 +69,13 @@ Convención de commit: `F<fase>.<tarea>: descripción`.
       propias en F2 (ver notas). Verificado con `npm run verify:f13`: RLS,
       persistencia de la edición, avatar servido en público y contadores
       cuadrando con la base de datos. Capturas en `docs/verificacion/f1/`.
-- [ ] **F1.4 crear posts** — creación de publicaciones con texto e imagen
-      (Supabase Storage).
+- [x] **F1.4 crear posts** — compositor real: texto con campo que crece,
+      contador desde 400 caracteres, etiquetas extraídas del propio texto y una
+      imagen opcional reducida a 1600 px y subida a `post-images/{uid}/`.
+      **`posts` no lleva columna `category`**: los hashtags cubren la
+      clasificación temática (ver notas). Verificado con `npm run verify:f14`:
+      RLS, etiquetas con tildes, imagen accesible en público y límite de 500
+      respetado. Capturas en `docs/verificacion/f1/`.
 - [ ] **F1.5 feed** — feed de publicaciones de las cuentas seguidas, con
       paginación y valoraciones básicas.
 - [ ] **F1.6 cierre MVP** — repaso, pulido, documentación al día y tag anotado

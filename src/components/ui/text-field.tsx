@@ -8,7 +8,7 @@ import {
   type TextInputProps,
 } from 'react-native';
 
-import { colors, fontFamily, radius, spacing, typography } from '@/theme';
+import { colors, fontFamily, noWebFocusRing, radius, spacing, typography } from '@/theme';
 
 import { Text } from './text';
 
@@ -47,7 +47,7 @@ export function TextField({
       <View
         style={[styles.field, focused && styles.fieldFocused, hasError && styles.fieldError]}>
         <TextInput
-          style={styles.input}
+          style={[styles.input, noWebFocusRing]}
           placeholderTextColor={colors.textMuted}
           secureTextEntry={password && !revealed}
           onFocus={() => setFocused(true)}
@@ -111,7 +111,5 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontFamily: fontFamily.sans,
     fontSize: typography.body.fontSize,
-    // Sin anillo de foco del navegador: el borde del contenedor ya marca el foco.
-    outlineWidth: 0,
   },
 });

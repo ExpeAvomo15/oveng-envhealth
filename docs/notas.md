@@ -5,6 +5,80 @@ decidió y por qué. Lo más reciente arriba.
 
 ---
 
+## 2026-09-18 — F1.4: composición de publicaciones
+
+### Decisión de diseño: `posts` no lleva `category`
+
+**La clasificación temática de una publicación son sus hashtags.** Libres, en
+las palabras de quien escribe, ya en el esquema desde F0.3. Las **categorías
+ambientales** estructuradas (aire, agua, suelo, biodiversidad, residuos) no son
+un campo del contenido social: pertenecen a las **entidades** y a las **capas
+del mapa** de F2, donde una lista cerrada sí tiene sentido porque alimenta
+filtros y leyendas.
+
+Un `category` obligatorio en cada publicación habría obligado a encajar a la
+fuerza contenido que no va de eso —una convocatoria, una foto de una jornada— y
+a inventar un valor "otros" que no clasifica nada. Anotado también en
+@docs/03_MODELO_DATOS.md, donde esto era una limitación y ahora es una decisión.
+
+### Etiquetas
+
+- **`\p{L}` con la bandera `u`, no `[a-z]`.** La expresión regular acepta
+  letras de cualquier alfabeto más marcas diacríticas, así que `#Reforestación`
+  se captura entera; `[a-z]` la habría partido en "reforestaci". Verificado con
+  el caso del encargo: `#Reforestación #GuineaEcuatorial` →
+  `['reforestación', 'guineaecuatorial']`.
+- **Se conservan las tildes.** "reforestación" y "reforestacion" son palabras
+  distintas, y quitar los acentos sería decidir por quien escribe. Solo se pasa
+  a minúsculas, se quita la almohadilla y se eliminan repeticiones.
+- **Se extraen del texto, no de un campo aparte.** Así no hay forma de que el
+  texto y las etiquetas se contradigan.
+- **Sin resaltado en verde dentro del campo.** Pintar parte del texto de un
+  `TextInput` obliga a superponer una capa de texto falso detrás de un input
+  transparente, y eso se desalinea en cuanto cambian el tamaño de fuente, el
+  salto de línea o la plataforma. En su lugo se muestran las etiquetas
+  detectadas como chips verdes debajo del campo: la misma información, en
+  tiempo real, sin pelearse con el input.
+
+### Lo demás
+
+- **Bug real encontrado por el test: el modal no se cerraba.** Tras publicar,
+  `router.replace('/')` cambiaba la ruta por debajo y dejaba el compositor
+  abierto encima. Lo correcto para una pantalla presentada como modal es
+  `router.dismissTo('/')`. Sin la comprobación de la ruta en el script habría
+  pasado desapercibido, porque el resto del recorrido seguía funcionando.
+- **El campo no crecía en web.** `onContentSizeChange` no informa del alto real
+  en react-native-web: medido, se quedaba en 140 px con cinco líneas dentro. Se
+  añadió una rama para web que suelta el alto, lee `scrollHeight` y lo vuelve a
+  fijar. En nativo sigue valiendo el evento.
+- **El amarillo de la paleta no sirve como color de texto.** El encargo pedía el
+  contador en gris → amarillo → rojo, pero `#FFC107` sobre blanco da 1.6:1. Se
+  añadió `warningText` (#A16207, 4.9:1): sigue leyéndose como amarillo y se lee.
+- **Se añadió un rojo que no estaba en la paleta.** `danger` (#C62828, 5.6:1)
+  para el contador cuando ya se ha pasado del límite. Es la primera vez que se
+  añade un color fuera de AGENTS.md, y se usa solo para lo que **ya está mal**,
+  nunca para lo que está a punto de estarlo. Conviene contrastarlo con los
+  mockups en F0.2c.
+- **La imagen se sube antes de crear la fila.** Si falla, no queda una
+  publicación de texto que el usuario creía que llevaba foto: se le ofrece
+  reintentar o publicar sin imagen, y decide.
+- **Código de imagen compartido.** Selección, reducción a JPEG y subida vivían
+  duplicados en el avatar de F1.3; ahora están en `src/lib/images.ts` y el
+  avatar (512 px, cuadrado, bucket `avatars`) y la publicación (1600 px, bucket
+  `post-images`) solo aportan sus diferencias.
+- **Anillo de foco negro, arrastrado desde F1.1.** Las capturas lo enseñaron en
+  el campo "Ubicación" de editar perfil y en el compositor. `outlineWidth: 0` no
+  vale: Chrome pinta `outline-style: auto`, que ignora el ancho. Hacía falta
+  `outline-style: none`, que React Native no tipa porque en nativo no existe.
+  Corregido en `src/theme/focus.ts` y aplicado al `TextField` entero, así que se
+  arregla también en todas las pantallas de auth. **Solo se quita donde hay otro
+  indicador de foco**: el `TextField` cambia borde y fondo al enfocarse.
+- **`refreshFeed()` listo para F1.5.** `src/hooks/use-feed.ts` no lee nada
+  todavía; existe para que el compositor tenga a quién avisar al publicar, en
+  vez de que F1.5 tenga que buscar dónde meter esa llamada.
+
+---
+
 ## 2026-09-18 — F1.3: perfiles completos y seguimiento
 
 ### Decisión de diseño: `profiles` son personas

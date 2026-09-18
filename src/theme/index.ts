@@ -12,6 +12,7 @@ export {
   type EnvironmentalCategoryStyle,
 } from './categories';
 export { colors, type ColorToken } from './colors';
+export { noWebFocusRing } from './focus';
 export { radius, type RadiusToken } from './radius';
 export { shadows, type ShadowToken } from './shadows';
 export { maxContentWidth, screenPadding, spacing, type SpacingToken } from './spacing';

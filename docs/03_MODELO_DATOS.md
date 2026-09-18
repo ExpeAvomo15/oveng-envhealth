@@ -189,10 +189,16 @@ propia carpeta.
 `src/theme/categories.ts` junto con su color y el color de texto que contrasta
 sobre él.
 
-**Todavía no existen en la base de datos.** `posts` no tiene columna de
-categoría: el esquema de F0.3 no la incluía. Hasta que se añada (ver
-limitaciones), las publicaciones solo se clasifican por `hashtags` y el
-enumerado vive únicamente en el código.
+**No son un campo de `posts`, y es deliberado.** Una publicación se clasifica
+por sus `hashtags`: libres, en las palabras de quien escribe. El enumerado de
+categorías es para las **entidades** y las **capas del mapa** de F2, donde una
+clasificación cerrada sí tiene sentido porque alimenta filtros y leyendas.
+
+### Etiquetas (`hashtags`)
+
+Se extraen del propio texto al publicar (`src/lib/hashtags.ts`) y se guardan
+normalizadas: en minúsculas, sin `#`, sin repetir y **conservando las tildes**.
+`#Reforestación` se guarda como `reforestación`. Máximo 10 por publicación.
 
 ### Tipo de cuenta
 
@@ -367,10 +373,11 @@ Ninguna bloquea F1, pero conviene decidirlas antes de las tareas que las tocan:
    columna:** `profiles` representa **personas** y nada más. Empresas e
    iniciativas serán entidades propias con su tabla en F2. Ver la decisión de
    diseño en @docs/notas.md.
-2. **No hay `category` en `posts`.** El enumerado de categorías ambientales
-   existe en `src/theme/categories.ts` pero no tiene columna donde vivir.
-   **Afecta a F1.4 y a F2** (el mapa filtra por categoría). Misma solución: una
-   migración que añada la columna.
+2. ~~**No hay `category` en `posts`.**~~ **Resuelto en F1.4, y tampoco con una
+   columna:** la clasificación temática de una publicación son sus `hashtags`,
+   libres y escritos por quien publica. Las categorías ambientales
+   estructuradas pertenecen a las entidades y a las capas del mapa (F2), no al
+   contenido social. Ver la decisión en @docs/notas.md.
 3. **`verified` es escribible por su dueño.** Cualquiera puede marcarse como
    cuenta verificada editando su perfil desde la app. Hace falta sacarla de la
    política de update —con un trigger que impida cambiarla, o moviéndola a otra
