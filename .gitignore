@@ -1,0 +1,23 @@
+# Dependencias
+node_modules/
+
+# Entorno y secretos
+.env
+.env.local
+.env.*.local
+
+# Builds y export
+dist/
+build/
+web-build/
+
+# Expo
+.expo/
+.expo-shared/
+
+# Sistema / editor
+.DS_Store
+Thumbs.db
+*.log
+npm-debug.log*
+yarn-error.log*
