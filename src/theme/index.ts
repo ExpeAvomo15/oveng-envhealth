@@ -10,7 +10,7 @@ import { colors } from './colors';
 import { radius } from './radius';
 import { shadows } from './shadows';
 import { maxContentWidth, screenPadding, spacing } from './spacing';
-import { fontFamily, typography } from './typography';
+import { systemFontFamily, typography } from './typography';
 
 export {
   environmentalCategories,
@@ -23,7 +23,15 @@ export { noWebFocusRing } from './focus';
 export { radius, type RadiusToken } from './radius';
 export { shadows, type ShadowToken } from './shadows';
 export { maxContentWidth, screenPadding, spacing, type SpacingToken } from './spacing';
-export { fontFamily, typography, type TypographyVariant } from './typography';
+export {
+  interFontFamily,
+  monoFontFamily,
+  systemFontFamily,
+  typography,
+  weightOf,
+  type FontWeight,
+  type TypographyVariant,
+} from './typography';
 
 
 export const theme = {
@@ -33,7 +41,7 @@ export const theme = {
   radius,
   shadows,
   typography,
-  fontFamily,
+  systemFontFamily,
   screenPadding,
   maxContentWidth,
 } as const;

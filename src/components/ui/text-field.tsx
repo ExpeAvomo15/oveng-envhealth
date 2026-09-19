@@ -8,7 +8,8 @@ import {
   type TextInputProps,
 } from 'react-native';
 
-import { colors, fontFamily, noWebFocusRing, radius, spacing, typography } from '@/theme';
+import { useFontFamily } from '@/hooks/use-fonts';
+import { colors, noWebFocusRing, radius, spacing, typography } from '@/theme';
 
 import { Text } from './text';
 
@@ -33,6 +34,7 @@ export function TextField({
   busy = false,
   ...inputProps
 }: TextFieldProps) {
+  const fontFamily = useFontFamily();
   const [focused, setFocused] = useState(false);
   const [revealed, setRevealed] = useState(false);
 
@@ -47,7 +49,7 @@ export function TextField({
       <View
         style={[styles.field, focused && styles.fieldFocused, hasError && styles.fieldError]}>
         <TextInput
-          style={[styles.input, noWebFocusRing]}
+          style={[styles.input, noWebFocusRing, { fontFamily: fontFamily('400') }]}
           placeholderTextColor={colors.textMuted}
           secureTextEntry={password && !revealed}
           onFocus={() => setFocused(true)}
@@ -109,7 +111,6 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     color: colors.text,
-    fontFamily: fontFamily.sans,
     fontSize: typography.body.fontSize,
   },
 });

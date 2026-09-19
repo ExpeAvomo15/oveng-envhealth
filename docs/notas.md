@@ -5,6 +5,29 @@ decidió y por qué. Lo más reciente arriba.
 
 ---
 
+## 2026-09-19 — F2.1a: tipografía Inter
+
+La única diferencia con los mockups que F0.2c dejó pendiente por falta de
+activo. Se resuelve con `@expo-google-fonts/inter` (Regular, Medium, SemiBold y
+Bold), que trae los archivos y la licencia.
+
+- **El peso no se elige con `fontWeight`.** Con una fuente propia, cada peso es
+  un archivo distinto y hay que nombrarlo: `Inter_600SemiBold`, no
+  `fontWeight: '600'`. Por eso las variantes siguen declarando su peso y el
+  componente `Text` lo traduce al archivo que toca. `fontWeight` se conserva
+  porque en web sigue valiendo y porque es lo que se aplica mientras carga.
+- **No se bloquea el primer pintado.** `FontsProvider` carga la fuente y expone
+  si ya está lista; hasta entonces se usa la del sistema. Dejar la pantalla en
+  blanco esperando a una fuente se nota mucho más que el cambio de forma al
+  cargar.
+- **Los títulos suben a Bold.** En los mockups los encabezados pesan más que un
+  semibold; `display` y `title` pasan de 600 a 700. `micro` baja a Medium, que
+  es como se ven las etiquetas de la barra.
+- Todo el texto de la app pasa por `Text` y por los dos campos de entrada, así
+  que la fuente se aplica en tres sitios y no hay ninguno que se quede fuera.
+
+---
+
 ## 2026-09-19 — F0.2c: contraste con los mockups oficiales
 
 Llegaron las dos infografías a `docs/design/` y se contrastó con ellas todo lo

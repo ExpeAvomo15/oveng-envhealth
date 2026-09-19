@@ -17,15 +17,8 @@ import {
   type PickedImage,
 } from '@/lib/posts';
 import { profileName } from '@/lib/profiles';
-import {
-  colors,
-  fontFamily,
-  noWebFocusRing,
-  radius,
-  spacing,
-  typography,
-  type ColorToken,
-} from '@/theme';
+import { useFontFamily } from '@/hooks/use-fonts';
+import { colors, noWebFocusRing, radius, spacing, typography, type ColorToken } from '@/theme';
 
 /** Margen de caracteres a partir del cual el contador pasa de gris a ámbar. */
 const AMBER_MARGIN = 40;
@@ -38,6 +31,7 @@ export default function CreatePostScreen() {
   const [content, setContent] = useState('');
   const [inputHeight, setInputHeight] = useState(INPUT_MIN_HEIGHT);
   const inputRef = useRef<TextInput>(null);
+  const fontFamily = useFontFamily();
   const [image, setImage] = useState<PickedImage | null>(null);
   const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
 
@@ -205,7 +199,11 @@ export default function CreatePostScreen() {
           onContentSizeChange={(event) =>
             setInputHeight(Math.max(INPUT_MIN_HEIGHT, event.nativeEvent.contentSize.height))
           }
-          style={[styles.input, noWebFocusRing, { height: inputHeight }]}
+          style={[
+            styles.input,
+            noWebFocusRing,
+            { height: inputHeight, fontFamily: fontFamily('400') },
+          ]}
           accessibilityLabel="Texto de la publicación"
         />
 
@@ -308,7 +306,6 @@ const styles = StyleSheet.create({
   },
   input: {
     color: colors.text,
-    fontFamily: fontFamily.sans,
     fontSize: typography.body.fontSize,
     lineHeight: typography.body.lineHeight,
     textAlignVertical: 'top',
