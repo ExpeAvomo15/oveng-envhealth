@@ -26,14 +26,14 @@ Convención de commit: `F<fase>.<tarea>: descripción`.
       **Las migraciones las aplica el autor a mano** (instrucciones y
       verificación en ese documento).
 
-- [ ] **F0.2c contraste del theme con los mockups** — releer `src/theme/` y los
-      componentes contra las infografías oficiales cuando se suban a
-      `docs/design/` (tipografía, densidad, sombras, radios, grises) y ajustar lo
-      que difiera. Queda abierta a propósito después del tag de F0: todo lo
-      visual de F0.2, F1.1 y F1.2 se hizo con la spec escrita porque los mockups
-      aún no estaban. **Bloqueada hasta que el autor los suba.**
+- [x] **F0.2c contraste del theme con los mockups** — hecho el 19 de septiembre
+      de 2026 contra `Infografia_Oveng_1.jpg` y `Infografia_Oveng_2.jpeg`. La
+      paleta coincidía; se corrigieron ocho diferencias de forma, la mayor de
+      ellas la barra de navegación (Crear no es un botón flotante). Capturas
+      antes/después en `docs/verificacion/f02c/`. Lo que quedó fuera por ser
+      funcionalidad y no estética está anotado en notas.md.
 
-> **F0 cerrada** con el tag `f0-completa` (salvo F0.2c, que depende de los mockups).
+> **F0 cerrada** con el tag `f0-completa`.
 > Lo que quedaba pendiente de decidir de F0.3 ya está resuelto, y en los dos
 > casos sin añadir columnas: `account_type` **no** se añade (F1.3) y `category`
 > en `posts` **tampoco** (F1.4). Pendiente por decidir antes de las

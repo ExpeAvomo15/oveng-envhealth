@@ -4,7 +4,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Text } from '@/components/ui';
-import { colors, radius, shadows, spacing } from '@/theme';
+import { colors, radius, spacing } from '@/theme';
 
 /**
  * Barra de navegación principal.
@@ -35,9 +35,16 @@ const TABS: readonly TabDefinition[] = [
   { href: '/perfil', label: 'Perfil', icon: 'person' },
 ];
 
-/** Cuánto sobresale el botón de crear por encima de la barra. */
-const CREATE_OVERHANG = 22;
-const CREATE_SIZE = 56;
+/**
+ * Tamaño del disco verde de Crear.
+ *
+ * En los mockups, Crear **no sobresale de la barra**: ocupa la misma celda que
+ * las demás pestañas y se distingue por ser un disco verde con el "+" en
+ * blanco, del tamaño de un icono. La versión anterior era un botón flotante de
+ * 56 px que asomaba por encima; se cambió al contrastar con
+ * docs/design/Infografia_Oveng_2.
+ */
+const CREATE_SIZE = 34;
 const BAR_HEIGHT = 60;
 
 export function TabBar() {
@@ -48,28 +55,23 @@ export function TabBar() {
   const [inicio, buscar, mapa, perfil] = TABS;
 
   return (
-    // El contenedor es transparente y más alto que la barra: el hueco de arriba
-    // es por donde asoma el botón de crear. Así el botón nunca queda recortado
-    // por el contenedor, pase lo que pase por encima.
     <View style={[styles.container, { paddingBottom: insets.bottom }]}>
-      <View style={[styles.surface, { bottom: 0, top: CREATE_OVERHANG }]} />
-
       <View style={styles.row}>
         <TabItem tab={inicio} pathname={pathname} onPress={router.navigate} />
         <TabItem tab={buscar} pathname={pathname} onPress={router.navigate} />
 
-        <View style={styles.createSlot}>
-          <Pressable
-            onPress={() => router.push('/crear')}
-            accessibilityRole="button"
-            accessibilityLabel="Crear publicación"
-            style={({ pressed }) => [styles.createButton, pressed && styles.createPressed]}>
-            <Ionicons name="add" size={32} color={colors.textInverse} />
-          </Pressable>
+        <Pressable
+          onPress={() => router.push('/crear')}
+          accessibilityRole="button"
+          accessibilityLabel="Crear publicación"
+          style={({ pressed }) => [styles.createSlot, pressed && styles.pressed]}>
+          <View style={styles.createDisc}>
+            <Ionicons name="add" size={22} color={colors.textInverse} />
+          </View>
           <Text variant="micro" color="textSecondary">
             Crear
           </Text>
-        </View>
+        </Pressable>
 
         <TabItem tab={mapa} pathname={pathname} onPress={router.navigate} />
         <TabItem tab={perfil} pathname={pathname} onPress={router.navigate} />
@@ -114,13 +116,6 @@ function TabItem({
 
 const styles = StyleSheet.create({
   container: {
-    paddingTop: CREATE_OVERHANG,
-    backgroundColor: 'transparent',
-  },
-  surface: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
     backgroundColor: colors.surface,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: colors.border,
@@ -149,24 +144,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'flex-end',
     gap: spacing.xs,
-    // El mismo hueco inferior que una pestaña: alinea la etiqueta con las demás.
+    paddingTop: spacing.sm,
     paddingBottom: spacing.md,
-    // El alto que sobra sale por arriba, hacia la zona transparente.
-    marginTop: -CREATE_OVERHANG,
   },
-  createButton: {
+  createDisc: {
     width: CREATE_SIZE,
     height: CREATE_SIZE,
     borderRadius: radius.full,
     backgroundColor: colors.accent,
     alignItems: 'center',
     justifyContent: 'center',
-    // Aro blanco: separa el botón de la barra cuando se solapan.
-    borderWidth: 4,
-    borderColor: colors.surface,
-    ...shadows.floating,
   },
-  createPressed: {
-    opacity: 0.85,
+  pressed: {
+    opacity: 0.6,
   },
 });

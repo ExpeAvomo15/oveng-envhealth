@@ -200,6 +200,10 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.surface,
     borderRadius: radius.lg,
+    // Borde fino además de la sombra: en los mockups las tarjetas se separan
+    // del fondo por una línea, no solo por una sombra difusa.
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.border,
     padding: spacing.lg,
     gap: spacing.md,
   },
@@ -225,8 +229,10 @@ const styles = StyleSheet.create({
   },
   image: {
     width: '100%',
-    aspectRatio: 4 / 3,
-    borderRadius: radius.lg,
+    // 16:10 como en los mockups. A 4:3 la foto se comía la pantalla y dejaba
+    // una sola publicación visible.
+    aspectRatio: 16 / 10,
+    borderRadius: radius.md,
     backgroundColor: colors.surfaceMuted,
   },
   actions: {

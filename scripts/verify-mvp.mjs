@@ -333,7 +333,37 @@ try {
   step('7. Seguir a esa cuenta');
 
   await page.getByText('Seguir', { exact: true }).first().click();
-  await expectVisible('Siguiendo', 'el botón pasa a "Siguiendo"');
+
+  // Ojo con comprobar solo el texto "Siguiendo": también es la etiqueta de una
+  // columna de contadores, así que una comprobación por texto pasa sin esperar
+  // a nada. Se mira el botón por su rol, y después la base de datos.
+  try {
+    await page
+      .getByRole('button', { name: 'Siguiendo' })
+      .first()
+      .waitFor({ state: 'visible', timeout: 15000 });
+    ok('el botón pasa a "Siguiendo"');
+  } catch {
+    bad('el botón no llegó a mostrar "Siguiendo"');
+  }
+
+  {
+    // La petición sigue en vuelo un instante: navegar antes de tiempo la aborta,
+    // y eso es justo lo que escondía el fallo anterior.
+    let registrado = false;
+    for (let intento = 0; intento < 10 && !registrado; intento += 1) {
+      const { count } = await anon
+        .from('follows')
+        .select('*', { count: 'exact', head: true })
+        .eq('following_id', vecinaId);
+      registrado = count === 1;
+      if (!registrado) await page.waitForTimeout(700);
+    }
+
+    if (registrado) ok('el seguimiento quedó guardado en la base de datos');
+    else bad('el seguimiento no llegó a guardarse');
+  }
+
   await shot('siguiendo-a-la-autora');
 
   // --- 5. Filtro "Siguiendo" -------------------------------------------------

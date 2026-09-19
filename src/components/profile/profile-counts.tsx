@@ -8,10 +8,10 @@ import { colors, screenPadding, spacing } from '@/theme';
 export function ProfileCounts({ counts, loading }: { counts: Counts; loading?: boolean }) {
   return (
     <View style={styles.row}>
+      {/* Sin separadores verticales: en los mockups las tres columnas van
+          sueltas, apoyadas solo en las líneas de arriba y abajo. */}
       <Column value={counts.posts} label="Publicaciones" loading={loading} />
-      <View style={styles.separator} />
       <Column value={counts.followers} label="Seguidores" loading={loading} />
-      <View style={styles.separator} />
       <Column value={counts.following} label="Siguiendo" loading={loading} />
     </View>
   );
@@ -50,10 +50,5 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     gap: spacing.xs,
-  },
-  separator: {
-    width: StyleSheet.hairlineWidth,
-    alignSelf: 'stretch',
-    backgroundColor: colors.border,
   },
 });

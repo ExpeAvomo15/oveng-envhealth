@@ -8,7 +8,16 @@ import { colors, radius, spacing } from '@/theme';
  * Buscar — descubrimiento. La búsqueda real y los resultados son de F2; aquí
  * solo está el armazón, sin nada funcional.
  */
-const CATEGORIES = ['Empresas', 'Iniciativas', 'Personas', 'Lugares'] as const;
+/**
+ * En los mockups estas cuatro categorías se presentan como fichas con icono
+ * encima de la etiqueta, no como píldoras de texto.
+ */
+const CATEGORIES = [
+  { label: 'Empresas', icon: 'business-outline' },
+  { label: 'Iniciativas', icon: 'leaf-outline' },
+  { label: 'Personas', icon: 'person-outline' },
+  { label: 'Lugares', icon: 'location-outline' },
+] as const;
 
 export default function SearchScreen() {
   return (
@@ -26,9 +35,10 @@ export default function SearchScreen() {
 
         <View style={styles.chips}>
           {CATEGORIES.map((category) => (
-            <View key={category} style={styles.chip}>
+            <View key={category.label} style={styles.chip}>
+              <Ionicons name={category.icon} size={22} color={colors.accent} />
               <Text variant="label" color="textSecondary">
-                {category}
+                {category.label}
               </Text>
             </View>
           ))}
@@ -65,11 +75,15 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   chip: {
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
-    borderRadius: radius.full,
+    flexGrow: 1,
+    flexBasis: '22%',
+    alignItems: 'center',
+    gap: spacing.xs,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
+    borderRadius: radius.md,
     backgroundColor: colors.surface,
-    borderWidth: 1,
+    borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.border,
   },
   notice: {

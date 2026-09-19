@@ -5,11 +5,16 @@ import { Text } from '@/components/ui';
 import { colors, radius, spacing } from '@/theme';
 
 export type ImpactCardProps = {
-  icon: 'leaf' | 'sparkles';
+  icon: 'leaf' | 'star';
   title: string;
   /** Valor destacado. Hoy son marcadores; en F2 llegan de la base de datos. */
   value: string;
   note: string;
+  /**
+   * Acento de la tarjeta. En los mockups la huella va en verde y los puntos en
+   * amarillo: cada métrica tiene su color, no todas el del producto.
+   */
+  tone?: 'accent' | 'warning';
 };
 
 /**
@@ -18,11 +23,14 @@ export type ImpactCardProps = {
  * Recibe los valores por props a propósito: la huella ecológica y los puntos se
  * calculan en F2, y cuando lleguen solo cambia quién los pasa, no esto.
  */
-export function ImpactCard({ icon, title, value, note }: ImpactCardProps) {
+export function ImpactCard({ icon, title, value, note, tone = 'accent' }: ImpactCardProps) {
+  const accent = tone === 'warning' ? colors.warningText : colors.accent;
+  const background = tone === 'warning' ? colors.warningTint : colors.accentTint;
+
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, { backgroundColor: background }]}>
       <View style={styles.iconWrap}>
-        <Ionicons name={icon} size={22} color={colors.accent} />
+        <Ionicons name={icon} size={22} color={accent} />
       </View>
 
       <View style={styles.text}>
@@ -49,7 +57,6 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     padding: spacing.lg,
     borderRadius: radius.lg,
-    backgroundColor: colors.accentTint,
   },
   iconWrap: {
     width: 40,

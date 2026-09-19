@@ -149,7 +149,8 @@ export default function ProfileScreen() {
           note="Se calculará con tu actividad en F2."
         />
         <ImpactCard
-          icon="sparkles"
+          icon="star"
+          tone="warning"
           title="Puntos OVENG"
           value="0"
           note="Se ganan participando en iniciativas."

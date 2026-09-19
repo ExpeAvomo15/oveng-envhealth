@@ -35,15 +35,18 @@ export function ProfileHeader({ profile }: { profile: Profile }) {
             <Text variant="title" numberOfLines={1} style={styles.name}>
               {name}
             </Text>
-            {profile.verified ? (
-              <Ionicons
-                name="checkmark-circle"
-                size={22}
-                color={colors.accent}
-                accessibilityLabel="Cuenta verificada"
-              />
-            ) : null}
           </View>
+
+          {/* Píldora, no solo un check: es como aparece en el mockup 2. En las
+              tarjetas del feed sí basta el check junto al nombre. */}
+          {profile.verified ? (
+            <View style={styles.verified}>
+              <Ionicons name="checkmark-circle" size={14} color={colors.accent} />
+              <Text variant="micro" color="accent">
+                Verificado
+              </Text>
+            </View>
+          ) : null}
 
           <Text variant="body" color="textSecondary">
             @{profile.username}
@@ -109,6 +112,16 @@ const styles = StyleSheet.create({
   },
   name: {
     flexShrink: 1,
+  },
+  verified: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: spacing.xs,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: radius.full,
+    backgroundColor: colors.accentTint,
   },
   meta: {
     flexDirection: 'row',

@@ -86,8 +86,14 @@ export const colors = {
   // --- Aviso (amarillo): valoraciones, destacados, avisos no bloqueantes ---
   /** Relleno amarillo. Lleva texto `text` encima. */
   warning: palette.yellow,
-  /** Tinte del amarillo para fondos de chip/badge con texto `text`. */
-  warningTint: '#FFC1072E',
+  /**
+   * Tinte del amarillo para fondos de chip/badge con texto `text`.
+   *
+   * Al 18 % pesaba visiblemente más que `accentTint` y dejaba las dos tarjetas
+   * de impacto del perfil descompensadas. Al 10 % se equilibran, y el aviso
+   * sigue leyéndose porque además lleva su franja lateral.
+   */
+  warningTint: '#FFC1071A',
   /**
    * Ámbar oscuro para **texto** de aviso. El amarillo de la paleta da 1.6:1
    * sobre blanco y es ilegible; este da 4.9:1 y sigue leyéndose como amarillo.

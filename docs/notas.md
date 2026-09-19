@@ -5,6 +5,87 @@ decidió y por qué. Lo más reciente arriba.
 
 ---
 
+## 2026-09-19 — F0.2c: contraste con los mockups oficiales
+
+Llegaron las dos infografías a `docs/design/` y se contrastó con ellas todo lo
+construido. **La paleta era correcta**: los cinco colores que fija AGENTS.md son
+exactamente los del panel "Paleta de colores" del mockup 1. Lo que no coincidía
+era la forma.
+
+### Diferencias corregidas, de mayor a menor impacto
+
+1. **Crear no es un botón flotante.** Era la diferencia gorda. Estaba construido
+   como un disco de 56 px con aro blanco que asomaba 22 px por encima de la
+   barra, siguiendo la spec escrita de F1.2 —redactada antes de tener mockups—.
+   En las infografías, Crear **ocupa la misma celda que las demás pestañas**: un
+   disco verde del tamaño de un icono, con su etiqueta debajo como el resto.
+   Ahora es eso. De paso desaparece todo el andamiaje del contenedor
+   transparente que hacía falta para que el botón no quedara recortado.
+2. **La foto de una publicación iba a 4:3 y ocupaba media pantalla.** En los
+   mockups es apaisada, en torno a 16:10, y caben dos publicaciones por pantalla
+   en lugar de una. Cambiada la proporción y el radio de la imagen de 16 a 12 px,
+   que es el de los mockups (16 se reserva para la tarjeta que la contiene).
+3. **Las tarjetas llevan borde, no solo sombra.** En el mockup 2 se separan del
+   fondo con una línea fina. Añadido a la tarjeta del feed y a la `Card` del
+   design system; la sombra se queda, más discreta.
+4. **Los contadores del perfil no llevan separadores verticales.** Las tres
+   columnas van sueltas entre las líneas de arriba y abajo.
+5. **"Puntos OVENG" es amarillo, no verde.** En el mockup cada métrica tiene su
+   color: hoja verde para la huella, estrella amarilla para los puntos. Se le
+   añadió un `tone` a la tarjeta en vez de fijar el verde del producto para todo.
+6. **El tinte amarillo pesaba demasiado.** Al ponerlo junto al verde se vio que
+   `warningTint` estaba al 18 % y `accentTint` al 8 %: las dos tarjetas quedaban
+   descompensadas. Bajado al 10 %. El aviso de error sigue leyéndose porque
+   además lleva su franja lateral.
+7. **Las categorías de Buscar son fichas con icono**, no píldoras de texto.
+8. **"Verificado" se muestra como píldora en la cabecera del perfil**, como en el
+   mockup 2. En las tarjetas del feed se queda el check junto al nombre, que es
+   como aparece ahí.
+
+### Diferencias detectadas y NO aplicadas, con su motivo
+
+Ninguna es un descuido: son funcionalidad o dependen de un activo que no
+tenemos.
+
+| Diferencia | Por qué no se ha tocado |
+| ---------- | ----------------------- |
+| Fila de historias en Inicio | Es una funcionalidad nueva, no un ajuste de estilo. Aparece en los dos mockups; conviene meterla en el roadmap. |
+| Emblema del logo: globo con hoja | Hace falta el asset real. Lo que hay está dibujado con vistas; un globo hecho así saldría peor que la hoja actual. |
+| Tipografía | Los mockups usan una sans geométrica (tipo Inter o Poppins); la app usa la del sistema. Requiere el archivo de fuente y decidir licencia. Cuando llegue, se cambia en `typography.ts` y `global.css`. |
+| Menú "···" en cada publicación | Funcionalidad (editar, borrar, reportar), no estética. |
+| La meta de la tarjeta muestra ubicación | En el mockup pone "2 h · Guinea Ecuatorial"; nuestras publicaciones no tienen campo de ubicación. |
+| Perfil con 4 pestañas (Votos, Logros) | Dependen de las valoraciones y los logros de F2. |
+| Categorías del mapa | Los dos mockups no coinciden entre sí: el 2 añade Energía y Residuos y pinta el suelo de otro color. Se decide en F2.3, al construir el mapa, con el listado definitivo delante. |
+
+### De propina: una comprobación que no comprobaba nada
+
+Al pasar el recorrido completo después de los ajustes, "Siguiendo" falló. No era
+una regresión: era un fallo del propio test que llevaba ahí desde F1.6.
+
+La comprobación decía `expectVisible('Siguiendo')` para confirmar que el botón
+de seguir había cambiado de estado… pero **"Siguiendo" es también la etiqueta de
+una de las tres columnas de contadores**, que está en pantalla desde el
+principio. La comprobación pasaba al instante sin esperar a nada, el script
+navegaba a la pantalla siguiente y **abortaba la petición de seguir a medio
+vuelo**. En F1.6 coló porque la petición ganó la carrera por poco.
+
+Ahora se mira el botón por su rol —no por un texto que aparece en dos sitios— y
+además se espera a que la fila exista en la base de datos antes de continuar.
+Una comprobación que siempre pasa es peor que no tenerla: da confianza sin
+respaldarla.
+
+### Lo que enseñó el contraste
+
+Que una spec escrita con cuidado y unos mockups describen **casi** lo mismo, y
+que el "casi" está en la forma, no en el color. La paleta, los radios de tarjeta
+y los grises estaban bien desde F0.2 porque eran datos concretos en AGENTS.md.
+Lo que se desvió fue todo aquello que hubo que imaginar: cuánto ocupa un botón,
+qué proporción tiene una foto, si una tarjeta lleva borde. Construir tres fases
+sobre la spec escrita no fue tiempo perdido —el ajuste ha sido una tarde—, pero
+las diferencias estaban justo donde no había número al que agarrarse.
+
+---
+
 ## 2026-09-18 — F1.6: cierre del MVP social
 
 ### Repaso de calidad
