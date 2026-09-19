@@ -49,8 +49,10 @@
     "verify:f14": "node --env-file=.env scripts/verify-f14.mjs",
     "verify:f15": "node --env-file=.env scripts/verify-f15.mjs",
     "verify:mvp": "node --env-file=.env scripts/verify-mvp.mjs",
+    "verify:f21": "node --env-file=.env scripts/verify-f21.mjs",
     "capture": "node --env-file=.env scripts/capture-screens.mjs",
     "cleanup:test-users": "node scripts/cleanup-test-users.mjs",
+    "seed:entities": "node scripts/seed-entities.mjs",
     "lint": "expo lint"
   },
   "private": true

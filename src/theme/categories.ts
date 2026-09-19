@@ -3,44 +3,54 @@ import type { ColorToken } from './colors';
 /**
  * Categorías ambientales y su color.
  *
- * Es el mapeo que quedó pendiente en F0.2. Las categorías son las del mapa
- * ambiental (@docs/00_VISION.md); mientras `posts` no tenga columna de
- * categoría, este módulo es la única definición del enumerado y la referencia
- * para la migración que la añada.
+ * Son el enumerado `environmental_category` de la base de datos
+ * (`supabase/migrations/003_entities.sql`): este archivo y esa migración tienen
+ * que decir lo mismo.
  *
- * ## Cómo se eligieron los colores
+ * ## De dónde sale el listado
  *
- * Cuatro salen de la paleta de AGENTS.md; `agua` necesitaba una variante propia
- * porque comparte familia con `aire`. Se usó azul oscuro (#0277BD, la misma
- * familia Material que el resto de la paleta): frente al cian de `aire` no solo
- * cambia el tono, cambia la luminancia — se distinguen también en escala de
- * grises y con daltonismo, que es lo que el tono por sí solo no garantiza.
+ * Los dos mockups no coincidían. El 1 muestra capas de aire, agua, suelo y
+ * biodiversidad; el 2 sustituye biodiversidad por energía y residuos. F2.1
+ * resolvió la contradicción tomando **la unión de ambos**: las seis categorías
+ * de abajo. Ninguna de las dos listas es un subconjunto de la otra, así que
+ * quedarse con una habría dejado fuera contenido que los mockups enseñan.
  *
- * ## Cómo se pintan
+ * ## De dónde sale cada color
  *
- * Relleno sólido del color + texto en `onColor`. Nada de fondos suaves: los
- * tintes claros de `aire` y `agua` salen casi idénticos (#E1F6F9 y #E1EFF7) y
- * dejarían dos categorías indistinguibles, así que no se ofrecen.
+ * Cuatro salen de la paleta de AGENTS.md. `agua` necesitaba una variante propia
+ * para no confundirse con `aire`, y `suelo` es el único color realmente nuevo.
  *
- * El color del texto se eligió midiendo, no a ojo — contraste real de cada
- * combinación (mínimo AA para texto normal: 4.5:1):
+ * | Categoría     | Color     | Texto   | Contraste | Origen |
+ * | ------------- | --------- | ------- | --------- | ------ |
+ * | aire          | `#02B8D1` | oscuro  |  6.9:1 ✓  | paleta ("azul agua") |
+ * | agua          | `#0277BD` | blanco  |  4.8:1 ✓  | azul profundo, misma familia |
+ * | suelo         | `#8E24AA` | blanco  |  7.0:1 ✓  | leyenda del mapa (mockup 2) |
+ * | biodiversidad | `#2E7D32` | blanco  |  5.1:1 ✓  | paleta (verde principal) |
+ * | energia       | `#FFC107` | oscuro  | 10.1:1 ✓  | paleta (amarillo) |
+ * | residuos      | `#616161` | blanco  |  6.2:1 ✓  | paleta (gris) |
  *
- * | Categoría     | Color     | Texto    | Contraste |
- * | ------------- | --------- | -------- | --------- |
- * | aire          | `#02B8D1` | oscuro   |  6.9:1 ✓  |
- * | agua          | `#0277BD` | blanco   |  4.8:1 ✓  |
- * | suelo         | `#FFC107` | oscuro   | 10.1:1 ✓  |
- * | biodiversidad | `#2E7D32` | blanco   |  5.1:1 ✓  |
- * | residuos      | `#616161` | blanco   |  6.2:1 ✓  |
+ * **Sobre `suelo`:** el mockup 2 se contradice a sí mismo — morado en la
+ * leyenda del mapa, marrón anaranjado en el perfil ambiental. Se elige el
+ * morado porque es el que usa justo en la vista donde `suelo` y `energia`
+ * aparecen juntos, y un marrón al lado del amarillo de `energia` sería difícil
+ * de distinguir en un punto de mapa de doce píxeles.
  *
- * De ahí que el texto no sea siempre oscuro: depende de la luminancia del
- * relleno, y con estos cinco colores cae a los dos lados.
+ * **Sobre `residuos`:** el mockup lo pinta verde, pero ahí no hay capa de
+ * biodiversidad con la que chocar. Con las seis categorías juntas, el verde ya
+ * está ocupado, así que se queda con el gris de la paleta.
  *
- * **El color nunca va solo.** La categoría se acompaña siempre de su etiqueta
- * de texto: un punto de color de `aire` sobre la superficie da 2.2:1, por
- * debajo del 3:1 que pide WCAG para un elemento gráfico con significado.
+ * **El color nunca va solo.** Varias parejas (suelo/residuos,
+ * biodiversidad/residuos) se separan por tono pero no por luminancia, así que
+ * en escala de grises o con daltonismo se parecen. La categoría se acompaña
+ * siempre de su etiqueta de texto.
  */
-export type EnvironmentalCategory = 'aire' | 'agua' | 'suelo' | 'biodiversidad' | 'residuos';
+export type EnvironmentalCategory =
+  | 'aire'
+  | 'agua'
+  | 'suelo'
+  | 'biodiversidad'
+  | 'energia'
+  | 'residuos';
 
 export type EnvironmentalCategoryStyle = {
   /** Nombre visible, en la terminología del producto. */
@@ -49,17 +59,25 @@ export type EnvironmentalCategoryStyle = {
   color: string;
   /** Token de color del texto sobre `color`. Medido, no elegido a ojo. */
   onColor: Extract<ColorToken, 'text' | 'textInverse'>;
+  /** Icono de Ionicons que acompaña a la categoría. */
+  icon: 'cloud-outline' | 'water-outline' | 'layers-outline' | 'leaf-outline' | 'flash-outline' | 'trash-outline';
 };
 
 export const environmentalCategories: Record<
   EnvironmentalCategory,
   EnvironmentalCategoryStyle
 > = {
-  aire: { label: 'Aire', color: '#02B8D1', onColor: 'text' },
-  agua: { label: 'Agua', color: '#0277BD', onColor: 'textInverse' },
-  suelo: { label: 'Suelo', color: '#FFC107', onColor: 'text' },
-  biodiversidad: { label: 'Biodiversidad', color: '#2E7D32', onColor: 'textInverse' },
-  residuos: { label: 'Residuos', color: '#616161', onColor: 'textInverse' },
+  aire: { label: 'Aire', color: '#02B8D1', onColor: 'text', icon: 'cloud-outline' },
+  agua: { label: 'Agua', color: '#0277BD', onColor: 'textInverse', icon: 'water-outline' },
+  suelo: { label: 'Suelo', color: '#8E24AA', onColor: 'textInverse', icon: 'layers-outline' },
+  biodiversidad: {
+    label: 'Biodiversidad',
+    color: '#2E7D32',
+    onColor: 'textInverse',
+    icon: 'leaf-outline',
+  },
+  energia: { label: 'Energía', color: '#FFC107', onColor: 'text', icon: 'flash-outline' },
+  residuos: { label: 'Residuos', color: '#616161', onColor: 'textInverse', icon: 'trash-outline' },
 };
 
 /** Orden estable para filtros y leyendas del mapa. */
@@ -68,5 +86,6 @@ export const environmentalCategoryOrder: readonly EnvironmentalCategory[] = [
   'agua',
   'suelo',
   'biodiversidad',
+  'energia',
   'residuos',
 ];

@@ -5,6 +5,94 @@ decidió y por qué. Lo más reciente arriba.
 
 ---
 
+## 2026-09-19 — F2.1: entidades ambientales
+
+### Las seis categorías, y por qué no eran cuatro ni cinco
+
+Los dos mockups no coincidían y F0.3 había dejado la decisión abierta. El
+mockup 1 muestra capas de **aire, agua, suelo y biodiversidad**; el 2 quita
+biodiversidad y añade **energía y residuos**. Ninguna lista contiene a la otra,
+así que quedarse con una habría dejado fuera contenido que el diseño enseña.
+
+El enumerado es la **unión**: `aire`, `agua`, `suelo`, `biodiversidad`,
+`energia`, `residuos`. Seis valores, en la base de datos y en el theme.
+
+Sobre los colores, dos conflictos que hubo que resolver:
+
+- **`suelo`: el mockup 2 se contradice a sí mismo.** Morado en la leyenda del
+  mapa, marrón anaranjado en el perfil ambiental. Se elige el **morado**
+  (`#8E24AA`, 7:1 con texto blanco) porque es el que usa justo en la vista donde
+  `suelo` y `energia` aparecen juntos: un marrón al lado del amarillo de
+  `energia` sería indistinguible en un punto de mapa de doce píxeles.
+- **`residuos`: el mockup lo pinta verde**, pero en esa leyenda no hay capa de
+  biodiversidad con la que chocar. Con las seis juntas el verde ya está ocupado
+  por biodiversidad, así que residuos se queda con el **gris de la paleta**.
+
+De los seis colores, cuatro salen de la paleta de AGENTS.md, uno es el azul
+profundo que ya se había decidido en F0.3 para `agua`, y solo el morado es
+nuevo. Los seis pasan AA con el color de texto indicado; las medidas están en
+`src/theme/categories.ts`.
+
+**Una guarda de tipos impide que deriven.** `src/lib/entities.ts` compara el
+enumerado de la base con el del theme y **rompe la compilación** si uno cambia
+sin el otro. Sin eso, una migración que añada una categoría se descubriría con
+un `undefined` en pantalla.
+
+### Decisiones del esquema
+
+- **`entities` no tiene políticas de escritura. Ninguna.** No es un olvido: es
+  contenido curado. RLS deniega por defecto, así que ni un anónimo ni una cuenta
+  con sesión pueden tocar la tabla; el seed escribe con `service_role`. Lo mismo
+  para `entity_metrics`. `entity_ratings` sí es de la gente, y ahí sí hay
+  políticas de propietario.
+- **Las métricas solo las llevan los lugares.** Medir la calidad del aire de un
+  parque o un río tiene sentido; de una ONG, no. Empresas e iniciativas se
+  juzgan por su valoración comunitaria, que es justo lo que enseñan los mockups
+  en Buscar (4.8, 4.7, 4.5…).
+- **`label` se guarda, no se calcula.** "Buena", "Alta", "Excelente" viajan con
+  el valor porque cada métrica tiene su escala: 42 es bueno en AQI y absurdo en
+  pH. Calcularlo en el cliente obligaría a meter esas escalas en la app.
+- **O están las dos coordenadas o ninguna.** Un `check` lo impone: media
+  posición no sirve para poner un punto en un mapa, y un nulo a medias se
+  arrastra hasta que alguien divide por él.
+- **`entity_rating_summary` es una vista con `security_invoker = on`.** La media
+  aparece en tres pantallas distintas y conviene que las tres la calculen igual.
+  El `security_invoker` hace que respete las políticas de quien consulta: aquí
+  da igual porque las valoraciones son públicas, pero una vista que ignora RLS
+  es una fuga esperando a que alguien la reutilice con una tabla que sí importe.
+
+### El seed es producto, no relleno
+
+Catorce entidades: cinco lugares reales de Guinea Ecuatorial con sus
+coordenadas verdaderas (Monte Alén, Río Ntem, Estuario del Muni, Pico Basilé,
+Corisco), cinco empresas y cuatro iniciativas tomadas de los mockups, con
+descripciones escritas para que se lean como contenido y no como "lorem ipsum".
+
+**Las métricas de Monte Alén y del Río Ntem son exactamente las de los
+mockups.** Se leyeron ampliando las infografías con el navegador, porque a
+tamaño original no se distinguía si el pH era 8.2 u 8.3 — y resultó ser 8.2 en
+Monte Alén y 8.2 también en el Ntem, con 8.7/10 y 8.7/10 de calidad general
+respectivamente. Adivinar un decimal en datos que se enseñan como reales no
+habría sido aceptable.
+
+Es **idempotente por `slug`**: repetir el seed actualiza en vez de duplicar.
+
+### Pendiente anotado
+
+- **Imágenes propias de las entidades.** `cover_image_url` va nulo en todo el
+  seed: no se enlazan fotos de terceros y no hay assets propios. Hasta que los
+  haya, la UI usará un marcador por categoría. Es una tarea de diseño, no de
+  código.
+- **Colores de tipo de entidad.** La leyenda del mockup 2 pinta "Iniciativas" en
+  naranja y "Empresas" en morado, que son colores de **tipo**, no de categoría.
+  No se han fijado todavía porque no hay ninguna vista que los use; se decide en
+  F2.2, cuando las fichas de Buscar los necesiten.
+- **El seed no trae valoraciones.** Una valoración necesita una persona real
+  detrás (`entity_ratings` referencia a `profiles`), así que las fichas
+  aparecerán como "sin valoraciones" hasta que alguien valore desde la app.
+
+---
+
 ## 2026-09-19 — F2.1a: tipografía Inter
 
 La única diferencia con los mockups que F0.2c dejó pendiente por falta de

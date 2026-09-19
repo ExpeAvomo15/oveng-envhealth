@@ -56,6 +56,52 @@ erDiagram
     }
 ```
 
+### Entidades ambientales (F2.1)
+
+Lugares, empresas e iniciativas. Es contenido **curado**: se carga con un seed y
+no se escribe desde la app.
+
+```mermaid
+erDiagram
+    entities       ||--o{ entity_metrics : "se mide con"
+    entities       ||--o{ entity_ratings : "recibe"
+    profiles       ||--o{ entity_ratings : "valora"
+
+    entities {
+        uuid id PK "default gen_random_uuid()"
+        text slug UK "minusculas y guiones, va en la URL"
+        text name
+        entity_type type "lugar, empresa, iniciativa"
+        environmental_category category "aire, agua, suelo, biodiversidad, energia, residuos"
+        text description "nullable"
+        text location_name "nullable"
+        text country "nullable"
+        double lat "nullable, junto con lng"
+        double lng "nullable, junto con lat"
+        text cover_image_url "nullable, pendiente de assets propios"
+        text website "nullable"
+        boolean verified "default false"
+        timestamptz created_at "default now()"
+    }
+
+    entity_metrics {
+        uuid entity_id PK "FK entities.id"
+        entity_metric metric PK "aire, agua, suelo, biodiversidad, cobertura_forestal, temperatura_media, calidad_general"
+        numeric value
+        text unit "AQI, pH, %, C, /10"
+        text label "Buena, Alta, Excelente"
+        timestamptz updated_at "default now()"
+    }
+
+    entity_ratings {
+        uuid entity_id PK "FK entities.id"
+        uuid user_id PK "FK profiles.id"
+        integer score "1 a 5"
+        text comment "nullable, max 500"
+        timestamptz created_at "default now()"
+    }
+```
+
 `auth_users` es `auth.users`, el esquema que gestiona Supabase Auth: se dibuja
 para entender de dónde sale un perfil, pero no se toca desde la app.
 
@@ -117,6 +163,41 @@ Igual que `follows`: PK compuesta `(user_id, post_id)`, que hace imposible
 valorar dos veces. `likes_post_id_idx` sirve para contar y listar las
 valoraciones de una publicación.
 
+### entities
+
+| Columna | Tipo | Notas |
+| ------- | ---- | ----- |
+| `slug` | `text` único | Minúsculas, dígitos y guiones, 3–60 caracteres. Va en la URL y es la clave del seed: repetirlo actualiza en vez de duplicar. |
+| `type` | `entity_type` | `lugar`, `empresa` o `iniciativa`. |
+| `category` | `environmental_category` | Ver el enumerado abajo. |
+| `lat` / `lng` | `double precision` | `entities_coords_together` obliga a que estén las dos o ninguna: media posición no sirve para poner un punto en un mapa. |
+| `cover_image_url` | `text` | Nula por ahora — ver limitaciones. |
+| `verified` | `boolean` | Entidad comprobada. Al ser contenido curado, aquí sí es fiable. |
+
+### entity_metrics
+
+Una fila por entidad y métrica; la clave primaria compuesta hace que la última
+medición sustituya a la anterior. `label` guarda la lectura en palabras
+("Buena", "Alta") en vez de calcularla, porque cada métrica tiene su escala: 42
+es bueno en AQI y sería absurdo en pH.
+
+**Solo las llevan los lugares.** Medir la calidad del aire de un parque o un río
+tiene sentido; de una ONG, no. Empresas e iniciativas se juzgan por
+`entity_ratings`, que es lo que enseñan los mockups en Buscar.
+
+### entity_ratings
+
+La valoración comunitaria de la visión: lo que dice una empresa de sí misma pesa
+menos que lo que dice quien vive al lado. Una valoración por persona y entidad
+(clave primaria compuesta), puntuación de 1 a 5 y comentario opcional.
+
+`entity_rating_summary` es una vista que devuelve media y número por entidad.
+Existe porque ese dato aparece en la ficha de Buscar, en la tarjeta del mapa y
+en el perfil ambiental, y conviene que los tres lo calculen igual. Lleva
+`security_invoker = on`, así que respeta las políticas de quien consulta y no
+las de quien la creó. **Las entidades sin valorar no aparecen en la vista**: la
+ausencia se trata como "sin valoraciones".
+
 ## Políticas RLS
 
 El mismo patrón en las cuatro tablas: **cualquiera lee, solo el propietario
@@ -128,6 +209,14 @@ escribe.**
 | `posts`    | público (`true`)  | `auth.uid() = author_id`     | `auth.uid() = author_id`     | `auth.uid() = author_id`     |
 | `follows`  | público (`true`)  | `auth.uid() = follower_id`   | — sin política               | `auth.uid() = follower_id`   |
 | `likes`    | público (`true`)  | `auth.uid() = user_id`       | — sin política               | `auth.uid() = user_id`       |
+| `entities` | público (`true`)  | — **ninguna**                | — **ninguna**                | — **ninguna**                |
+| `entity_metrics` | público (`true`) | — **ninguna**          | — **ninguna**                | — **ninguna**                |
+| `entity_ratings` | público (`true`) | `auth.uid() = user_id` | `auth.uid() = user_id`       | `auth.uid() = user_id`       |
+
+`entities` y `entity_metrics` **no tienen ninguna política de escritura**, y es
+deliberado: son contenido curado. RLS deniega por defecto, así que ni un
+anónimo ni una cuenta con sesión pueden tocarlas. El seed escribe con
+`service_role`, que salta RLS y no sale nunca del entorno de quien lo ejecuta.
 
 En `follows` y `likes` **no hay política de UPDATE a propósito**: esas filas no
 tienen nada que actualizar — se crean o se borran. Sin política, RLS deniega, que
@@ -191,8 +280,16 @@ sobre él.
 
 **No son un campo de `posts`, y es deliberado.** Una publicación se clasifica
 por sus `hashtags`: libres, en las palabras de quien escribe. El enumerado de
-categorías es para las **entidades** y las **capas del mapa** de F2, donde una
+categorías es para las **entidades** y las **capas del mapa**, donde una
 clasificación cerrada sí tiene sentido porque alimenta filtros y leyendas.
+
+Desde F2.1 existe como enumerado de Postgres, `environmental_category`, con
+**seis valores**: `aire`, `agua`, `suelo`, `biodiversidad`, `energia`,
+`residuos`. Salen de unir las capas de los dos mockups, que no coincidían — el
+primero muestra biodiversidad y el segundo la cambia por energía y residuos. El
+color de cada una vive en `src/theme/categories.ts`, con el razonamiento y las
+medidas de contraste; una guarda de tipos en `src/lib/entities.ts` hace que la
+compilación falle si el enumerado de la base y el del theme dejan de coincidir.
 
 ### Etiquetas (`hashtags`)
 
@@ -217,6 +314,7 @@ Viven en `supabase/migrations/`:
 | ------- | -------- |
 | `001_initial_schema.sql` | Tablas, índices, RLS, políticas y el trigger de registro. |
 | `002_storage.sql` | Buckets y políticas de `storage.objects`. |
+| `003_entities.sql` | Entidades ambientales, sus métricas, las valoraciones y la vista de resumen. |
 
 Cada una va envuelta en `begin; … commit;`: si algo falla a mitad, no queda nada
 aplicado a medias.
@@ -385,5 +483,12 @@ Ninguna bloquea F1, pero conviene decidirlas antes de las tareas que las tocan:
 4. **`likes` es un "me gusta", no la valoración comunitaria** que describe la
    visión. La valoración con puntuación y el promedio por cuenta son trabajo de
    F2.
-5. **`location` es texto libre.** El mapa ambiental de F2 necesitará
-   coordenadas, probablemente con PostGIS.
+5. **`location` de `profiles` sigue siendo texto libre.** `entities` sí tiene
+   `lat`/`lng`; para consultas por área con volumen haría falta PostGIS, pero
+   con un índice normal basta para la demo.
+6. **Las entidades no tienen imagen.** `cover_image_url` es nulo en todo el
+   seed: no se enlazan fotos de terceros y todavía no hay imágenes propias. La
+   UI usará un marcador por categoría hasta que existan.
+7. **El seed no trae valoraciones.** `entity_ratings` referencia a `profiles`,
+   así que una valoración necesita una persona real detrás. Las fichas
+   aparecerán como "sin valoraciones" hasta que alguien valore desde la app.
