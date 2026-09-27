@@ -119,7 +119,7 @@ export async function searchEntities(
     .limit(limit);
 
   if (error) throw error;
-  return withRatings(data ?? []);
+  return withRatingsOf(data ?? []);
 }
 
 /** Entidad por slug, la que va en la URL. `null` si no existe. */
@@ -133,7 +133,7 @@ export async function getEntityBySlug(slug: string): Promise<EntityResult | null
   if (error) throw error;
   if (!data) return null;
 
-  const [result] = await withRatings([data]);
+  const [result] = await withRatingsOf([data]);
   return result ?? null;
 }
 
@@ -143,7 +143,7 @@ export async function getEntityBySlug(slug: string): Promise<EntityResult | null
  * Una sola consulta para todas, no una por fila: con catorce entidades la
  * diferencia no se nota, con doscientas sí.
  */
-async function withRatings(entities: Entity[]): Promise<EntityResult[]> {
+export async function withRatingsOf(entities: Entity[]): Promise<EntityResult[]> {
   if (entities.length === 0) return [];
 
   const { data, error } = await supabase

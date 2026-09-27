@@ -5,6 +5,138 @@ decidió y por qué. Lo más reciente arriba.
 
 ---
 
+## 2026-09-27 — F2.5: el dato ambiental dentro del feed
+
+La tarea que cierra F2 y la que sostiene la idea del producto: que el dato
+ambiental **no viva en un panel aparte**.
+
+### "Tu zona" es elegida, no detectada
+
+Sin geolocalización, y a propósito: pide un permiso que mucha gente deniega, en
+escritorio da una precisión de ciudad o peor, y obliga a diseñar el caso "me han
+dicho no". La zona se elige, con Guinea Ecuatorial por defecto.
+
+Eso cambia una palabra del mockup. Donde pone "Datos ambientales de **tu
+zona**", la tarjeta pone el **nombre** de la zona elegida: "tu zona" sin
+geolocalización sería una promesa que el producto no cumple. Y por lo mismo la
+tarjeta dice **qué lugar** mide el dato —"medido en Río Ntem"— porque un índice
+de aire sin lugar no significa nada.
+
+### Las zonas son recuadros de coordenadas, no países
+
+Filtrar por `country` habría metido Madrid y Barcelona dentro de "Málaga y
+Andalucía": las tres entidades españolas del seed comparten país y no región. Un
+recuadro sobre las coordenadas reales deja fuera lo que no está en la zona, que
+es lo que la palabra promete.
+
+### Málaga no tiene mediciones, y la tarjeta lo dice en vez de irse
+
+Medido antes de diseñar:
+
+| Zona | Entidades | Lugares medidos |
+| ---- | --------- | --------------- |
+| Guinea Ecuatorial | 10 | 5, tres con medición de aire |
+| Málaga y Andalucía | 2 | **0** |
+
+Las mediciones las llevan los lugares (F2.1) y las dos entidades de Málaga son
+una empresa y una iniciativa. Así que la zona existe y no tiene datos.
+
+El enunciado decía que las tarjetas "desaparecen limpiamente si la zona no tiene
+datos" y **aquí no se ha hecho así**, por una razón concreta: el selector de
+zona vive dentro de la tarjeta. Si la tarjeta se va, se va con ella la única
+forma de volver a cambiar de zona desde el feed, y quien eligiera Málaga se
+quedaría sin salida. La tarjeta se queda y dice qué pasa —"Todavía no hay
+mediciones en Málaga y Andalucía"—, que además enseña algo verdadero: que estos
+datos son reales y escasos.
+
+Lo que sí desaparece limpiamente es el destacado cuando la zona no tiene
+iniciativas, y la tarjeta entera si la zona no tiene ninguna entidad.
+
+### Cómo se eligen la referencia y el destacado
+
+Hacía falta un criterio documentado y determinista, para que la misma zona dé
+siempre la misma tarjeta:
+
+- **Referencia:** de los **lugares** de la zona con medición de aire, el que
+  tenga más mediciones; a igualdad, por nombre. Elige al lugar mejor medido, que
+  es el que más tiene que contar. En Guinea Ecuatorial sale el **Río Ntem**, con
+  siete.
+- **Destacado:** la iniciativa de la zona **de la misma categoría que la
+  referencia**; si no hay, la primera por nombre. Así el destacado habla de lo
+  mismo que la medición que tiene encima: la referencia es un río (`agua`) y
+  sale "Río limpio, vida sana", que es una limpieza de ese río. En Málaga, sin
+  referencia, sale la única iniciativa que hay.
+
+### La preferencia de zona no va a la base de datos
+
+Se valoró una tabla `user_preferences` y se descartó por coste:
+
+- Es **una migración más**, y aquí las aplica una persona a mano: esquema, RLS,
+  documentación y verificación para guardar un identificador de zona.
+- Es **preferencia de vista, no dato compartido**. Que sea por dispositivo es
+  defendible, incluso mejor: la zona que te interesa en el móvil no tiene que
+  ser la del portátil.
+- Y el día que haya que sincronizarla entre dispositivos, **entonces** se gana
+  la tabla. Hoy no lo pide nada.
+
+Va en `localStorage` en web y `expo-secure-store` en nativo, que es lo que ya
+había instalado. Sin trocear, porque un identificador de zona son veinte
+caracteres y no los 3–4 KB de una sesión.
+
+### Las tarjetas se calculan, no se insertan
+
+`buildFeedRows` deriva las filas de la lista completa de publicaciones en cada
+render. Eso resuelve de una vez las tres cosas que pedía la tarea, sin código
+extra:
+
+- **No rompen la paginación**: el cursor sigue siendo de `posts`; las tarjetas
+  no son filas de la base y no cuentan para el "hay más".
+- **No se duplican en la página 2**: la posición es fija, así que por muchas
+  páginas que entren sigue habiendo una de cada. Verificado cargando las dos.
+- **Desaparecen limpiamente**: si no hay datos de zona, no se añaden.
+
+Van **tras la tercera publicación**. Encabezar el feed con un panel de datos lo
+convertiría en un cuadro de mandos con publicaciones debajo, que es justo lo que
+la visión dice que OVENG no es: el feed es la puerta y el dato aparece dentro.
+Con menos de tres publicaciones bajan al final, porque no hay una tercera tras
+la que colarse.
+
+### El criterio de cierre pedía algo que hoy no se puede: el feed sin sesión
+
+El enunciado decía "abro el feed (con o sin sesión)". **El feed no es
+público.** F2.3 dejó públicos el mapa y las fichas de entidad, y nada más, por
+una razón que sigue en pie: el feed es `/`, la ruta de entrada, y hacerla
+pública significa que quien llega sin cuenta aterriza en el feed en vez de en la
+bienvenida. Eso es exactamente la regresión que F2.3 tuvo que arreglar.
+
+Lo que **sí** está comprobado es que los datos de zona no necesitan sesión: la
+verificación los lee con la clave anónima y salen completos, porque `entities` y
+`entity_metrics` son de lectura pública. Si mañana se decide abrir el feed, la
+tarjeta funciona tal cual.
+
+Queda como decisión pendiente, no como olvido: abrir el feed es una decisión
+sobre la puerta de entrada del producto, no un detalle de esta tarea.
+
+### Una comprobación que daba por vacío un feed que no lo estaba
+
+El paso del "feed vacío" falló: al borrar las publicaciones de prueba, el feed
+**no queda vacío**, porque hay una publicación real de las cuentas de demo del
+autor. Y esas no se tocan.
+
+Así que la comprobación pregunta cuántas quedan y verifica la rama que toque:
+con cero, el estado vacío; con una o dos, que las tarjetas hayan bajado al final
+en vez de colarse tras una tercera que no existe. Una comprobación que depende
+de que la base esté en un estado concreto es una comprobación que fallará el día
+que alguien publique algo.
+
+### Estado
+
+Las doce verificaciones en verde contra Supabase real: `auth`, `f13`, `f14`,
+`f15`, `ui`, `mvp`, `f21`, `f22`, `f23`, `f24` y `f25`. Lint y typecheck
+limpios. **F2 queda completa.**
+
+---
+
 ## 2026-09-27 — F2.4: el perfil ambiental, y una regla en vez de dos pantallas
 
 Las pantallas 4 de los dos mockups parecían dos diseños distintos. No lo son:

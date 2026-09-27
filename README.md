@@ -10,7 +10,7 @@ comunitarias y huella ecológica personal.
 
 ---
 
-## Estado: MVP social completo, y la capa de datos ambientales puesta
+## Estado: MVP social y demo ambiental completos
 
 La fase F1 está cerrada y etiquetada como `v0.1-mvp`. El ciclo social funciona
 de punta a punta contra Supabase real:
@@ -29,8 +29,11 @@ ejemplo —cinco lugares reales de Guinea Ecuatorial con sus coordenadas
 verdaderas—, el **directorio** en Buscar con seguimiento de entidades, y el
 **mapa ambiental** con las catorce sobre el territorio, filtrables por capa.
 
-Y **F2.4** convierte la ficha de una entidad en su perfil ambiental: calidad
-general, estado por capa, datos clave y las valoraciones de la comunidad.
+**F2.4** convierte la ficha de una entidad en su perfil ambiental: calidad
+general, estado por capa, datos clave y las valoraciones de la comunidad. Y
+**F2.5** mete el dato ambiental **dentro del feed**: la calidad del aire de tu
+zona entre las publicaciones, diciendo qué lugar la mide, con la zona elegible.
+Eso cierra F2.
 
 **El mapa y los perfiles de entidad se ven sin cuenta.** Publicar, seguir y
 valorar siguen pidiéndola. Es el principio de utilidad individual de
@@ -108,6 +111,7 @@ npm run verify:mvp     # recorrido completo en Chromium, con capturas
 | `verify:f22` | Buscar: directorio, filtros, navegación a la ficha de entidad y seguir entidades. |
 | `verify:f23` | Mapa: marcadores, filtro por capa, tarjetas, acceso sin cuenta y limpieza del mapa. |
 | `verify:f24` | Perfil de entidad: métricas fieles al seed, valoraciones y su RLS. |
+| `verify:f25` | Datos de zona en el feed: posición, paginación, cambio de zona y persistencia. |
 | `verify:mvp` | El recorrido completo de punta a punta. |
 
 Los que abren navegador construyen con `--clear` y comprueban que el bundle
@@ -226,9 +230,12 @@ más. Estado real de cada tarea en [docs/plan.md](docs/plan.md):
 4. ~~**Perfil ambiental**~~ — **hecho (F2.4)**, el de las entidades: métricas
    fieles al seed y valoraciones de la comunidad. La huella ecológica de las
    personas sigue pendiente.
-5. **Datos de zona en el feed** — el estado del entorno junto al contenido.
+5. ~~**Datos de zona en el feed**~~ — **hecho (F2.5).** El estado del entorno
+   entre las publicaciones, con la zona elegida por quien mira.
 
-Las cuatro que quedan siguen siendo propuesta pendiente de validar.
+**F2 está completa.** Lo siguiente es F3 — comunidad y lanzamiento, en
+[docs/07_CRECIMIENTO.md](docs/07_CRECIMIENTO.md) — y lo que quedó fuera del
+alcance de F2, anotado en [docs/plan.md](docs/plan.md).
 
 Cómo se consigue que haya gente dentro —comunidad inicial, distribución y qué
 obliga a construir, como que el mapa se pueda ver sin cuenta— está en

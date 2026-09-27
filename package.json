@@ -55,6 +55,7 @@
     "verify:f22": "node --env-file=.env scripts/verify-f22.mjs",
     "verify:f23": "node --env-file=.env scripts/verify-f23.mjs",
     "verify:f24": "node --env-file=.env scripts/verify-f24.mjs",
+    "verify:f25": "node --env-file=.env scripts/verify-f25.mjs",
     "capture": "node --env-file=.env scripts/capture-screens.mjs",
     "cleanup:test-users": "node scripts/cleanup-test-users.mjs",
     "seed:entities": "node scripts/seed-entities.mjs",

@@ -197,12 +197,54 @@ propuesta pendiente de validar.
       en km; las dos, abajo.
       La huella ecológica y los puntos OVENG **de las personas** no son esto:
       siguen pendientes (ver abajo).
-- [ ] **F2.5 datos de zona en el feed** — el estado ambiental del entorno junto
-      al contenido social, que es la idea que sostiene el producto: que el dato
-      no viva en un panel aparte.
+- [x] **F2.5 datos de zona en el feed** — la tarjeta "Datos ambientales de
+      [zona]" del mockup 1 y el hero "DESTACADO" del mockup 2, **entre las
+      publicaciones**: van tras la tercera, porque encabezar el feed con un panel
+      de datos lo convertiría en un cuadro de mandos con publicaciones debajo.
+      La tarjeta enseña la calidad del aire de la zona diciendo **qué lugar la
+      mide** y lleva a su perfil ambiental; el destacado es una iniciativa de la
+      zona, de la misma categoría que esa medición.
+      **"Tu zona" es elegida, no detectada**: sin geolocalización (permisos,
+      precisión de escritorio y el caso "me han dicho no" — anotada abajo).
+      Guinea Ecuatorial por defecto, cambiable a Málaga y Andalucía desde la
+      propia tarjeta, y la elección se recuerda en el dispositivo
+      (`localStorage` / `expo-secure-store`). **Sin tabla nueva**: es preferencia
+      de vista y una migración a mano no se gana por un identificador (ver
+      notas).
+      Las zonas son **recuadros de coordenadas**, no países: filtrar por `country`
+      metía Madrid y Barcelona en "Málaga y Andalucía".
+      Las tarjetas se **derivan** de la lista de publicaciones en cada render, así
+      que no rompen la paginación por cursor, no se duplican al cargar la página
+      2 y no aparecen si la zona no tiene datos.
+      Verificado con `npm run verify:f25`: la tarjeta con las métricas que dice
+      la base, su posición tras la tercera publicación, las dos páginas sin
+      duplicados, el cambio de zona con su persistencia tras recargar, la
+      navegación de las dos tarjetas a sus entidades, y los datos de zona leídos
+      **con la clave anónima**. Capturas en `docs/verificacion/f25/`.
+      **Málaga no tiene mediciones** —dos entidades, ninguna es un lugar medido—
+      y la tarjeta lo dice en vez de desaparecer: si se fuera, se llevaría el
+      selector de zona y no habría forma de volver atrás desde el feed.
+      **El feed sigue pidiendo cuenta.** El criterio hablaba de abrirlo sin
+      sesión, y eso es abrir `/`, la ruta de entrada: hacerla pública devuelve la
+      regresión que F2.3 arregló. Los datos de zona sí funcionan sin sesión, así
+      que abrir el feed es una decisión pendiente y no trabajo pendiente.
+
+> **F2 cerrada el 27 de septiembre de 2026** con el tag `v0.2-demo-ambiental`.
+> OVENG deja de ser una red social genérica: hay catorce entidades reales con
+> sus mediciones, un directorio que las encuentra, un mapa que las sitúa, un
+> perfil ambiental que las explica y el dato del entorno metido entre las
+> publicaciones. El mapa y las fichas se ven sin cuenta. Las doce
+> verificaciones del repositorio pasan contra Supabase real y la demo está
+> publicada en https://expeavomo15.github.io/oveng-envhealth/.
 
 ### Fuera del alcance de F2, anotado para no perderlo
 
+- **Geolocalización**, que convertiría "tu zona" en algo detectado en vez de
+  elegido, y desbloquea la distancia en las tarjetas del mapa. Trae consigo el
+  permiso, su denegación y la imprecisión en escritorio.
+- **Abrir el feed sin cuenta.** Es una decisión sobre la puerta de entrada:
+  `/` es el feed y hoy lleva a la bienvenida sin sesión. Los datos de zona ya
+  funcionan con la clave anónima, así que es decidir, no construir.
 - **Gráfica de "Evolución de la calidad ambiental"** (mockup 1). No hay series
   temporales en el modelo: `entity_metrics` guarda un valor por métrica con su
   `updated_at`, no un histórico. Depende de una fuente de datos histórica real;

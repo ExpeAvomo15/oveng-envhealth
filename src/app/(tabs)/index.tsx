@@ -1,6 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -12,11 +12,19 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { FeedToggle, PostCard, PostSkeleton } from '@/components/feed';
+import {
+  FeaturedCard,
+  FeedToggle,
+  PostCard,
+  PostSkeleton,
+  ZoneDataCard,
+} from '@/components/feed';
 import { HomeHeader } from '@/components/navigation/home-header';
 import { Button, Callout, Text } from '@/components/ui';
 import { useFeed } from '@/hooks/use-feed';
-import type { FeedMode, FeedPost } from '@/lib/feed';
+import { useZone } from '@/hooks/use-zone';
+import { buildFeedRows, type FeedRow } from '@/lib/feed-rows';
+import type { FeedMode } from '@/lib/feed';
 import { colors, maxContentWidth, radius, screenPadding, spacing } from '@/theme';
 
 /** Inicio — el feed. */
@@ -25,6 +33,21 @@ export default function HomeScreen() {
   const [mode, setMode] = useState<FeedMode>('para-ti');
   const { posts, loading, refreshing, loadingMore, error, hasMore, refresh, loadMore } =
     useFeed(mode);
+
+  /**
+   * Los datos de la zona son independientes del feed: viven en su propio hook y
+   * no entran en la paginación. Si tardan o fallan, el feed se pinta igual.
+   */
+  const { data: zone, change: changeZone } = useZone();
+
+  const rows = useMemo(
+    () =>
+      buildFeedRows(posts, {
+        zone: zone !== null,
+        featured: zone?.featured != null,
+      }),
+    [posts, zone],
+  );
 
   return (
     <SafeAreaView style={styles.screen} edges={['top', 'left', 'right']}>
@@ -49,12 +72,39 @@ export default function HomeScreen() {
         ) : null}
       </View>
 
-      <FlatList<FeedPost>
-        data={posts}
-        keyExtractor={(post) => post.id}
-        renderItem={({ item }) => (
-          <PostCard post={item} onPressBody={() => router.push(`/post/${item.id}`)} />
-        )}
+      <FlatList<FeedRow>
+        // Las publicaciones siguen siendo la lista; las tarjetas ambientales son
+        // filas derivadas. Ver lib/feed-rows.ts.
+        data={loading || error ? [] : rows}
+        keyExtractor={(row) => row.key}
+        renderItem={({ item }) => {
+          switch (item.kind) {
+            case 'post':
+              return (
+                <PostCard
+                  post={item.post}
+                  onPressBody={() => router.push(`/post/${item.post.id}`)}
+                />
+              );
+            case 'zone':
+              return zone === null ? null : (
+                <ZoneDataCard
+                  data={zone}
+                  onChangeZone={changeZone}
+                  onOpenReference={(slug) => router.push(`/entidad/${slug}`)}
+                />
+              );
+            case 'featured':
+              return zone?.featured == null ? null : (
+                <FeaturedCard
+                  entity={zone.featured}
+                  onPress={() => router.push(`/entidad/${zone.featured!.slug}`)}
+                />
+              );
+            case 'empty':
+              return <EmptyFeed mode={mode} onCreate={() => router.push('/crear')} />;
+          }
+        }}
         contentContainerStyle={styles.list}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
         showsVerticalScrollIndicator={false}
@@ -74,9 +124,7 @@ export default function HomeScreen() {
             </View>
           ) : error ? (
             <Callout tone="error">{error}</Callout>
-          ) : (
-            <EmptyFeed mode={mode} onCreate={() => router.push('/crear')} />
-          )
+          ) : null
         }
         ListFooterComponent={
           loadingMore ? (
