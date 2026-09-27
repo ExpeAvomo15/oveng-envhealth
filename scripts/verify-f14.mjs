@@ -23,7 +23,7 @@ useLocalBrowserLibraries();
 const { chromium } = await import('playwright');
 
 const ROOT = process.cwd();
-const SHOTS = join(ROOT, 'docs/verificacion/f1');
+const SHOTS = join(ROOT, 'docs/verificacion/f1/f14');
 const TMP = join(ROOT, '.tmp-verify');
 const skipBuild = process.argv.includes('--skip-build');
 
@@ -108,6 +108,10 @@ if (entry && readFileSync(join(bundleDir, entry), 'utf8').includes(url)) {
   bad('el bundle no apunta al Supabase del .env (¿caché de Metro?)');
 }
 
+// Cada script limpia solo SU subdirectorio: antes los cuatro compartían
+// docs/verificacion/f1/ y el rmSync de verify-ui se llevaba las capturas de los
+// demás. Ver notas.md (2026-09-27).
+rmSync(SHOTS, { recursive: true, force: true });
 mkdirSync(SHOTS, { recursive: true });
 mkdirSync(TMP, { recursive: true });
 
@@ -158,6 +162,21 @@ const expectVisible = async (text, label) => {
     ok(label);
   } catch {
     bad(`${label} — no apareció "${text}"`);
+  }
+};
+
+/**
+ * Por rol y nombre accesible. Hace falta para las fichas de etiqueta: el
+ * compositor pinta `#{tag}`, que son dos nodos de texto ("#" y el nombre), y
+ * buscarlo como cadena no es de fiar. Las fichas declaran su nombre accesible
+ * justo para esto.
+ */
+const expectRole = async (role, name, label) => {
+  try {
+    await page.getByRole(role, { name }).first().waitFor({ state: 'visible', timeout: 8000 });
+    ok(label);
+  } catch {
+    bad(`${label} — no apareció ${role} "${name}"`);
   }
 };
 
@@ -213,7 +232,11 @@ try {
   await composer.fill(textoConEtiquetas);
   await page.waitForTimeout(800);
 
-  await expectVisible('#reforestación', 'las etiquetas se detectan y se muestran normalizadas');
+  await expectRole(
+    'listitem',
+    '#reforestación',
+    'las etiquetas se detectan y se muestran normalizadas',
+  );
   await shot('17-compositor-texto');
 
   await page.getByText('Publicar', { exact: true }).first().click();
@@ -247,7 +270,7 @@ try {
   const rutaTrasPublicar = new URL(page.url()).pathname;
   if (rutaTrasPublicar === `${basePath}/`) ok(`al publicar vuelve a Inicio (${rutaTrasPublicar})`);
   else bad(`tras publicar la ruta es ${rutaTrasPublicar}`);
-  await expectVisible('Tu feed aparecerá aquí', 'el modal se ha cerrado y se ve Inicio');
+  await expectRole('tab', 'Para ti', 'el modal se ha cerrado y se ve Inicio');
 
   // --- Con imagen ------------------------------------------------------------
   step('7. Publicar con imagen');

@@ -5,6 +5,141 @@ decidió y por qué. Lo más reciente arriba.
 
 ---
 
+## 2026-09-27 — Sesión de diagnóstico: el seed, las pruebas caducas y las capturas
+
+Repaso completo del estado real del proyecto antes de seguir con F2. Lo que
+salió y lo que se corrigió.
+
+### Un número que no salía de ningún sitio
+
+El seed daba a Monte Alén una métrica `calidad_general` de **8.6/10** con el
+comentario "Valores exactos del mockup 1". Ampliando el mockup 1, la pantalla
+"Perfil Ambiental" de Monte Alén **no tiene ninguna métrica de calidad
+general**: tiene aire 42 AQI, agua 8.2 pH, biodiversidad 8.7/10 y cobertura
+forestal 78 %. El 8.7 es biodiversidad. Y esta bitácora, en la entrada de
+F2.1, decía "8.7/10 de calidad general" para Monte Alén: ese 8.7 es de **Río
+Ntem**, que sí la lleva en el mockup 2.
+
+Así que el 8.6 no venía de ninguna parte. **Se quita.** Si algún día hay un
+índice general para los lugares que no lo traen, será calculado y etiquetado
+como tal, no sembrado como si fuera una medición.
+
+Lo que más importa de este hallazgo no es el número: es **cómo se escapó**. La
+entrada de F2.1 se felicitaba por no adivinar un decimal ("adivinar un decimal
+en datos que se enseñan como reales no habría sido aceptable") y aun así entró
+un valor inventado, porque `verify:f21` comprobaba que las métricas esperadas
+**estuvieran** y no que no **sobrara** ninguna. La única de las cinco de Monte
+Alén que no se comprobaba era justo la que no tenía fuente.
+
+Ahora `verify:f21` compara el conjunto **exacto**: una métrica de más falla
+igual que una de menos. Cubre Monte Alén y el Ntem.
+
+### El aire del Ntem se mide dos veces, y las dos cuentan
+
+El mockup 2 enseña el aire del Ntem por duplicado: un **AQI crudo de 42** en
+"Datos clave" y un **subíndice de 8.9 sobre 10** en la fila de cuatro índices.
+El seed solo guardaba el AQI. Se añade el 8.9.
+
+No podían compartir fila: la clave primaria de `entity_metrics` es
+`(entity_id, metric)`, una medición por entidad y métrica. Y tampoco son la
+misma cosa en otra unidad — **un AQI baja cuando el aire mejora y un índice
+sube**, no hay conversión. Son dos métricas: `aire` e `indice_aire`, valor
+nuevo del enumerado `entity_metric`.
+
+Como 003 todavía no estaba aplicada, el enumerado se corrige **en la propia
+migración** en vez de encadenar una 004 para arreglar algo que nunca llegó a
+existir en la base.
+
+`indice_aire` va con `label` **nulo** a propósito: la fila de índices del mockup
+no pone ninguna palabra debajo del 8.9. Antes que inventarle un "Bueno", no
+lleva ninguno.
+
+**Queda anotado, sin resolver:** en esa misma fila de índices, `suelo` (8.5) y
+`biodiversidad` (9.1) son también valores de índice sobre 10, pero se guardan
+bajo los nombres de métrica "crudos", mientras el aire ahora distingue los dos.
+Es una incoherencia del modelo, no de los datos, y se decide en F2.3/F2.4
+cuando haya una pantalla que los pinte y se vea qué necesita.
+
+### Tres pruebas que fallaban sin que nada estuviera roto
+
+`verify:f14` fallaba 2 comprobaciones y `verify:ui` 3. **Ninguna era una
+regresión del producto**: las cinco estaban ancladas a detalles que fases
+posteriores cambiaron.
+
+- **`"Tu feed aparecerá aquí"`** (en los dos scripts). Ese texto lo borró F1.5
+  al meter `EmptyFeed` con copy por modo. Además la comprobación ya no tenía
+  sentido: desde F1.5 "Para ti" enseña las publicaciones de todo el mundo, así
+  que una cuenta recién creada **no ve un feed vacío**. Ahora se comprueba que
+  Inicio ha montado, mirando su selector de feed por rol y nombre.
+- **`"Cerrar sesión"` en Perfil.** F0.2c lo metió dentro del menú "···", así que
+  el texto existe pero no se ve hasta abrirlo. `verify:ui` lo usaba de dos
+  formas: como marcador de que la pestaña Perfil había cargado (ahora es
+  "Editar perfil", que sí está a la vista) y para cerrar sesión en el paso 7
+  (ahora abre el menú antes). El tercer fallo era la cascada de este.
+- **`"#reforestación"` en el compositor.** La ficha **se veía en pantalla** —
+  está en la captura que dejó la propia ejecución que falló. El problema era el
+  localizador: `#{tag}` se pinta en dos nodos de texto ("#" y el nombre) y
+  buscarlo como cadena no es de fiar.
+
+Para el último, las fichas de etiqueta ahora **se anuncian como lista**: el
+contenedor con `role="list"` y cada ficha con `role="listitem"` y su nombre
+accesible. Se gana lo de poder apuntar a una etiqueta concreta por rol, y de
+paso un lector de pantalla deja de leerlas como texto suelto pegado al final
+del campo. Se usa `role` y no `accessibilityRole` porque `"listitem"` solo
+existe en el prop ARIA: el tipo `AccessibilityRole` de React Native tiene
+`"list"` pero no `"listitem"`.
+
+**La lección se repite.** F0.2c ya encontró una comprobación que pasaba siempre
+porque miraba un texto que aparecía en dos sitios, y anotó que "una comprobación
+que siempre pasa es peor que no tenerla". Esto es la otra cara: una comprobación
+anclada a un copy falla cuando el copy cambia, y entonces gasta atención sin
+encontrar nada. En los dos casos la salida es la misma — **mirar por rol, no por
+texto** — y es lo que se ha hecho aquí.
+
+### Un `rmSync` que se llevaba el trabajo de tres fases
+
+`verify-ui.mjs` empezaba borrando `docs/verificacion/f1/` entero. Pero ese
+directorio era **el mismo** donde escribían `verify-f13`, `verify-f14` y
+`verify-f15`, que solo hacían `mkdirSync`. Consecuencia: pasar la batería
+completa acabando por `verify:ui` dejaba borradas 18 capturas commiteadas. Se
+descubrió justo así, ejecutándolas todas seguidas.
+
+Ahora **cada script tiene su subdirectorio y solo limpia el suyo**:
+`f1/ui/`, `f1/f13/`, `f1/f14/`, `f1/f15/`, y `mvp/` como estaba. Los cinco
+limpian antes de escribir, así que una captura que un recorrido deja de generar
+no se queda ahí dando información vieja.
+
+Siguen bajo `f1/`, que es lo que citan plan.md y el README, así que no hubo que
+tocar ninguna referencia.
+
+`11-produccion-welcome.png` **se queda en el directorio padre**, suelta: es de
+la comprobación de producción de F1.2b y ningún script la genera ya. En el
+padre, que nadie limpia, sobrevive; dentro de `ui/` la borraría el próximo
+`verify:ui`. La regla que queda: los subdirectorios son de los scripts, el
+padre es para lo que se guarda a mano.
+
+### Estado al cerrar la sesión
+
+En verde contra Supabase real: `verify:auth`, `verify:f13`, `verify:f14`,
+`verify:f15`, `verify:ui` y `verify:mvp`. Lint y typecheck limpios. La demo
+publicada responde y el bundle apunta al proyecto correcto.
+
+`verify:f21` sigue en rojo por lo único que le falta: **la migración 003 no está
+aplicada y el seed no se ha ejecutado**, las dos cosas manuales. Sus
+comprobaciones nuevas son, por tanto, lo único de esta tanda que no se ha podido
+ejecutar todavía.
+
+**Pendientes que salieron y no se tocan aquí:** la consola del navegador escupe
+un `React error #418` (mismatch de hidratación) y un 404 de recurso que no
+tumban nada pero conviene mirar; los dos mockups no coinciden en la valoración
+de Monte Alén (4.7 con 135 votos en el 1, 4.9 con 312 en el 2) y hay que elegir
+en F2.2; `docs/03_MODELO_DATOS.md` documenta las tablas de 003 pero sus
+instrucciones de aplicación y verificación siguen hablando solo de 001 y 002;
+el README no lista `verify:f21` ni `seed:entities`; y no existe
+`docs/07_CRECIMIENTO.md` ni una fase F3 en el plan.
+
+---
+
 ## 2026-09-19 — F2.1: entidades ambientales
 
 ### Las seis categorías, y por qué no eran cuatro ni cinco
@@ -74,6 +209,11 @@ tamaño original no se distinguía si el pH era 8.2 u 8.3 — y resultó ser 8.2
 Monte Alén y 8.2 también en el Ntem, con 8.7/10 y 8.7/10 de calidad general
 respectivamente. Adivinar un decimal en datos que se enseñan como reales no
 habría sido aceptable.
+
+> **Corregido el 2026-09-27:** este párrafo se equivoca. Monte Alén **no tiene
+> calidad general en el mockup 1**; el 8.7 de calidad general es solo del Ntem.
+> El valor que el seed le daba a Monte Alén (8.6) no tenía fuente y se ha
+> quitado. Ver la entrada del 2026-09-27.
 
 Es **idempotente por `slug`**: repetir el seed actualiza en vez de duplicar.
 

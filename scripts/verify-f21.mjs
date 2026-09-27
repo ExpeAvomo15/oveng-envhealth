@@ -110,43 +110,81 @@ for (const entity of entities) {
 
 if (fueraDeCaja === 0) ok(`las ${entities.length} entidades caen dentro de su país`);
 
-// --- 4. Métricas de Monte Alén ---------------------------------------------------
-step('4. Métricas de Monte Alén (exactas según el mockup)');
+// --- 4. Métricas leídas de los mockups -------------------------------------------
+step('4. Métricas (exactas según los mockups)');
 
-const monteAlen = entities.find((e) => e.slug === 'parque-nacional-monte-alen');
+/**
+ * Comprueba que una entidad tiene **exactamente** las métricas esperadas.
+ *
+ * Que sobre una métrica es tan grave como que falte: estos números se enseñan
+ * como datos reales, así que uno que no salga de un mockup no puede colarse
+ * sin que nadie lo note. Antes solo se comprobaba que las esperadas
+ * estuvieran, y así pasó inadvertido un `calidad_general` de Monte Alén que no
+ * aparece en ningún mockup (notas.md, 2026-09-27).
+ */
+async function comprobarMetricas(slug, nombre, esperadas) {
+  const entity = entities.find((e) => e.slug === slug);
+  if (!entity) {
+    bad(`no está ${nombre}`);
+    return null;
+  }
 
-if (!monteAlen) {
-  bad('no está el Parque Nacional de Monte Alén');
-} else {
   const { data: metrics } = await anon
     .from('entity_metrics')
     .select('metric, value, unit, label')
-    .eq('entity_id', monteAlen.id);
+    .eq('entity_id', entity.id);
 
-  const esperadas = [
-    { metric: 'aire', value: 42, unit: 'AQI', label: 'Bueno' },
-    { metric: 'agua', value: 8.2, unit: 'pH', label: 'Excelente' },
-    { metric: 'biodiversidad', value: 8.7, unit: '/10', label: 'Alta' },
-    { metric: 'cobertura_forestal', value: 78, unit: '%', label: 'Alta' },
-  ];
+  const sobran = (metrics ?? [])
+    .map((m) => m.metric)
+    .filter((m) => !esperadas.some((e) => e.metric === m));
+  if (sobran.length > 0) {
+    bad(`${nombre}: métricas de más, sin fuente en los mockups: ${sobran.join(', ')}`);
+  }
 
   for (const esperada of esperadas) {
     const real = metrics?.find((m) => m.metric === esperada.metric);
     if (!real) {
-      bad(`falta la métrica "${esperada.metric}"`);
+      bad(`${nombre}: falta la métrica "${esperada.metric}"`);
     } else if (
       Number(real.value) !== esperada.value ||
       real.unit !== esperada.unit ||
-      real.label !== esperada.label
+      (real.label ?? null) !== esperada.label
     ) {
       bad(
-        `${esperada.metric}: ${real.value} ${real.unit} "${real.label}" — se esperaba ${esperada.value} ${esperada.unit} "${esperada.label}"`,
+        `${nombre} · ${esperada.metric}: ${real.value} ${real.unit} "${real.label}" — se esperaba ${esperada.value} ${esperada.unit} "${esperada.label}"`,
       );
     } else {
-      ok(`${esperada.metric}: ${real.value} ${real.unit} · ${real.label}`);
+      ok(`${nombre} · ${esperada.metric}: ${real.value} ${real.unit}${real.label ? ` · ${real.label}` : ''}`);
     }
   }
+
+  return entity;
 }
+
+// Mockup 1, pantalla "Perfil Ambiental": cuatro métricas y ninguna más.
+const monteAlen = await comprobarMetricas(
+  'parque-nacional-monte-alen',
+  'Monte Alén',
+  [
+    { metric: 'aire', value: 42, unit: 'AQI', label: 'Bueno' },
+    { metric: 'agua', value: 8.2, unit: 'pH', label: 'Excelente' },
+    { metric: 'biodiversidad', value: 8.7, unit: '/10', label: 'Alta' },
+    { metric: 'cobertura_forestal', value: 78, unit: '%', label: 'Alta' },
+  ],
+);
+
+// Mockup 2, pantalla "Perfil ambiental". Mide el aire dos veces: AQI crudo en
+// "Datos clave" y subíndice sobre 10 en la fila de índices. El 8.9 no lleva
+// palabra debajo en el mockup, así que su label es nulo a propósito.
+await comprobarMetricas('rio-ntem', 'Río Ntem', [
+  { metric: 'calidad_general', value: 8.7, unit: '/10', label: 'Muy bueno' },
+  { metric: 'aire', value: 42, unit: 'AQI', label: 'Bueno' },
+  { metric: 'indice_aire', value: 8.9, unit: '/10', label: null },
+  { metric: 'agua', value: 8.2, unit: 'pH', label: 'Buena' },
+  { metric: 'suelo', value: 8.5, unit: '/10', label: 'Bueno' },
+  { metric: 'biodiversidad', value: 9.1, unit: '/10', label: 'Alto' },
+  { metric: 'temperatura_media', value: 26.4, unit: '°C', label: 'Templada' },
+]);
 
 // --- 5. RLS: contenido curado, no escribible -------------------------------------
 step('5. RLS: nadie escribe el contenido curado');

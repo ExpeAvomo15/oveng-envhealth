@@ -33,7 +33,7 @@ function globbedBundle() {
   if (!entry) throw new Error('no se encontró el bundle de entrada en dist/');
   return join(dir, entry);
 }
-const SHOTS = join(ROOT, 'docs/verificacion/f1');
+const SHOTS = join(ROOT, 'docs/verificacion/f1/ui');
 const skipBuild = process.argv.includes('--skip-build');
 
 let failures = 0;
@@ -67,6 +67,12 @@ if (!skipBuild) {
   step('1. Build omitida (--skip-build)');
 }
 
+/**
+ * Cada script escribe en SU subdirectorio y solo limpia ese. Antes todos
+ * apuntaban a docs/verificacion/f1/ y este era el único que hacía rmSync del
+ * directorio entero: ejecutar la batería completa acabando por verify:ui
+ * borraba las capturas commiteadas de F1.3, F1.4 y F1.5.
+ */
 rmSync(SHOTS, { recursive: true, force: true });
 mkdirSync(SHOTS, { recursive: true });
 
@@ -96,6 +102,20 @@ const shot = async (name) => {
 };
 
 const seen = (text) => page.getByText(text, { exact: false }).first();
+
+/**
+ * Como expectVisible, pero por rol y nombre accesible. Es lo que hay que usar
+ * cuando el texto aparece en más de un sitio de la pantalla, o cuando se pinta
+ * en varios nodos y buscarlo como cadena es frágil.
+ */
+async function expectRole(role, name, label) {
+  try {
+    await page.getByRole(role, { name }).first().waitFor({ state: 'visible', timeout: 8000 });
+    ok(label);
+  } catch {
+    bad(`${label} — no apareció ${role} "${name}"`);
+  }
+}
 
 async function expectVisible(text, label) {
   try {
@@ -176,14 +196,20 @@ try {
 
   // --- Secciones -------------------------------------------------------------
   step('4. Las 5 secciones');
-  await expectVisible('Tu feed aparecerá aquí', 'Inicio muestra su estado vacío');
+  // Se comprueba que Inicio ha montado, no que esté vacío: desde F1.5 "Para ti"
+  // enseña las publicaciones de todo el mundo, así que una cuenta recién creada
+  // ve contenido. El selector se busca por rol y nombre porque "Siguiendo"
+  // también es la etiqueta de un contador en Perfil.
+  await expectRole('tab', 'Para ti', 'Inicio monta con su selector de feed');
   await expectVisible('Inicio', 'la barra de navegación está presente');
   await shot('03-inicio');
 
   for (const [label, marker, file] of [
     ['Buscar', 'Busca personas, lugares o etiquetas', '04-buscar'],
     ['Mapa', 'Mapa ambiental', '05-mapa'],
-    ['Perfil', 'Cerrar sesión', '06-perfil'],
+    // Ojo: "Cerrar sesión" NO vale como marcador de esta pantalla — desde F0.2c
+    // vive dentro del menú "···" y no se ve hasta abrirlo (paso 7).
+    ['Perfil', 'Editar perfil', '06-perfil'],
   ]) {
     await page.getByRole('tab', { name: label }).click();
     await page.waitForTimeout(700);
@@ -226,7 +252,11 @@ try {
   step('7. Cerrar sesión');
   await page.getByRole('tab', { name: 'Perfil' }).click();
   await page.waitForTimeout(700);
-  await page.getByText('Cerrar sesión', { exact: true }).first().click();
+
+  // Cerrar sesión está detrás del menú "···" desde F0.2c.
+  await page.getByRole('button', { name: 'Más opciones' }).click();
+  await page.waitForTimeout(600);
+  await page.getByRole('menuitem', { name: /Cerrar sesión/ }).click();
   await page.waitForTimeout(2500);
   await expectVisible('Tu entorno. Tu salud.', 'cerrar sesión devuelve a welcome');
   await shot('09-logout-welcome');

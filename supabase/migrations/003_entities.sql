@@ -34,8 +34,15 @@ create type public.entity_type as enum ('lugar', 'empresa', 'iniciativa');
 
 -- Métricas que puede tener una entidad. Es un enumerado y no texto libre para
 -- que la app pueda dar a cada una su icono, su formato y su orden sin adivinar.
+-- `aire` e `indice_aire` NO son la misma métrica en otra unidad. El mockup 2
+-- enseña las dos a la vez en la ficha del Río Ntem: un AQI crudo de 42 en
+-- "Datos clave" y un subíndice normalizado de 8.9 sobre 10 en la fila de
+-- índices. Un AQI baja cuando el aire mejora y un índice sube, así que no se
+-- puede convertir uno en el otro ni guardarlos en la misma fila: la clave
+-- primaria de entity_metrics es (entity_id, metric).
 create type public.entity_metric as enum (
   'aire',
+  'indice_aire',
   'agua',
   'suelo',
   'biodiversidad',

@@ -309,6 +309,7 @@ export type Database = {
       environmental_category: 'aire' | 'agua' | 'suelo' | 'biodiversidad' | 'energia' | 'residuos';
       entity_metric:
         | 'aire'
+        | 'indice_aire'
         | 'agua'
         | 'suelo'
         | 'biodiversidad'

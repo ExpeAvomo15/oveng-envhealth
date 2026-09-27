@@ -24,7 +24,7 @@ useLocalBrowserLibraries();
 const { chromium } = await import('playwright');
 
 const ROOT = process.cwd();
-const SHOTS = join(ROOT, 'docs/verificacion/f1');
+const SHOTS = join(ROOT, 'docs/verificacion/f1/f13');
 const TMP = join(ROOT, '.tmp-verify');
 const skipBuild = process.argv.includes('--skip-build');
 
@@ -184,6 +184,10 @@ if (entry && readFileSync(join(bundleDir, entry), 'utf8').includes(url)) {
   bad('el bundle no apunta al Supabase del .env (¿caché de Metro?)');
 }
 
+// Cada script limpia solo SU subdirectorio: antes los cuatro compartían
+// docs/verificacion/f1/ y el rmSync de verify-ui se llevaba las capturas de los
+// demás. Ver notas.md (2026-09-27).
+rmSync(SHOTS, { recursive: true, force: true });
 mkdirSync(SHOTS, { recursive: true });
 mkdirSync(TMP, { recursive: true });
 

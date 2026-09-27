@@ -78,13 +78,14 @@ const entities = [
     lat: 1.65,
     lng: 10.3,
     verified: true,
-    // Valores exactos del mockup 1, pantalla "Perfil Ambiental".
+    // Valores exactos del mockup 1, pantalla "Perfil Ambiental". Son los cuatro
+    // que esa pantalla muestra, y ni uno más: NO lleva calidad general. Había
+    // aquí un 8.6 que no sale de ningún mockup; ver notas.md (2026-09-27).
     metrics: [
       { metric: 'aire', value: 42, unit: 'AQI', label: 'Bueno' },
       { metric: 'agua', value: 8.2, unit: 'pH', label: 'Excelente' },
       { metric: 'biodiversidad', value: 8.7, unit: '/10', label: 'Alta' },
       { metric: 'cobertura_forestal', value: 78, unit: '%', label: 'Alta' },
-      { metric: 'calidad_general', value: 8.6, unit: '/10', label: 'Excelente' },
     ],
   },
   {
@@ -99,10 +100,15 @@ const entities = [
     lat: 2.35,
     lng: 9.82,
     verified: true,
-    // Valores exactos del mockup 2, pantalla "Perfil ambiental".
+    // Valores exactos del mockup 2, pantalla "Perfil ambiental". Esa pantalla
+    // mide el aire dos veces y las dos se guardan: el AQI crudo de "Datos
+    // clave" y el subíndice sobre 10 de la fila de índices. La fila de índices
+    // no pone ninguna palabra debajo del 8.9, así que `label` va nulo en vez de
+    // inventarle una.
     metrics: [
       { metric: 'calidad_general', value: 8.7, unit: '/10', label: 'Muy bueno' },
       { metric: 'aire', value: 42, unit: 'AQI', label: 'Bueno' },
+      { metric: 'indice_aire', value: 8.9, unit: '/10', label: null },
       { metric: 'agua', value: 8.2, unit: 'pH', label: 'Buena' },
       { metric: 'suelo', value: 8.5, unit: '/10', label: 'Bueno' },
       { metric: 'biodiversidad', value: 9.1, unit: '/10', label: 'Alto' },

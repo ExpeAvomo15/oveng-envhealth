@@ -207,10 +207,22 @@ export default function CreatePostScreen() {
           accessibilityLabel="Texto de la publicación"
         />
 
+        {/*
+          Las etiquetas son una lista, y se anuncian como tal: sin rol, un
+          lector de pantalla las lee como texto suelto pegado al final del
+          campo. Cada ficha lleva además su propio nombre accesible, que es lo
+          que permite apuntar a una etiqueta concreta en vez de buscar su texto
+          por la pantalla — el texto "#etiqueta" se pinta en dos nodos (el "#" y
+          el nombre) y buscarlo como cadena es frágil.
+
+          Se usa `role` y no `accessibilityRole` porque "listitem" solo existe
+          en el prop ARIA: el tipo AccessibilityRole de React Native tiene
+          "list" pero no "listitem".
+        */}
         {hashtags.length > 0 ? (
-          <View style={styles.hashtags}>
+          <View style={styles.hashtags} role="list" accessibilityLabel="Etiquetas detectadas">
             {hashtags.map((tag) => (
-              <View key={tag} style={styles.hashtag}>
+              <View key={tag} style={styles.hashtag} role="listitem" accessibilityLabel={`#${tag}`}>
                 <Text variant="label" color="accent">
                   #{tag}
                 </Text>
