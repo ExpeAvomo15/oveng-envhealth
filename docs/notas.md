@@ -129,11 +129,22 @@ en vez de colarse tras una tercera que no existe. Una comprobación que depende
 de que la base esté en un estado concreto es una comprobación que fallará el día
 que alguien publique algo.
 
+### Comprobado en la demo desplegada
+
+El recorrido del criterio, en producción: el feed con la tarjeta **integrada
+entre publicaciones** tras la tercera, con la medición real y el lugar que la
+mide, el cambio de zona a Málaga persistiendo tras recargar —lo que confirma
+que el almacenamiento local funciona en el origen publicado— y de la tarjeta al
+perfil ambiental del Ntem. Capturas en `docs/verificacion/produccion/`.
+
+Lo único del criterio que no se pudo comprobar es el feed sin sesión, porque el
+feed no es público; está explicado arriba.
+
 ### Estado
 
 Las doce verificaciones en verde contra Supabase real: `auth`, `f13`, `f14`,
 `f15`, `ui`, `mvp`, `f21`, `f22`, `f23`, `f24` y `f25`. Lint y typecheck
-limpios. **F2 queda completa.**
+limpios. **F2 queda completa**, con el tag `v0.2-demo-ambiental`.
 
 ---
 
