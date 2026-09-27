@@ -71,6 +71,29 @@ export async function isFollowing(followerId: string, followingId: string): Prom
 }
 
 /**
+ * De las cuentas dadas, cuáles sigue ya `followerId`.
+ *
+ * Una sola consulta para toda la lista: una lista de resultados de búsqueda
+ * necesita el estado de todos sus botones, y pedirlo fila por fila son tantas
+ * peticiones como resultados.
+ */
+export async function getFollowedUserIds(
+  followerId: string,
+  userIds: string[],
+): Promise<Set<string>> {
+  if (userIds.length === 0) return new Set();
+
+  const { data, error } = await supabase
+    .from('follows')
+    .select('following_id')
+    .eq('follower_id', followerId)
+    .in('following_id', userIds);
+
+  if (error) throw error;
+  return new Set(data?.map((row) => row.following_id) ?? []);
+}
+
+/**
  * Seguir. Idempotente: si ya se seguía, la clave primaria compuesta rechaza el
  * duplicado y se trata como éxito — el estado final es el que se pedía.
  */

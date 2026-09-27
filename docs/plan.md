@@ -119,10 +119,31 @@ propuesta pendiente de validar.
       saber quién administra cada entidad: hoy el contenido es curado y no tiene
       dueño, así que la columna no tendría a quién apuntar. Se decide cuando haya
       que dejar que una empresa gestione su propia ficha (ver notas).
-- [ ] **F2.2 buscar** — la sección Buscar, hoy un armazón: búsqueda de cuentas,
-      entidades, etiquetas y lugares, más descubrimiento para quien acaba de
-      llegar. Habilita también el toque en las etiquetas del feed, que hoy solo
-      avisa de que no lleva a ninguna parte.
+- [ ] **F2.2 buscar** — **construida y verificada salvo una cosa; ver abajo.**
+      La sección Buscar deja de ser un armazón: barra de búsqueda con el icono de
+      filtros dentro (el panel avanzado es post-demo), chips de alcance (Todo,
+      Empresas, Iniciativas, Personas, Lugares), Sugerencias y Tendencias cuando
+      no hay búsqueda, y resultados agrupados por tipo con "Ver todo" cuando el
+      alcance es Todo. Fichas de entidad con marcador de categoría, valoración
+      —"Nuevo" mientras no haya ninguna— y botón Seguir; fichas de persona
+      reutilizando el patrón de F1.3. Búsqueda con `ilike` sobre
+      `name`/`description`/`location_name` y `username`/`display_name`, con
+      debounce de 300 ms, esqueletos y vacíos con salida. Ficha mínima de entidad
+      en `/entidad/[slug]`, con aviso de que el perfil ambiental es F2.4. Seguir
+      entidades en la migración **`004`**. Las etiquetas del feed ya abren Buscar
+      con el término puesto.
+      Verificado con `npm run verify:f22`: el directorio, el filtro por chip
+      comparado contra la base, la navegación a la ficha y a un perfil, y las
+      capturas en `docs/verificacion/f22/`. Sin regresiones en `verify:mvp`.
+      **Pendiente para cerrarla: aplicar `004_entity_follows.sql` y volver a
+      ejecutar `verify:f22`.** Las tres comprobaciones de seguir entidades
+      —persistencia y RLS en los dos sentidos— son las únicas que faltan, y el
+      criterio de cierre incluye poder seguirlas. Sin la migración la pantalla
+      funciona igual: leer degrada a "no sigues a nadie" y seguir avisa.
+      **Lo que no incluye:** buscar **publicaciones** por etiqueta. Buscar es el
+      directorio de entidades y personas; tocar una etiqueta la usa como término
+      de búsqueda del directorio, no encuentra publicaciones con ella. Eso pide
+      consultar `posts` y no está en esta capa de datos (ver notas).
 - [ ] **F2.3 mapa ambiental** — capas de aire, agua, suelo y biodiversidad sobre
       el territorio, con las entidades y las publicaciones geolocalizadas
       encima. Exige decidir proveedor de mapa y de dónde salen los datos
@@ -141,6 +162,13 @@ propuesta pendiente de validar.
 
 ### Fuera del alcance de F2, anotado para no perderlo
 
+- **Búsqueda sin acentos.** `ilike` resuelve las mayúsculas y no los acentos:
+  "malaga" y "alen" devuelven **cero** resultados contra el seed actual. En una
+  app en español es lo primero que hay que arreglar de Buscar, y pide la
+  extensión `unaccent` o una columna normalizada — es decir, una migración.
+  Medido en notas.md (2026-09-27).
+- Buscar publicaciones por etiqueta, que es lo que haría que las etiquetas del
+  feed llevasen a sus publicaciones y no al directorio.
 - Comentarios en las publicaciones (el detalle ya les reserva el sitio).
 - Valoraciones comunitarias con puntuación, distintas del "me gusta" actual.
 - Verificación real de cuentas: hoy `verified` lo puede cambiar su propio dueño.

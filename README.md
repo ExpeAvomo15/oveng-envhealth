@@ -94,6 +94,7 @@ npm run verify:mvp     # recorrido completo en Chromium, con capturas
 | `verify:f14` | Compositor, etiquetas, imagen y límite de caracteres. |
 | `verify:f15` | Feed, paginación, "me gusta" y filtro "Siguiendo". |
 | `verify:f21` | Entidades: esquema de la migración 003, seed cargado, coordenadas, métricas y RLS. |
+| `verify:f22` | Buscar: directorio, filtros, navegación a la ficha de entidad y seguir entidades. |
 | `verify:mvp` | El recorrido completo de punta a punta. |
 
 Los que abren navegador construyen con `--clear` y comprueban que el bundle

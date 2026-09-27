@@ -5,6 +5,158 @@ decidió y por qué. Lo más reciente arriba.
 
 ---
 
+## 2026-09-27 — F2.2: el directorio de Buscar y seguir entidades
+
+La primera pantalla que enseña las catorce entidades de F2.1. Decisiones que no
+se ven en el diff.
+
+### `entity_follows` es su propia tabla
+
+`follows` referencia `profiles` por los dos lados. Meter ahí una entidad pedía
+una columna nula y un check de "o una u otra", que es exactamente la deuda que
+F1.3 evitó al no meter empresas en `profiles`. Tabla aparte, clave primaria
+compuesta, y las mismas tres políticas que `follows` (sin UPDATE: una fila de
+seguimiento no tiene nada que actualizar).
+
+### La búsqueda pelea con dos gramáticas, no con una
+
+`sanitizeSearchTerm` no es paranoia:
+
+- **PostgREST**: en `or=(name.ilike.x,description.ilike.y)` la coma separa
+  condiciones y los paréntesis agrupan. Buscar `a,b` partía el filtro en dos
+  condiciones inválidas y la consulta **devolvía un error**, no cero
+  resultados.
+- **SQL `LIKE`**: `%` y `_` son comodines. Sin escapar, quien escribe `%` pide
+  "cualquier cosa" sin saberlo.
+
+Se quitan los caracteres estructurales y se escapan los comodines.
+
+### `ilike` no ignora los acentos, y eso se nota
+
+Comprobado contra la base sembrada:
+
+| Se busca | Resultados |
+| -------- | ---------- |
+| `alén`   | 2 — Monte Alén y Bosques Vivos |
+| `alen`   | **0** |
+| `málaga` | 2 |
+| `malaga` | **0** |
+
+En una app en español, con topónimos acentuados y gente escribiendo en un móvil,
+**esto es un agujero de verdad**: quien teclea "malaga" o "alen" no encuentra
+nada y concluye que el directorio está vacío. `ilike` resuelve las mayúsculas y
+nada más.
+
+Arreglarlo no es un parche en el cliente: pide la extensión `unaccent` y un
+índice sobre la expresión, o una columna normalizada que se mantenga sola. Las
+dos cosas son una migración, y F2.2 se especificó con `ilike`. **Queda anotado
+como lo primero que hay que mirar de Buscar.**
+
+De paso se vio que la subcadena suelta es ruidosa: `rio` devuelve seis
+entidades, y varias no por "Río" sino por *escena**rio*** y *estua**rio***. Una
+búsqueda de texto completo (`tsvector`) resolvería las dos cosas a la vez.
+
+### "Nuevo", no "0,0"
+
+El seed no trae valoraciones a propósito —una valoración necesita una persona
+real detrás—, así que hoy **todas** las fichas están sin valorar. Pintar "0,0"
+ahí se lee como "valorada pésimamente", que es lo contrario de la verdad; y en
+una red cuya tesis es que la valoración comunitaria pesa, arrancar acusando a
+todo el directorio de un cero sería mentir sobre el único dato que importa.
+
+### Un chip puesto ya es una búsqueda
+
+Al escribir la comprobación salió un fallo de producto: con el chip "Empresas"
+y el campo vacío, la pantalla enseñaba las Sugerencias en vez de las cinco
+empresas. Pero el criterio de cierre es **recorrer las catorce entidades desde
+Buscar**, y sin escribir nada eso se hace con los chips. Así que hay búsqueda
+activa con texto, con categoría **o con un chip que no sea "Todo"**.
+
+Por lo mismo, el chip "Personas" sin término devuelve **las cuentas más
+recientes** en vez de una lista vacía: la visión pide que Buscar resuelva el
+arranque en frío, y para eso hay que poder ver a quién hay. `profiles` es de
+lectura pública por RLS, así que no se enseña nada que no se vea ya en cualquier
+perfil.
+
+### Dos ajustes que salieron de mirar las capturas
+
+- **El subtítulo se quedó en "categoría · ubicación", sin el tipo.** Estaba, y
+  se comía la ubicación: "Empresa · Energía · Mal…" deja fuera justo el dato que
+  distingue una empresa de otra. Y era redundante por los dos lados — con
+  alcance "Todo" lo dice el título de la sección, y con un chip puesto lo dice
+  el chip.
+- **El design system gana un tamaño de botón, `sm`.** El de `md` dentro de una
+  fila de resultado truncaba el nombre a "Parque Nacio…". El texto acompaña al
+  tamaño: un `bodyStrong` dentro de un botón compacto lo obliga a crecer y deja
+  de ser compacto.
+
+También el icono de filtros pasó a ir **dentro** de la píldora, como en el
+mockup 2: fuera se comía el ancho del campo y el placeholder se cortaba a media
+palabra.
+
+### Seguir entidades funciona sin la migración aplicada
+
+`004` se aplica a mano, pero el push despliega. Entre una cosa y otra hay una
+ventana en la que `entity_follows` no existe, y una pantalla de Buscar que
+revienta entera por no poder pintar un botón sería un precio absurdo: el
+directorio se lee perfectamente sin saber a quién sigues.
+
+Así que leer degrada a "no sigues a nadie" (`isMissingTableError` mira `42P01` de
+Postgres y `PGRST205` de PostgREST), y **escribir sí avisa**: lanza
+`EntityFollowsUnavailable` y la pantalla lo traduce a un aviso. Disimular un
+fallo de escritura sería peor que la ventana.
+
+### Tercera vez que `getByText` falla y el producto está bien
+
+Pasó con `#reforestación` en F1.4 y ha pasado dos veces aquí: con el nombre de
+la entidad y con "Lugar · Biodiversidad". Las capturas de la propia ejecución
+que falló muestran los tres textos en pantalla.
+
+El patrón ya está claro y la salida también: **por rol y nombre accesible, no por
+texto**. Y aquí el arreglo fue en el producto, no en la comprobación, porque lo
+que faltaba era accesibilidad de verdad:
+
+- El nombre de la entidad se anuncia como `header`: es el encabezado de la
+  pantalla, y así un lector de pantalla puede saltar ahí.
+- "Lugar · Biodiversidad" son tres nodos de texto, que un lector lee como
+  fragmentos sueltos; ahora tiene un nombre accesible propio.
+- Las fichas de resultado son `link` con su nombre completo, que es lo que
+  permite comprobar "las cinco empresas y nada más" comparando con la base en
+  vez de contar filas.
+
+Ojo con `role: 'text'`: no es un rol ARIA y `getByRole` no lo acepta. Para eso
+está `getByLabel`.
+
+### Las etiquetas del feed ya llevan a algún sitio, con un matiz
+
+Era parte del enunciado de F2.2 en el plan. Tocar `#reforestación` abre Buscar
+con el término puesto, en vez de avisar de que no lleva a ninguna parte.
+
+**Pero encuentra el directorio, no publicaciones.** Buscar consulta `entities` y
+`profiles`; buscar publicaciones por etiqueta es consultar `posts`, que no está
+en la capa de datos de F2.2. El plan prometía "búsqueda de cuentas, entidades,
+etiquetas y lugares" y lo que hay es la etiqueta **como término de búsqueda del
+directorio**. Anotado en el plan, no dado por hecho.
+
+### Lo demás
+
+- **La fila de una ficha no es un único pulsable.** El botón Seguir tendría que
+  ir dentro, y un pulsable dentro de otro hace que en web el clic burbujee:
+  seguir a una entidad navegaría además a su ficha. La zona de texto es el
+  pulsable y el botón va al lado, hermanos. Es lo que ya hace la tarjeta del
+  feed.
+- **El icono de filtros avisa en vez de no hacer nada.** El panel es post-demo.
+  Un control que se ve pulsable y no responde se lee como una avería.
+- **La ficha de entidad es mínima a propósito.** Enseña lo que hay en la base y
+  nada más; el perfil ambiental con escalas y evolución es F2.4, y adelantarlo a
+  medias sería construirlo dos veces. Lo dice en pantalla.
+- **Una respuesta lenta no puede pintarse sobre otra búsqueda.** Los resultados
+  se guardan junto a la clave de la búsqueda a la que pertenecen, así que
+  `loading` no es un estado que encender y apagar: es "todavía no hay respuesta
+  para esta búsqueda".
+
+---
+
 ## 2026-09-27 — Estrategia de crecimiento, y una tensión con la visión
 
 Queda registrada en @docs/07_CRECIMIENTO.md, con F3 en el plan y una nota en

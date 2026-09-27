@@ -1,17 +1,23 @@
+import { useRouter } from 'expo-router';
 import { StyleSheet } from 'react-native';
 
 import { Text } from '@/components/ui';
-import { showToast } from '@/components/ui/toast';
 import { splitByHashtags } from '@/lib/hashtags';
 
 /**
  * Texto de una publicación con las etiquetas en verde.
  *
- * Las etiquetas responden al toque, pero todavía no llevan a ninguna parte: la
- * búsqueda por etiqueta es F2. Se avisa en vez de no hacer nada, que es peor
- * que no poder pulsarlas.
+ * Desde F2.2 las etiquetas **llevan a Buscar** con el término ya puesto, en vez
+ * de avisar de que no llevan a ninguna parte.
+ *
+ * Ojo con lo que encuentran: Buscar es el directorio de entidades y personas,
+ * así que tocar #reforestación busca empresas, iniciativas y lugares que hablen
+ * de reforestación — **no publicaciones con esa etiqueta**. Buscar
+ * publicaciones por etiqueta necesita consultar `posts`, que no está en la capa
+ * de datos de F2.2. Anotado en notas.md.
  */
 export function PostText({ content }: { content: string }) {
+  const router = useRouter();
   const segments = splitByHashtags(content);
 
   return (
@@ -28,9 +34,9 @@ export function PostText({ content }: { content: string }) {
             key={index}
             variant="body"
             color="accent"
-            onPress={() => showToast('La búsqueda por etiquetas llega en F2.')}
+            onPress={() => router.push(`/buscar?q=${encodeURIComponent(segment.tag)}`)}
             accessibilityRole="link"
-            accessibilityLabel={`Etiqueta ${segment.tag}`}
+            accessibilityLabel={`Buscar ${segment.tag}`}
             style={styles.hashtag}>
             {segment.value}
           </Text>

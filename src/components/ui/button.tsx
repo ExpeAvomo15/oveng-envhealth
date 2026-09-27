@@ -5,7 +5,12 @@ import { colors, radius, spacing } from '@/theme';
 import { Text } from './text';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'ghost';
-export type ButtonSize = 'md' | 'lg';
+/**
+ * `sm` es el botón de una fila de lista —Seguir en una ficha de resultado—,
+ * donde el de `md` se come el ancho del nombre. Los mockups lo pintan así en la
+ * pantalla de Buscar.
+ */
+export type ButtonSize = 'sm' | 'md' | 'lg';
 
 export type ButtonProps = {
   label: string;
@@ -31,6 +36,9 @@ export function Button({
 }: ButtonProps) {
   const isInactive = disabled || loading;
   const labelColor = isInactive ? 'textMuted' : variant === 'primary' ? 'textInverse' : 'accent';
+  // El texto acompaña al tamaño: un bodyStrong dentro de un botón compacto lo
+  // obliga a crecer y deja de ser compacto.
+  const labelVariant = size === 'sm' ? 'label' : 'bodyStrong';
 
   return (
     <Pressable
@@ -54,7 +62,7 @@ export function Button({
         />
       ) : (
         <View style={styles.labelWrap}>
-          <Text variant="bodyStrong" color={labelColor} numberOfLines={1}>
+          <Text variant={labelVariant} color={labelColor} numberOfLines={1}>
             {label}
           </Text>
         </View>
@@ -78,6 +86,11 @@ const styles = StyleSheet.create({
   },
 
   // Tamaños
+  sm: {
+    minHeight: 34,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
   md: {
     minHeight: 44,
     paddingHorizontal: spacing.lg,

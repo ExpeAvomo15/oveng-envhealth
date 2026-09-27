@@ -58,6 +58,7 @@ function RootNavigator() {
         <Stack.Screen name="editar-perfil" options={{ presentation: 'modal' }} />
         <Stack.Screen name="user/[username]" />
         <Stack.Screen name="post/[id]" />
+        <Stack.Screen name="entidad/[slug]" />
       </Stack.Protected>
     </Stack>
   );

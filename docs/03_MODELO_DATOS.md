@@ -66,6 +66,8 @@ erDiagram
     entities       ||--o{ entity_metrics : "se mide con"
     entities       ||--o{ entity_ratings : "recibe"
     profiles       ||--o{ entity_ratings : "valora"
+    entities       ||--o{ entity_follows : "es seguida por"
+    profiles       ||--o{ entity_follows : "sigue"
 
     entities {
         uuid id PK "default gen_random_uuid()"
@@ -98,6 +100,12 @@ erDiagram
         uuid user_id PK "FK profiles.id"
         integer score "1 a 5"
         text comment "nullable, max 500"
+        timestamptz created_at "default now()"
+    }
+
+    entity_follows {
+        uuid user_id PK "FK profiles.id"
+        uuid entity_id PK "FK entities.id"
         timestamptz created_at "default now()"
     }
 ```
@@ -192,6 +200,24 @@ menos que lo que dice quien vive al lado. Una valoración por persona y entidad
 (clave primaria compuesta), puntuación de 1 a 5 y comentario opcional.
 
 `entity_rating_summary` es una vista que devuelve media y número por entidad.
+
+### entity_follows
+
+Quién sigue a qué entidad (F2.2, migración `004`). Es el equivalente de
+`follows` para entidades.
+
+| Columna | Tipo | Notas |
+| ------- | ---- | ----- |
+| `user_id` | `uuid` | FK a `profiles.id`, `on delete cascade`. Parte de la PK. |
+| `entity_id` | `uuid` | FK a `entities.id`, `on delete cascade`. Parte de la PK. |
+| `created_at` | `timestamptz` | `default now()`. |
+
+**Va en su propia tabla y no en `follows`**, que referencia `profiles` por los
+dos lados: meter aquí una entidad obligaría a una columna nula y a un check de
+"o una u otra", justo la deuda que F1.3 evitó al separar personas de entidades.
+
+La PK compuesta impide seguir dos veces a la misma entidad. Índice extra en
+`entity_id`, que es por donde se pregunta "cuántos siguen a esta".
 Existe porque ese dato aparece en la ficha de Buscar, en la tarjeta del mapa y
 en el perfil ambiental, y conviene que los tres lo calculen igual. Lleva
 `security_invoker = on`, así que respeta las políticas de quien consulta y no
@@ -212,6 +238,7 @@ escribe.**
 | `entities` | público (`true`)  | — **ninguna**                | — **ninguna**                | — **ninguna**                |
 | `entity_metrics` | público (`true`) | — **ninguna**          | — **ninguna**                | — **ninguna**                |
 | `entity_ratings` | público (`true`) | `auth.uid() = user_id` | `auth.uid() = user_id`       | `auth.uid() = user_id`       |
+| `entity_follows` | público (`true`) | `auth.uid() = user_id` | — sin política               | `auth.uid() = user_id`       |
 
 `entities` y `entity_metrics` **no tienen ninguna política de escritura**, y es
 deliberado: son contenido curado. RLS deniega por defecto, así que ni un
@@ -336,6 +363,7 @@ Viven en `supabase/migrations/`:
 | `001_initial_schema.sql` | Tablas, índices, RLS, políticas y el trigger de registro. |
 | `002_storage.sql` | Buckets y políticas de `storage.objects`. |
 | `003_entities.sql` | Entidades ambientales, sus métricas, las valoraciones y la vista de resumen. |
+| `004_entity_follows.sql` | Seguir entidades: `entity_follows`, con su índice y sus políticas. |
 
 Cada una va envuelta en `begin; … commit;`: si algo falla a mitad, no queda nada
 aplicado a medias.
@@ -355,6 +383,7 @@ medias, pero tampoco aplica la mitad buena.
 3. *Run*. Debe terminar con `Success. No rows returned`.
 4. Repetir con `002_storage.sql` en una query nueva.
 5. Repetir con `003_entities.sql` en otra query nueva.
+6. Repetir con `004_entity_follows.sql` en otra query nueva.
 
 Si el paso 4 devuelve un error de permisos al crear políticas sobre
 `storage.objects`, crear las mismas reglas desde **Storage → Policies** en el
@@ -417,7 +446,7 @@ npm run verify:f21    # 003: tablas, seed, coordenadas, métricas y RLS de entid
 Lo de abajo es la comprobación a mano, en el **SQL Editor**, para cuando algo
 falla y hay que ver por qué.
 
-### 1. RLS activado en las siete tablas
+### 1. RLS activado en las ocho tablas
 
 ```sql
 select relname as tabla, relrowsecurity as rls_activado
@@ -426,9 +455,9 @@ where relnamespace = 'public'::regnamespace and relkind = 'r'
 order by relname;
 ```
 
-Las siete deben dar `true`: `profiles`, `posts`, `follows`, `likes`, `entities`,
-`entity_metrics` y `entity_ratings`. Una sola en `false` es una tabla abierta a
-internet.
+Las ocho deben dar `true`: `profiles`, `posts`, `follows`, `likes`, `entities`,
+`entity_metrics`, `entity_ratings` y `entity_follows`. Una sola en `false` es
+una tabla abierta a internet.
 
 `entity_rating_summary` no sale en esta consulta porque es una vista, no una
 tabla. La suya se comprueba en el punto 8.
@@ -442,7 +471,7 @@ where schemaname = 'public'
 order by tablename, cmd;
 ```
 
-Esperado, 20 en total:
+Esperado, 23 en total:
 
 | Tabla | Políticas | |
 | ----- | --------- | - |
@@ -453,6 +482,7 @@ Esperado, 20 en total:
 | `entities` | 1 | solo SELECT: contenido curado, nadie lo escribe |
 | `entity_metrics` | 1 | solo SELECT |
 | `entity_ratings` | 4 | esto sí lo escribe la gente |
+| `entity_follows` | 3 | sin UPDATE: una fila de seguimiento no se actualiza |
 
 ### 3. El trigger crea el perfil
 
@@ -616,6 +646,45 @@ where c.relnamespace = 'public'::regnamespace and c.relname = 'entity_rating_sum
 `reloptions` debe contener `security_invoker=on`. Aquí da igual porque las
 valoraciones son públicas, pero una vista que ignora RLS es una fuga esperando a
 que alguien la reutilice con una tabla que sí importe.
+
+### 9. Seguir entidades (migración 004)
+
+**Una persona puede seguir, y solo en su nombre.**
+
+```sql
+-- Debe FUNCIONAR
+begin;
+  set local request.jwt.claims = '{"sub":"<TU_UUID>"}';
+  set local role authenticated;
+  insert into public.entity_follows (user_id, entity_id)
+  select '<TU_UUID>', id from public.entities limit 1;
+rollback;
+```
+
+```sql
+-- Debe FALLAR: no se sigue en nombre de otra cuenta
+begin;
+  set local request.jwt.claims = '{"sub":"<TU_UUID>"}';
+  set local role authenticated;
+  insert into public.entity_follows (user_id, entity_id)
+  select '<OTRO_UUID>', id from public.entities limit 1;
+rollback;
+```
+
+```sql
+-- Debe FALLAR por la clave primaria compuesta: no se sigue dos veces
+begin;
+  set local request.jwt.claims = '{"sub":"<TU_UUID>"}';
+  set local role authenticated;
+  insert into public.entity_follows (user_id, entity_id)
+  select '<TU_UUID>', id from public.entities limit 1;
+  insert into public.entity_follows (user_id, entity_id)
+  select '<TU_UUID>', id from public.entities limit 1;
+rollback;
+```
+
+Un anónimo no puede insertar en ningún caso: la política de INSERT es solo para
+`authenticated`.
 
 ## Limitaciones conocidas
 

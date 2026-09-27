@@ -251,6 +251,39 @@ export type Database = {
           },
         ];
       };
+      entity_follows: {
+        Row: {
+          user_id: string;
+          entity_id: string;
+          created_at: string;
+        };
+        Insert: {
+          user_id: string;
+          entity_id: string;
+          created_at?: string;
+        };
+        Update: {
+          user_id?: string;
+          entity_id?: string;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'entity_follows_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'entity_follows_entity_id_fkey';
+            columns: ['entity_id'];
+            isOneToOne: false;
+            referencedRelation: 'entities';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       likes: {
         Row: {
           user_id: string;
@@ -342,6 +375,7 @@ export type Entity = Tables<'entities'>;
 export type EntityMetric = Tables<'entity_metrics'>;
 export type EntityRating = Tables<'entity_ratings'>;
 export type EntityRatingSummary = Views<'entity_rating_summary'>;
+export type EntityFollow = Tables<'entity_follows'>;
 
 export type EntityType = Enums<'entity_type'>;
 export type EnvironmentalCategoryName = Enums<'environmental_category'>;
