@@ -48,7 +48,13 @@ export function PostCard({ post, onPressBody }: PostCardProps) {
   const authorName = post.author.display_name?.trim() || post.author.username;
 
   async function toggleLike() {
-    if (!profile || busy) return;
+    // Sin cuenta el feed se ve pero no se valora: se dice a dónde ir en vez de
+    // no responder al toque. El feed es público desde F2.6.
+    if (!profile) {
+      router.push('/welcome');
+      return;
+    }
+    if (busy) return;
 
     const next = !liked;
     setBusy(true);

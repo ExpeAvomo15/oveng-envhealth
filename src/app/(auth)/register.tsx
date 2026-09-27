@@ -112,7 +112,15 @@ export default function RegisterScreen() {
       return;
     }
 
-    // status === 'session': el guard del layout raíz entra solo en (tabs).
+    /*
+     * status === 'session': al feed, y dicho explícitamente.
+     *
+     * Antes bastaba con que la sesión apareciera, porque la ruta de referencia
+     * de `(tabs)` era `index`. Desde F2.6 el feed es una ruta pública fuera del
+     * grupo, así que la referencia es otra pestaña y registrarse aterrizaba en
+     * Buscar. Ver también login.tsx.
+     */
+    router.replace('/');
   }
 
   if (confirmationEmail) {

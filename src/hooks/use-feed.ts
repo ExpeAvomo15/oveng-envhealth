@@ -51,7 +51,8 @@ export function useFeed(mode: FeedMode) {
   const posts = current?.posts ?? [];
   const cursor = current?.cursor ?? null;
   const error = current?.error ?? null;
-  const loading = viewerId !== null && current === null;
+  // El feed es público desde F2.6: también carga sin cuenta.
+  const loading = current === null;
 
   /** A quién sigue el usuario. Se recuerda para que las páginas siguientes
    *  filtren por la misma lista que la primera. */
@@ -66,15 +67,14 @@ export function useFeed(mode: FeedMode) {
    * manejador de eventos.
    */
   const loadFirstPage = useCallback(async (): Promise<LoadedFeed> => {
-    if (!viewerId) {
-      return { key, posts: [], cursor: null, error: null };
-    }
-
     try {
       let authorIds: string[] | undefined;
 
+      // "Siguiendo" sin cuenta no tiene a quién seguir: lista vacía, que es lo
+      // que `fetchFeed` traduce en "no hay nada que preguntar". En la pantalla
+      // ese modo ni se ofrece sin sesión.
       if (mode === 'siguiendo') {
-        authorIds = await getFollowingIds(viewerId);
+        authorIds = viewerId ? await getFollowingIds(viewerId) : [];
         followingIds.current = authorIds;
       } else {
         followingIds.current = null;
@@ -102,7 +102,7 @@ export function useFeed(mode: FeedMode) {
   }, [loadFirstPage]);
 
   const loadMore = useCallback(async () => {
-    if (!viewerId || cursor === null || loadingMore) return;
+    if (cursor === null || loadingMore) return;
 
     setLoadingMore(true);
     try {

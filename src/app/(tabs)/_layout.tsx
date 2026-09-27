@@ -3,9 +3,16 @@ import { Tabs } from 'expo-router';
 import { TabBar } from '@/components/navigation/tab-bar';
 import { colors } from '@/theme';
 
-/** Inicio es la sección por defecto al entrar con sesión. */
+/**
+ * Lo que queda aquí son **las pestañas que exigen cuenta**.
+ *
+ * Inicio y Mapa viven fuera del grupo, como rutas públicas de primer nivel: la
+ * guarda de `(tabs)` es de todo el grupo, así que una pestaña pública no puede
+ * estar dentro. Las dos pintan la barra ellas mismas, que es un componente
+ * propio y navega por ruta. Ver src/app/_layout.tsx.
+ */
 export const unstable_settings = {
-  anchor: 'index',
+  anchor: 'buscar',
 };
 
 export default function TabsLayout() {
@@ -16,10 +23,8 @@ export default function TabsLayout() {
         headerShown: false,
         sceneStyle: { backgroundColor: colors.background },
       }}>
-      <Tabs.Screen name="index" options={{ title: 'Inicio' }} />
+      {/* Inicio y Mapa no están aquí: son rutas públicas. Ver el layout raíz. */}
       <Tabs.Screen name="buscar" options={{ title: 'Buscar' }} />
-      {/* Mapa no está aquí: es una ruta pública de primer nivel y pinta la
-          barra ella misma. Ver src/app/_layout.tsx. */}
       <Tabs.Screen name="perfil" options={{ title: 'Perfil' }} />
 
       {/* Referencia visual del design system: accesible por URL, fuera de la barra. */}

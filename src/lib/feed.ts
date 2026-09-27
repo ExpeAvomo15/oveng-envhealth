@@ -53,13 +53,25 @@ type RawFeedRow = {
   created_at: string;
   author: FeedAuthor | null;
   likes_count: { count: number }[];
-  my_like: { user_id: string }[];
+  /** Ausente en el select anónimo: sin lector no hay "mi me gusta". */
+  my_like?: { user_id: string }[];
 };
 
-const FEED_SELECT = `
+const FEED_BASE_SELECT = `
   id, content, image_url, hashtags, created_at,
   author:profiles!posts_author_id_fkey ( id, username, display_name, avatar_url, verified ),
-  likes_count:likes!likes_post_id_fkey ( count ),
+  likes_count:likes!likes_post_id_fkey ( count )
+`;
+
+/**
+ * Con lector se pide además `my_like`, que se filtra por su id.
+ *
+ * **Sin lector no se pide.** Un `my_like` sin filtrar devolvería *todos* los
+ * "me gusta" de cada publicación, así que pesaría más y además daría
+ * `likedByViewer` verdadero para cualquiera. El feed es público desde F2.6 y
+ * quien no tiene cuenta no ha dado ningún "me gusta".
+ */
+const FEED_SELECT = `${FEED_BASE_SELECT},
   my_like:likes!likes_post_id_fkey ( user_id )
 `;
 
@@ -76,7 +88,7 @@ function toFeedPost(row: RawFeedRow): FeedPost | null {
     createdAt: row.created_at,
     author: row.author,
     likesCount: row.likes_count[0]?.count ?? 0,
-    likedByViewer: row.my_like.length > 0,
+    likedByViewer: (row.my_like?.length ?? 0) > 0,
   };
 }
 
@@ -98,7 +110,8 @@ export type FeedPage = {
 };
 
 export type FetchFeedOptions = {
-  viewerId: string;
+  /** `null` cuando se lee sin cuenta: el feed es público desde F2.6. */
+  viewerId: string | null;
   mode: FeedMode;
   /** `created_at` de la última publicación de la página anterior. */
   cursor?: string | null;
@@ -125,10 +138,13 @@ export async function fetchFeed({
 
   let query = supabase
     .from('posts')
-    .select(FEED_SELECT)
-    .eq('my_like.user_id', viewerId)
+    .select(viewerId ? FEED_SELECT : FEED_BASE_SELECT)
     .order('created_at', { ascending: false })
     .limit(FEED_PAGE_SIZE);
+
+  if (viewerId) {
+    query = query.eq('my_like.user_id', viewerId);
+  }
 
   if (mode === 'siguiendo' && authorIds) {
     query = query.in('author_id', authorIds);

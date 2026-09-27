@@ -10,7 +10,7 @@ comunitarias y huella ecológica personal.
 
 ---
 
-## Estado: MVP social y demo ambiental completos
+## Estado: demo completa
 
 La fase F1 está cerrada y etiquetada como `v0.1-mvp`. El ciclo social funciona
 de punta a punta contra Supabase real:
@@ -35,8 +35,9 @@ general, estado por capa, datos clave y las valoraciones de la comunidad. Y
 zona entre las publicaciones, diciendo qué lugar la mide, con la zona elegible.
 Eso cierra F2.
 
-**El mapa y los perfiles de entidad se ven sin cuenta.** Publicar, seguir y
-valorar siguen pidiéndola. Es el principio de utilidad individual de
+Y **F2.6** cierra la demo: **el feed, el mapa y los perfiles de entidad se ven
+sin cuenta.** Publicar, seguir, valorar y el filtro "Siguiendo" siguen
+pidiéndola, y lo dicen. Es el principio de utilidad individual de
 [docs/07_CRECIMIENTO.md](docs/07_CRECIMIENTO.md): el producto tiene que servir a
 quien llega solo.
 
@@ -44,17 +45,44 @@ Lo que **todavía no hace**: capas de datos ambientales sobre el territorio (el
 mapa enseña entidades, no superficies), comentarios en las publicaciones, y la
 huella ecológica de las personas. Ver el roadmap.
 
+### Cómo ver la demo en dos minutos
+
+En **https://expeavomo15.github.io/oveng-envhealth/** y **sin crear cuenta**:
+
+1. **Abre la demo.** Entras directamente al feed: no hay muro de registro.
+2. **Baja un poco.** Entre las publicaciones aparece *"Datos ambientales de
+   Guinea Ecuatorial"*, con la calidad del aire y **el lugar que la mide**.
+3. **Toca el nombre de la zona** y cambia a Málaga y Andalucía. La tarjeta dice
+   que ahí todavía no hay mediciones — los datos son reales y escasos.
+4. **Ve al Mapa.** Las catorce entidades sobre el territorio, con el color de su
+   categoría.
+5. **Apaga una capa** en la leyenda de la derecha: los marcadores de esa
+   categoría desaparecen.
+6. **Toca el marcador de Monte Alén** y abre su tarjeta.
+7. **Entra en su perfil ambiental**: aire 42 AQI, agua 8,2 pH, biodiversidad
+   8,7/10 y cobertura forestal 78 %, que son exactamente los del mockup. No
+   tiene círculo de calidad general porque el mockup no se lo da.
+8. **Intenta valorar.** Ahí sí se pide cuenta, y el botón lo dice.
+
+Con cuenta se cierra el ciclo: publicar con etiquetas, "me gusta", buscar y
+seguir una empresa, y valorar un lugar.
+
+El recorrido completo, paso a paso y con capturas, lo genera
+`npm run verify:demo` en [`docs/verificacion/demo/`](docs/verificacion/demo/).
+
 ### El recorrido, en imágenes
 
 | | | |
 | --- | --- | --- |
-| ![Bienvenida](docs/verificacion/mvp/01-bienvenida.png) | ![Feed](docs/verificacion/mvp/07-feed-con-publicacion.png) | ![Compositor](docs/verificacion/mvp/06-compositor.png) |
-| Bienvenida | Feed con publicación propia | Compositor con imagen |
-| ![Perfil](docs/verificacion/mvp/05-perfil-completo.png) | ![Perfil ajeno](docs/verificacion/mvp/09-siguiendo-a-la-autora.png) | ![Detalle](docs/verificacion/mvp/12-detalle.png) |
-| Perfil propio | Siguiendo a otra cuenta | Detalle de publicación |
+| ![Datos de zona en el feed](docs/verificacion/demo/02-zona-y-destacado.png) | ![Mapa ambiental](docs/verificacion/demo/04-mapa.png) | ![Perfil ambiental](docs/verificacion/demo/07-perfil-monte-alen.png) |
+| Los datos de tu zona, entre las publicaciones | El mapa con las catorce entidades | El perfil ambiental de Monte Alén |
+| ![Directorio](docs/verificacion/demo/12-buscar-ecoguinea.png) | ![Valorar](docs/verificacion/demo/13-valorar.png) | ![Perfil propio](docs/verificacion/demo/15-perfil-propio.png) |
+| El directorio en Buscar | Valorar un lugar | El perfil propio |
 
-El recorrido completo está en [`docs/verificacion/mvp/`](docs/verificacion/mvp/),
-generado automáticamente por `npm run verify:mvp`.
+Las dieciséis capturas del recorrido, en orden, están en
+[`docs/verificacion/demo/`](docs/verificacion/demo/) y las genera
+`npm run verify:demo`. El recorrido social del MVP sigue en
+[`docs/verificacion/mvp/`](docs/verificacion/mvp/).
 
 ## Stack
 
@@ -112,7 +140,8 @@ npm run verify:mvp     # recorrido completo en Chromium, con capturas
 | `verify:f23` | Mapa: marcadores, filtro por capa, tarjetas, acceso sin cuenta y limpieza del mapa. |
 | `verify:f24` | Perfil de entidad: métricas fieles al seed, valoraciones y su RLS. |
 | `verify:f25` | Datos de zona en el feed: posición, paginación, cambio de zona y persistencia. |
-| `verify:mvp` | El recorrido completo de punta a punta. |
+| `verify:mvp` | El recorrido social de punta a punta (F1). |
+| `verify:demo` | **La demo completa**: el recorrido de un visitante, sin cuenta y con ella. |
 
 Los que abren navegador construyen con `--clear` y comprueban que el bundle
 apunta al proyecto del `.env` antes de dar nada por bueno. `verify:auth` y
@@ -121,6 +150,41 @@ clave anónima, que es la que usa la app.
 
 Cada uno deja sus capturas en su propio subdirectorio de
 [`docs/verificacion/`](docs/verificacion/) y limpia solo el suyo.
+
+## Rendimiento
+
+Medido en F2.6, sin optimizar nada grande: la demo es una demo y el sitio de
+optimizar es cuando haya a quién.
+
+| | |
+| --- | --- |
+| Artefacto publicado (`dist`) | **5,4 MB** |
+| JavaScript del cliente | 2,8 MB en un solo *bundle* |
+| Fuentes (`.ttf`) | 1,68 MB — cuatro pesos de Inter y los iconos |
+| HTML prerenderizado | 24 páginas, 0,5 MB |
+| CSS | 81 KB, de los que 83 KB son la hoja de MapLibre |
+
+Y lo que tarda en llegar, medido contra Pages (tres peticiones, mejor de tres):
+
+| | |
+| --- | --- |
+| HTML de entrada | 23 KB · TTFB **0,23 s** |
+| Bundle de JavaScript | 2,89 MB, un solo fichero |
+| Hoja de MapLibre | 83 KB |
+
+El HTML llega en menos de un cuarto de segundo porque está prerenderizado; lo
+que manda en la primera visita es el bundle de JavaScript.
+
+El único arreglo que se hizo aquí valía la pena: el export llevaba **las
+dieciocho** variantes de Inter (6,3 MB) porque se importaban desde el índice del
+paquete, y un asset no se elimina por no usarse. Importando cada peso por su
+subruta entran solo los cuatro que usa el theme, y el artefacto **baja de 10 MB
+a 5,4 MB**. El navegador nunca descargó las otras catorce, pero viajaban en cada
+despliegue.
+
+Lo que **no** se ha tocado, anotado en [docs/notas.md](docs/notas.md): el bundle
+de JavaScript es único y MapLibre es un tercio largo de él, así que partirlo por
+rutas es la siguiente palanca — y es trabajo de verdad, no un quick win.
 
 ## Estructura
 

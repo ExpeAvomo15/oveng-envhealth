@@ -158,7 +158,7 @@ export default function ProfileScreen() {
           icon="leaf"
           title="Tu impacto ambiental"
           value="Excelente"
-          note="Se calculará con tu actividad en F2."
+          note="Llegará con la huella ecológica personal, después de la demo."
         />
         <ImpactCard
           icon="star"

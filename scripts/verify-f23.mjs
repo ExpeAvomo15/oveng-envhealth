@@ -129,11 +129,24 @@ try {
   {
     const page = await newPage();
 
+    /*
+     * Desde F2.6 la raíz es el feed y se ve sin cuenta; lo que sigue llevando a
+     * la bienvenida es pedir una ruta privada. Cuando esto se escribió (F2.3) la
+     * raíz era la bienvenida, y el orden de declaración de las rutas públicas
+     * era justo lo que había que proteger: por eso la comprobación sigue aquí,
+     * pero mirando lo que toca.
+     */
     await page.goto(`${origin}/`, { waitUntil: 'networkidle' });
     await page.waitForTimeout(2500);
     const landing = new URL(page.url()).pathname.replace(basePath, '') || '/';
-    if (landing === '/welcome') ok('sin sesión, la raíz sigue llevando a la bienvenida');
-    else bad(`sin sesión, la raíz lleva a ${landing} (debería ser /welcome)`);
+    if (landing === '/') ok('sin sesión, la raíz abre el feed público');
+    else bad(`sin sesión, la raíz lleva a ${landing} (debería ser el feed)`);
+
+    await page.goto(`${origin}/perfil`, { waitUntil: 'networkidle' });
+    await page.waitForTimeout(2500);
+    const privada = new URL(page.url()).pathname.replace(basePath, '') || '/';
+    if (privada === '/welcome') ok('y una ruta privada sigue llevando a la bienvenida');
+    else bad(`pedir /perfil sin sesión lleva a ${privada}`);
 
     await page.goto(`${origin}/mapa`, { waitUntil: 'networkidle' });
     await waitForMap(page);

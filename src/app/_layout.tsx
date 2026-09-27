@@ -72,12 +72,17 @@ function RootNavigator() {
         navega por ruta, el mapa la pinta él mismo y se ve igual.
 
         **Van al final, y el orden importa.** expo-router toma como ruta inicial
-        la primera disponible, y declaradas arriba el mapa se convertía en la
-        puerta de entrada: con sesión, `/` abría el mapa en vez del feed, y al
-        cerrar sesión se caía en el mapa en vez de la bienvenida. Declaradas
-        después, con sesión gana `(tabs)` y sin ella gana `(auth)`. Medido en
-        notas.md (2026-09-27).
+        la primera disponible cuando la URL no casa con ninguna. Declaradas
+        arriba, el mapa se convertía en la puerta de entrada y al cerrar sesión
+        se caía en él en vez de en la bienvenida. Al final, pedir una ruta
+        privada sin sesión sigue llevando a `(auth)`, que es lo que se quiere.
+        Medido en notas.md (2026-09-27).
+
+        `index` es el feed, y es pública desde F2.6: quien llega sin cuenta ve
+        el contenido antes de que se le pida nada. Publicar, seguir, valorar y
+        el filtro "Siguiendo" siguen pidiéndola, y lo dicen.
       */}
+      <Stack.Screen name="index" />
       <Stack.Screen name="mapa" />
       <Stack.Screen name="entidad/[slug]" />
     </Stack>

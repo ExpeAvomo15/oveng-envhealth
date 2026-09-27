@@ -20,7 +20,9 @@ import {
   ZoneDataCard,
 } from '@/components/feed';
 import { HomeHeader } from '@/components/navigation/home-header';
+import { TabBar } from '@/components/navigation/tab-bar';
 import { Button, Callout, Text } from '@/components/ui';
+import { useAuth } from '@/hooks/use-auth';
 import { useFeed } from '@/hooks/use-feed';
 import { useZone } from '@/hooks/use-zone';
 import { buildFeedRows, type FeedRow } from '@/lib/feed-rows';
@@ -28,8 +30,21 @@ import type { FeedMode } from '@/lib/feed';
 import { colors, maxContentWidth, radius, screenPadding, spacing } from '@/theme';
 
 /** Inicio — el feed. */
+/**
+ * Inicio — el feed, y la puerta de entrada.
+ *
+ * **Se ve sin cuenta desde F2.6.** Es el principio de utilidad individual de
+ * @docs/07_CRECIMIENTO.md llevado a la pantalla que más se abre: quien llega
+ * ve contenido antes de que se le pida nada. Publicar, dar "me gusta", seguir y
+ * el filtro "Siguiendo" siguen exigiendo cuenta, y lo dicen en vez de no
+ * responder.
+ *
+ * Como es una ruta de primer nivel y no una pestaña —para poder ser pública sin
+ * abrir todo el grupo `(tabs)`—, pinta la barra ella misma, igual que el mapa.
+ */
 export default function HomeScreen() {
   const router = useRouter();
+  const { session } = useAuth();
   const [mode, setMode] = useState<FeedMode>('para-ti');
   const { posts, loading, refreshing, loadingMore, error, hasMore, refresh, loadMore } =
     useFeed(mode);
@@ -54,7 +69,16 @@ export default function HomeScreen() {
       <HomeHeader />
 
       <View style={styles.toolbar}>
-        <FeedToggle mode={mode} onChange={setMode} />
+        {/*
+          Sin cuenta no hay a quién seguir, así que el selector no tiene dos
+          opciones que ofrecer: se enseña el acceso a la cuenta, que es lo que
+          desbloquea la otra mitad.
+        */}
+        {session === null ? (
+          <Button label="Iniciar sesión" size="sm" onPress={() => router.push('/welcome')} />
+        ) : (
+          <FeedToggle mode={mode} onChange={setMode} />
+        )}
 
         {/* En web no hay gesto de tirar para refrescar: hace falta un botón. */}
         {Platform.OS === 'web' ? (
@@ -102,7 +126,13 @@ export default function HomeScreen() {
                 />
               );
             case 'empty':
-              return <EmptyFeed mode={mode} onCreate={() => router.push('/crear')} />;
+              return (
+                <EmptyFeed
+                  mode={mode}
+                  hasSession={session !== null}
+                  onCreate={() => router.push(session === null ? '/welcome' : '/crear')}
+                />
+              );
           }
         }}
         contentContainerStyle={styles.list}
@@ -140,11 +170,21 @@ export default function HomeScreen() {
           ) : null
         }
       />
+
+      <TabBar />
     </SafeAreaView>
   );
 }
 
-function EmptyFeed({ mode, onCreate }: { mode: FeedMode; onCreate: () => void }) {
+function EmptyFeed({
+  mode,
+  hasSession,
+  onCreate,
+}: {
+  mode: FeedMode;
+  hasSession: boolean;
+  onCreate: () => void;
+}) {
   const forYou = mode === 'para-ti';
 
   return (
@@ -163,7 +203,11 @@ function EmptyFeed({ mode, onCreate }: { mode: FeedMode; onCreate: () => void })
       </Text>
 
       {forYou ? (
-        <Button label="Crear publicación" onPress={onCreate} style={styles.cta} />
+        <Button
+          label={hasSession ? 'Crear publicación' : 'Crear cuenta para publicar'}
+          onPress={onCreate}
+          style={styles.cta}
+        />
       ) : null}
     </View>
   );

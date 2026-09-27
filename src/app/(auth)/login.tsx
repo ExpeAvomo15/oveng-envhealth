@@ -25,12 +25,22 @@ export default function LoginScreen() {
 
     const result = await signIn(email, password);
 
-    // Si funciona, el guard del layout raíz cambia de grupo solo: no hay que
-    // navegar a ninguna parte desde aquí.
     if (result.error) {
       setError(result.error);
       setSubmitting(false);
+      return;
     }
+
+    /*
+     * Al feed, y dicho explícitamente.
+     *
+     * Antes bastaba con que la sesión apareciera: el guard metía `(tabs)` en el
+     * árbol y su ruta de referencia era `index`, el feed. Desde F2.6 el feed es
+     * una ruta pública de primer nivel y fuera del grupo, así que la referencia
+     * de `(tabs)` es otra pestaña y entrar aterrizaba en Buscar. Se dice a
+     * dónde en vez de confiar en cuál queda primero.
+     */
+    router.replace('/');
   }
 
   return (

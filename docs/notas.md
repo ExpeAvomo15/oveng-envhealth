@@ -5,6 +5,151 @@ decidió y por qué. Lo más reciente arriba.
 
 ---
 
+## 2026-09-27 — F2.6: cierre de la demo
+
+Lo que faltaba para poder enseñarla, y el inventario honesto de lo que no está.
+
+### El feed pasa a ser público
+
+Era la decisión que quedó pendiente en F2.5 y se ha tomado: quien llega ve el
+producto antes de que se le pida nada. Encaja con el principio de utilidad
+individual de @docs/07_CRECIMIENTO.md, y sin ello el recorrido de un visitante
+empezaba en un muro de registro.
+
+Se hizo como el mapa en F2.3: `index` sale del grupo `(tabs)`, porque la guarda
+de ese grupo es de todo el grupo. Lo que quedó dentro de `(tabs)` son
+**las pestañas que exigen cuenta**, que ahora es lo que el grupo significa.
+
+Tres cosas que hubo que arreglar y que no se veían desde fuera:
+
+- **El feed no sabía leer sin lector.** `fetchFeed` filtraba
+  `my_like.user_id` por el id de quien mira, y sin id el filtro no es válido.
+  Ahora hay dos `select`: con lector se pide `my_like`, y sin lector **no se
+  pide**. Sin filtrar habría devuelto *todos* los "me gusta" de cada
+  publicación, así que pesaría más y además pintaría el corazón relleno para
+  cualquiera.
+- **Entrar aterrizaba en Buscar.** Al salir `index` del grupo, la ruta de
+  referencia de `(tabs)` pasó a ser otra pestaña, y registrarse o entrar caía
+  ahí. Login y registro llevan ahora **explícitamente** al feed. Es la tercera
+  vez que esto aparece —logout en F2.3, la ruta inicial en F2.3, y ahora— y la
+  lección ya está clara: **no confiar en qué ruta queda disponible; decir a
+  dónde se va.**
+- **Lo que exige cuenta lo dice.** "Entrar" en la cabecera, el "me gusta" y
+  Crear llevando a la bienvenida, y el selector "Siguiendo" que no se ofrece sin
+  sesión porque no hay a quién seguir.
+
+### El único control muerto que quedaba
+
+La campana de notificaciones era un `Pressable` con rol de botón y **sin
+`onPress`**. Se veía pulsable y no respondía, que es justo el patrón que el
+resto de la app evita: los comentarios avisan, los filtros de Buscar avisan, las
+etiquetas navegan. Ahora avisa también.
+
+Buscado a conciencia: cero `TODO`, `FIXME`, `XXX` o `HACK` en `src/` y
+`scripts/`, y ningún otro control sin acción.
+
+### Lo que queda fuera, y no es un olvido
+
+Consolidado en el **backlog post-demo** de @docs/plan.md, agrupado y sin
+duplicados — la lista anterior repetía la geolocalización y seguía pidiendo
+cosas que F2.4 ya había hecho. Resumen de lo que un visitante podría echar en
+falta y por qué no está:
+
+| Falta | Por qué |
+| ----- | ------- |
+| Gráfica de evolución | No hay series temporales en el modelo |
+| Capas ambientales sobre el mapa | Hay que decidir de dónde salen los datos |
+| Huella y puntos OVENG de personas | Hay que decidir de qué se calculan |
+| Comentarios | El detalle les reserva el sitio; el icono avisa |
+| Buscar publicaciones por etiqueta | Buscar consulta el directorio, no `posts` |
+| Historias, notificaciones, filtros avanzados | Funcionalidad, no estética |
+| Mapa nativo | MapLibre GL JS es de navegador |
+| Geolocalización | Permiso, denegación e imprecisión en escritorio |
+| Búsqueda sin acentos | Pide `unaccent`, o sea una migración |
+
+De paso se corrigió un texto que había caducado: la tarjeta de impacto del
+perfil decía *"Se calculará con tu actividad en F2"*, y F2 cierra **sin** la
+huella personal. Prometer una fase ya cerrada es peor que no prometer nada.
+
+### El recorrido, en un script
+
+`verify:demo` hace lo que haría un visitante, en dos mitades y en el orden real:
+sin cuenta primero —feed, zona, cambio de zona, mapa, filtro, marcador, perfil
+ambiental, CTA— y con cuenta después —registro, publicar con etiqueta, "me
+gusta", buscar y seguir EcoGuinea, valorar el Ntem, perfil propio, cerrar
+sesión—. Las dieciséis capturas van numeradas por orden: son el guion para
+enseñar la demo, no un archivo de pruebas.
+
+### Rendimiento: un quick win que valía 4,6 MB
+
+El export llevaba **dieciocho** variantes de Inter —los nueve pesos y sus
+cursivas, 6,3 MB— cuando el theme usa cuatro y ninguna cursiva. La causa:
+importar desde el índice del paquete, que las referencia todas, y un asset no
+se elimina por no usarse. Con subrutas por peso (`@expo-google-fonts/inter/400Regular`)
+entran solo los cuatro: el artefacto **baja de 10 MB a 5,4 MB**.
+
+El navegador nunca descargó las otras catorce —`useFonts` solo declara las que
+carga—, así que esto no acelera la primera visita: adelgaza cada despliegue y
+el repositorio. La siguiente palanca sí sería de carga, y **no se toca**:
+partir el bundle de JavaScript por rutas, del que MapLibre es un tercio largo.
+Eso es trabajo, no un quick win, y optimizar antes de tener a quién enseñárselo
+es el anti-patrón que el propio documento de crecimiento señala.
+
+### Cinco veces ya: `getByText`
+
+Al pasar la batería completa, `verify:mvp` falló en "la ubicación se ve en el
+perfil" y en los contadores con la pantalla **correcta** delante — la captura de
+esa misma ejecución muestra "Bata, Litoral". Es la quinta vez.
+
+Las dos causas de siempre: la ubicación se pinta con un icono al lado (dos
+nodos, y un lector los lee como fragmentos sueltos, así que ahora tiene nombre
+accesible propio), y el contador se buscaba como el texto `"1"`, que aparece en
+media pantalla. Los contadores ya tenían nombre accesible desde F1.3; solo había
+que usarlo.
+
+Y una consecuencia de abrir el feed: cuatro comprobaciones daban por hecho que
+la raíz sin sesión era la bienvenida. Lo era, y ha dejado de serlo a propósito.
+Ahora comprueban las dos mitades: que la raíz abre el feed público **y** que
+pedir una ruta privada sigue llevando a la bienvenida.
+
+### `verify:f25` era el más frágil de los trece, y se arregló de raíz
+
+Falló al pasar la batería completa, y por dos motivos que conviene separar:
+
+- **Contaba solo sus propias publicaciones** para saber si había entrado la
+  segunda página. Con la base llena de publicaciones de otras pruebas, el feed
+  las mezcla por fecha y las veintidós sembradas no caben necesariamente en las
+  dos primeras páginas. Ahora cuenta **cualquiera**: lo que se comprueba es que
+  el feed pasó de una página, no de quién son las filas.
+- **Sembraba antes de construir.** Una ejecución que muriera en el build —pasó,
+  con dos scripts pisándose el `dist`— dejaba veintidós publicaciones y su
+  cuenta en la base **para siempre**, porque la limpieza está al final. Ahora se
+  siembra después del build: lo que se crea, se crea lo más tarde posible.
+
+La regla que sale de aquí, y que vale para los trece: **una comprobación no debe
+suponer en qué estado está la base**, y lo que cree tiene que poder limpiarlo
+aunque falle en medio.
+
+### Higiene: la base arrastra la basura de esta sesión
+
+Contado al cerrar: **22 perfiles de prueba** (de 24) y **70 publicaciones**, de
+las decenas de ejecuciones de esta sesión. Dos de esos perfiles son de las
+ejecuciones de `verify:f25` que murieron antes de limpiar, y son justo el caso
+que el arreglo de arriba evita a partir de ahora.
+
+Se quita con `SUPABASE_SERVICE_ROLE_KEY='...' npm run cleanup:test-users
+-- --confirm`, que borra solo los correos `@ovengtest.dev`. Las dos cuentas
+reales de demo —`@bosque_vivo` y `@juve_obama`— no pueden caer ahí: el dominio
+está fijo en el código.
+
+### Estado
+
+Las **trece** verificaciones en verde contra Supabase real. Lint y typecheck
+limpios. La demo está cerrada y publicada; lo siguiente es F3, que no es código
+sino conversaciones.
+
+---
+
 ## 2026-09-27 — F2.5: el dato ambiental dentro del feed
 
 La tarea que cierra F2 y la que sostiene la idea del producto: que el dato

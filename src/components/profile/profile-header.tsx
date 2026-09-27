@@ -56,7 +56,9 @@ export function ProfileHeader({ profile }: { profile: Profile }) {
 
           <View style={styles.meta}>
             {profile.location ? (
-              <View style={styles.metaItem}>
+              // Con nombre accesible propio: el icono y el texto son dos nodos
+              // y un lector de pantalla los lee como fragmentos sueltos.
+              <View style={styles.metaItem} accessibilityLabel={`Ubicación: ${profile.location}`}>
                 <Ionicons name="location-outline" size={16} color={colors.textSecondary} />
                 <Text variant="caption" color="textSecondary">
                   {profile.location}

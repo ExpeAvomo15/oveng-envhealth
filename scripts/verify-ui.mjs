@@ -130,11 +130,22 @@ async function expectVisible(text, label) {
 
 try {
   // --- Bienvenida ------------------------------------------------------------
-  step('2. Pantalla de bienvenida (sin sesión)');
+  step('2. Sin sesión: el feed es público y la bienvenida sigue ahí');
+
+  /*
+   * Desde F2.6 la raíz **no** es la bienvenida: es el feed, y se ve sin cuenta.
+   * Lo que sigue llevando a la bienvenida es pedir una ruta privada, que es la
+   * comprobación de abajo.
+   */
   await page.goto(origin, { waitUntil: 'networkidle' });
+  await page.waitForTimeout(2500);
+  await expectRole('button', 'Iniciar sesión o crear cuenta', 'la raíz abre el feed público');
+  await shot('01-feed-publico');
+
+  await page.goto(`${origin}/welcome`, { waitUntil: 'networkidle' });
   await expectVisible('Tu entorno. Tu salud.', 'welcome se renderiza');
   await expectVisible('Crear cuenta', 'botón "Crear cuenta" visible');
-  await shot('01-welcome');
+  await shot('01b-welcome');
 
   // Una ruta privada sin sesión debe acabar en welcome.
   await page.goto(`${origin}/perfil`, { waitUntil: 'networkidle' });
@@ -170,7 +181,8 @@ try {
   } else {
     step('3. Registrando una cuenta nueva desde la UI');
     const stamp = Date.now().toString(36);
-    await page.goto(origin, { waitUntil: 'networkidle' });
+    // A `/welcome`: la raíz es el feed público desde F2.6.
+    await page.goto(`${origin}/welcome`, { waitUntil: 'networkidle' });
     await page.getByText('Crear cuenta', { exact: true }).first().click();
     await page.getByPlaceholder('tu@email.com').fill(`oveng-ui-${stamp}@ovengtest.dev`);
     await page.getByPlaceholder('Mínimo 8 caracteres').fill(`Verif-${stamp}-2026`);

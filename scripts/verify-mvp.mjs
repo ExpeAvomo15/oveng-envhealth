@@ -158,6 +158,22 @@ const expectVisible = async (text, label, timeout = 15000) => {
   }
 };
 
+/**
+ * Por nombre accesible.
+ *
+ * Es lo que hay que usar cuando lo que se busca se pinta con un icono al lado
+ * —dos nodos— o cuando el texto es tan corto que aparece en media pantalla,
+ * como un "1" de contador. Buscar por texto ahí ya ha dado falsos fallos.
+ */
+const expectLabel = async (name, label, timeout = 15000) => {
+  try {
+    await page.getByLabel(name, { exact: false }).first().waitFor({ state: 'visible', timeout });
+    ok(label);
+  } catch {
+    bad(`${label} — no apareció nada con nombre accesible «${name}»`);
+  }
+};
+
 // Foto de perfil y foto de publicación, dibujadas por el propio navegador.
 const avatarPath = join(TMP, 'avatar.jpg');
 const fotoPath = join(TMP, 'ribera.jpg');
@@ -215,7 +231,12 @@ try {
   // --- 1. Registro -----------------------------------------------------------
   step('3. Registro desde la interfaz');
 
-  await page.goto(`${origin}/`, { waitUntil: 'networkidle' });
+  /*
+   * A `/welcome` y no a `/`: desde F2.6 la raíz es el feed público, y la
+   * bienvenida es la puerta de la cuenta. Que la raíz abra el feed sin sesión
+   * lo comprueba verify:ui.
+   */
+  await page.goto(`${origin}/welcome`, { waitUntil: 'networkidle' });
   await expectVisible('Tu entorno. Tu salud.', 'la bienvenida se muestra sin sesión');
   await shot('bienvenida');
 
@@ -260,7 +281,9 @@ try {
   await page.waitForTimeout(3000);
 
   await expectVisible(yo.bio, 'la biografía se ve en el perfil');
-  await expectVisible(yo.location, 'la ubicación se ve en el perfil');
+  // Por nombre accesible: la ubicación va con un icono al lado, así que son
+  // dos nodos y buscarla por texto es lo que ya ha fallado cinco veces.
+  await expectLabel(`Ubicación: ${yo.location}`, 'la ubicación se ve en el perfil');
   await shot('perfil-completo');
 
   // --- 3. Publicar con imagen ------------------------------------------------
@@ -443,7 +466,8 @@ try {
   await page.getByRole('tab', { name: 'Perfil' }).click();
   await page.waitForTimeout(2500);
   await expectVisible(yo.bio, 'el perfil conserva la biografía');
-  await expectVisible('1', 'los contadores reflejan la actividad');
+  // "1" a secas aparece en media pantalla; el contador tiene nombre accesible.
+  await expectLabel('1 Publicaciones', 'los contadores reflejan la actividad');
   await shot('perfil-tras-volver');
 
   // --- 9. Escritorio ---------------------------------------------------------

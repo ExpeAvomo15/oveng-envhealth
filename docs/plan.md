@@ -229,7 +229,34 @@ propuesta pendiente de validar.
       regresión que F2.3 arregló. Los datos de zona sí funcionan sin sesión, así
       que abrir el feed es una decisión pendiente y no trabajo pendiente.
 
-> **F2 cerrada el 27 de septiembre de 2026** con el tag `v0.2-demo-ambiental`.
+- [x] **F2.6 cierre de la demo** — repaso de calidad, recorrido completo y
+      documentación de cierre.
+      **El feed pasa a ser público**, que era lo que faltaba para que un
+      visitante vea el producto antes de que se le pida nada: `index` sale del
+      grupo `(tabs)` como ya hizo el mapa, el feed carga con la clave anónima
+      —sin `my_like`, que sin lector devolvería los "me gusta" de todo el
+      mundo— y lo que exige cuenta lo dice ("Entrar" en la cabecera, el "me
+      gusta" y Crear llevando a la bienvenida, "Siguiendo" solo con sesión).
+      Entrar y registrarse llevan ahora **explícitamente** al feed: al salir
+      `index` del grupo, la ruta de referencia de `(tabs)` era otra pestaña y se
+      aterrizaba en Buscar.
+      Recorrido completo en `npm run verify:demo`, en dos mitades y en el orden
+      real: **sin cuenta** (feed → zona → cambio de zona → mapa → filtro →
+      marcador → perfil ambiental → CTA de cuenta) y **con cuenta** (registro →
+      publicar con etiqueta → "me gusta" → buscar y seguir EcoGuinea → valorar
+      el Ntem → perfil propio → cerrar sesión). Dieciséis capturas numeradas en
+      `docs/verificacion/demo/`, que son el guion para enseñar la demo.
+      **Quick win de rendimiento:** el export llevaba **las dieciocho** variantes
+      de Inter (6,3 MB) porque se importaban desde el índice del paquete; con
+      subrutas por peso entran solo los cuatro que usa el theme. El artefacto
+      baja de **10 MB a 5,4 MB**.
+      Y la campana de notificaciones, que era el único control de la app sin
+      acción, ahora avisa. Nada queda huérfano: inventario en notas.
+      Las **trece** verificaciones del repositorio en verde.
+
+> **F2 cerrada el 27 de septiembre de 2026.** Tags: `v0.2-demo-ambiental` (las
+> cinco tareas de producto) y `v0.2.1-demo-completa` (el cierre de F2.6, que es
+> el estado que hay que mirar para ver la demo tal como se enseña).
 > OVENG deja de ser una red social genérica: hay catorce entidades reales con
 > sus mediciones, un directorio que las encuentra, un mapa que las sitúa, un
 > perfil ambiental que las explica y el dato del entorno metido entre las
@@ -237,60 +264,13 @@ propuesta pendiente de validar.
 > verificaciones del repositorio pasan contra Supabase real y la demo está
 > publicada en https://expeavomo15.github.io/oveng-envhealth/.
 
-### Fuera del alcance de F2, anotado para no perderlo
-
-- **Geolocalización**, que convertiría "tu zona" en algo detectado en vez de
-  elegido, y desbloquea la distancia en las tarjetas del mapa. Trae consigo el
-  permiso, su denegación y la imprecisión en escritorio.
-- **Abrir el feed sin cuenta.** Es una decisión sobre la puerta de entrada:
-  `/` es el feed y hoy lleva a la bienvenida sin sesión. Los datos de zona ya
-  funcionan con la clave anónima, así que es decidir, no construir.
-- **Gráfica de "Evolución de la calidad ambiental"** (mockup 1). No hay series
-  temporales en el modelo: `entity_metrics` guarda un valor por métrica con su
-  `updated_at`, no un histórico. Depende de una fuente de datos histórica real;
-  dibujar cinco puntos inventados sería lo contrario de la trazabilidad que
-  costó conseguir en F2.1.
-- **Huella ecológica y puntos OVENG de las personas.** F2.4 construyó el perfil
-  ambiental de una **entidad**; las tarjetas de impacto del perfil propio siguen
-  recibiendo sus valores por props a la espera de datos reales. Necesita decidir
-  de qué se calcula una huella y qué la mueve.
-- **Proveedor de teselas propio.** Las de openstreetmap.org son un servicio
-  donado: su política pide atribución, prohíbe la descarga masiva y avisa de que
-  un uso intenso se mueva a otro proveedor. Va sobrada para la demo y **no para
-  un lanzamiento**. Con ello llega la estética de satélite de los mockups, que
-  hoy no se puede replicar sin pagar.
-- **Mapa en nativo.** MapLibre GL JS es una librería de navegador. En iOS y
-  Android hay un marcador de posición; hace falta
-  `@maplibre/maplibre-react-native` o `react-native-maps`.
-- **Capas ambientales sobre el territorio.** El mapa de F2.3 enseña entidades,
-  no superficies de aire, agua o suelo. Exige decidir de dónde salen esos datos
-  (APIs públicas, carga manual o mediciones de la comunidad) y probablemente
-  PostGIS: `location` de `posts` es hoy texto libre.
-- **Geolocalización**, que desbloquea la distancia en la tarjeta del mapa y un
-  "datos de tu zona" que sea verdad.
-- **El worker de MapLibre no carga** (`Worker failed to load`). Con teselas
-  raster no afecta —el mapa funciona—, pero hay que resolverlo antes de usar
-  teselas vectoriales. Ver notas.
-- **Búsqueda sin acentos.** `ilike` resuelve las mayúsculas y no los acentos:
-  "malaga" y "alen" devuelven **cero** resultados contra el seed actual. En una
-  app en español es lo primero que hay que arreglar de Buscar, y pide la
-  extensión `unaccent` o una columna normalizada — es decir, una migración.
-  Medido en notas.md (2026-09-27).
-- Buscar publicaciones por etiqueta, que es lo que haría que las etiquetas del
-  feed llevasen a sus publicaciones y no al directorio.
-- Comentarios en las publicaciones (el detalle ya les reserva el sitio).
-- Valoraciones comunitarias con puntuación, distintas del "me gusta" actual.
-- Verificación real de cuentas: hoy `verified` lo puede cambiar su propio dueño.
-- Pantalla para elegir contraseña nueva tras el email de recuperación.
-- Notificaciones: la campana de la cabecera todavía no hace nada.
-
 ## F3 — Comunidad y lanzamiento (post-demo)
 
 Conseguir que haya gente dentro. La estrategia, con su razonamiento y sus
 anti-patrones, está en **@docs/07_CRECIMIENTO.md**; aquí solo van las tareas.
 
-**Empieza cuando F2 esté cerrada**: sin mapa no hay producto que enseñar, y sin
-producto las conversaciones de validación no miden nada.
+**Desbloqueada:** F2 está cerrada, así que ya hay producto que enseñar. Era la
+condición — sin mapa, las conversaciones de validación no miden nada.
 
 - [ ] **F3.1 conversaciones de validación** — 20-30 con la comunidad primaria,
       antes de cualquier lanzamiento.
@@ -300,3 +280,57 @@ producto las conversaciones de validación no miden nada.
 El orden no es negociable: F3.1 sirve para confirmar o tumbar la tesis de
 producto mientras cambiarla es barato, y adelantar F3.2 la convierte en una
 justificación de lo ya lanzado.
+
+## Backlog post-demo
+
+Todo lo que se dejó fuera **a propósito**, agrupado y sin repetir. Nada de esto
+es un olvido: cada línea dice por qué está aquí y no en el producto.
+
+### Datos ambientales
+
+- **Capas sobre el territorio.** El mapa enseña entidades, no superficies de
+  aire, agua o suelo. Exige decidir de dónde salen esos datos (APIs públicas,
+  carga manual o mediciones de la comunidad) y probablemente PostGIS:
+  `location` de `posts` es hoy texto libre.
+- **Series temporales y la gráfica de "Evolución de la calidad ambiental"**
+  (mockup 1). `entity_metrics` guarda un valor por métrica con su `updated_at`,
+  no un histórico. Depende de una fuente histórica real; dibujar cinco puntos
+  inventados sería lo contrario de la trazabilidad que costó conseguir en F2.1.
+- **Proveedor de teselas propio.** Las de openstreetmap.org son un servicio
+  donado: su política pide atribución, prohíbe la descarga masiva y avisa de que
+  un uso intenso se mueva a otro proveedor. Va sobrada para la demo y **no para
+  un lanzamiento**. Con ello llega la estética de satélite de los mockups.
+- **El worker de MapLibre no carga** (`Worker failed to load`). Con teselas
+  raster no afecta —el mapa funciona—, pero hay que resolverlo antes de usar
+  teselas vectoriales.
+- **Huella ecológica y puntos OVENG de las personas.** F2.4 construyó el perfil
+  ambiental de una **entidad**; las tarjetas del perfil propio siguen recibiendo
+  sus valores por props. Necesita decidir de qué se calcula una huella y qué la
+  mueve.
+
+### Producto social
+
+- **Comentarios en las publicaciones.** El detalle ya les reserva el sitio y el
+  icono avisa de que llegan.
+- **Buscar publicaciones por etiqueta.** Hoy tocar una etiqueta busca en el
+  **directorio** de entidades y personas, no publicaciones con esa etiqueta:
+  eso es consultar `posts`, que no está en la capa de datos de Buscar.
+- **Notificaciones.** La campana avisa de que no las hay todavía.
+- **Fila de historias** en Inicio, que aparece en los dos mockups.
+- **Filtros avanzados en Buscar.** El icono está y avisa.
+- **Pantalla para elegir contraseña nueva** tras el email de recuperación.
+- **Verificación real de cuentas:** hoy `verified` lo puede cambiar su dueño.
+
+### Plataforma
+
+- **Mapa en nativo.** MapLibre GL JS es de navegador. En iOS y Android hay un
+  marcador de posición; hace falta `@maplibre/maplibre-react-native` o
+  `react-native-maps`.
+- **Geolocalización.** Convertiría "tu zona" en algo detectado en vez de
+  elegido y desbloquea la distancia en las tarjetas del mapa. Trae consigo el
+  permiso, su denegación y la imprecisión en escritorio.
+- **Búsqueda sin acentos.** `ilike` resuelve las mayúsculas y no los acentos:
+  "malaga" y "alen" devuelven **cero** resultados contra el seed actual. En una
+  app en español es lo primero que arreglaría de Buscar, y pide la extensión
+  `unaccent` o una columna normalizada — es decir, una migración. Medido en
+  notas.md (2026-09-27).

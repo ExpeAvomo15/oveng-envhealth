@@ -125,8 +125,33 @@ for (const [id, zone] of Object.entries(ZONES)) {
   }
 }
 
-// --- 2. Cuenta con publicaciones para dos páginas -----------------------------
-step('2. Sembrando publicaciones');
+// --- 2. Build -----------------------------------------------------------------
+step('2. Construyendo el export web');
+
+if (!skipBuild) {
+  rmSync(join(ROOT, 'dist'), { recursive: true, force: true });
+  execSync('npx expo export --platform web --clear', { stdio: 'pipe' });
+}
+
+{
+  const bundleDir = join(ROOT, 'dist/_expo/static/js/web');
+  const entry = readdirSync(bundleDir).find((f) => f.startsWith('entry-') && f.endsWith('.js'));
+  if (entry && readFileSync(join(bundleDir, entry), 'utf8').includes(url)) {
+    ok('el bundle apunta al Supabase del .env');
+  } else {
+    bad('el bundle no apunta al Supabase del .env (¿caché de Metro?)');
+  }
+}
+
+/*
+ * --- 3. Cuenta con publicaciones para dos páginas -----------------------------
+ *
+ * Se siembra **después** del build, no antes. Una ejecución que muriera
+ * construyendo —pasó: dos scripts pisándose el `dist`— dejaba las veintidós
+ * publicaciones en la base para siempre, porque la limpieza está al final. Lo
+ * que se crea, se crea lo más tarde posible.
+ */
+step('3. Sembrando publicaciones');
 
 const stamp = Date.now().toString(36);
 const account = {
@@ -162,24 +187,6 @@ const TOTAL_POSTS = 22;
   const { error: postsError } = await user.from('posts').insert(rows);
   if (postsError) bad(`no se pudieron sembrar las publicaciones: ${postsError.message}`);
   else ok(`${TOTAL_POSTS} publicaciones sembradas (dos páginas de 20)`);
-}
-
-// --- 3. Build -----------------------------------------------------------------
-step('3. Construyendo el export web');
-
-if (!skipBuild) {
-  rmSync(join(ROOT, 'dist'), { recursive: true, force: true });
-  execSync('npx expo export --platform web --clear', { stdio: 'pipe' });
-}
-
-{
-  const bundleDir = join(ROOT, 'dist/_expo/static/js/web');
-  const entry = readdirSync(bundleDir).find((f) => f.startsWith('entry-') && f.endsWith('.js'));
-  if (entry && readFileSync(join(bundleDir, entry), 'utf8').includes(url)) {
-    ok('el bundle apunta al Supabase del .env');
-  } else {
-    bad('el bundle no apunta al Supabase del .env (¿caché de Metro?)');
-  }
 }
 
 rmSync(SHOTS, { recursive: true, force: true });
@@ -236,8 +243,15 @@ try {
 
   // El contenido social va primero: la tarjeta va tras la tercera publicación.
   {
-    const third = await postLinks().nth(2).boundingBox();
-    const fourth = await postLinks().nth(3).boundingBox();
+    /*
+     * Cualquier publicación, no solo las de esta cuenta: en la base hay
+     * publicaciones reales y de otras pruebas, y el feed las mezcla por fecha.
+     * Lo que se comprueba es la posición de la tarjeta en el feed, no de quién
+     * son las tres publicaciones que tiene encima.
+     */
+    const anyPost = page.getByRole('link', { name: /^Perfil de / });
+    const third = await anyPost.nth(2).boundingBox();
+    const fourth = await anyPost.nth(3).boundingBox();
     const card = await zoneTitle().boundingBox();
 
     if (third && fourth && card && card.y > third.y && card.y < fourth.y) {
@@ -271,7 +285,13 @@ try {
   await page.waitForTimeout(2500);
 
   {
-    const posts = await postLinks().count();
+    /*
+     * Cualquier publicación, no solo las de esta cuenta: en la base hay
+     * publicaciones reales y de otras pruebas, y el feed las mezcla por fecha,
+     * así que las veintidós sembradas no tienen por qué caber en las dos
+     * primeras páginas. Lo que se comprueba es que el feed pasó de una página.
+     */
+    const posts = await page.getByRole('link', { name: /^Perfil de / }).count();
     if (posts > 20) ok(`se cargó la segunda página (${posts} publicaciones a la vista)`);
     else bad(`solo hay ${posts} publicaciones: la segunda página no entró`);
 
@@ -388,12 +408,22 @@ try {
       bad('el estado vacío del feed no aparece');
     }
   } else {
-    const anyPost = page.getByRole('link', { name: /^Perfil de / }).last();
-    const post = await anyPost.boundingBox();
+    /*
+     * Con tres o más publicaciones la tarjeta va tras la tercera; con una o dos,
+     * al final. Cuántas quedan lo dice la base, no esta comprobación: son las
+     * reales y no se tocan.
+     */
+    const anyPost = page.getByRole('link', { name: /^Perfil de / });
+    const reference = restantes >= 3 ? anyPost.nth(2) : anyPost.last();
+    const post = await reference.boundingBox();
     const card = await zoneTitle().boundingBox();
 
     if (post && card && card.y > post.y) {
-      ok(`con ${restantes} publicación(es) las tarjetas van después, no tras una tercera inexistente`);
+      ok(
+        restantes >= 3
+          ? `con ${restantes} publicaciones la tarjeta sigue tras la tercera`
+          : `con ${restantes} publicación(es) las tarjetas bajan al final`,
+      );
     } else {
       bad(`posiciones inesperadas: publicación=${post?.y} tarjeta=${card?.y}`);
     }
