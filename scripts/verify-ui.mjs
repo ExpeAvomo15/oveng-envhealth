@@ -204,18 +204,36 @@ try {
   await expectVisible('Inicio', 'la barra de navegación está presente');
   await shot('03-inicio');
 
-  for (const [label, marker, file] of [
-    ['Buscar', 'Busca personas, lugares o etiquetas', '04-buscar'],
-    ['Mapa', 'Mapa ambiental', '05-mapa'],
-    // Ojo: "Cerrar sesión" NO vale como marcador de esta pantalla — desde F0.2c
-    // vive dentro del menú "···" y no se ve hasta abrirlo (paso 7).
-    ['Perfil', 'Editar perfil', '06-perfil'],
-  ]) {
-    await page.getByRole('tab', { name: label }).click();
-    await page.waitForTimeout(700);
-    await expectVisible(marker, `la pestaña ${label} navega y carga`);
-    await shot(file);
-  }
+  // Ojo: "Cerrar sesión" NO vale como marcador de Perfil — desde F0.2c vive
+  // dentro del menú "···" y no se ve hasta abrirlo (paso 7).
+  await page.getByRole('tab', { name: 'Perfil' }).click();
+  await page.waitForTimeout(700);
+  await expectVisible('Editar perfil', 'la pestaña Perfil navega y carga');
+  await shot('06-perfil');
+
+  /*
+   * Buscar y Mapa se comprueban por su campo de búsqueda, por rol.
+   *
+   * El marcador de Buscar era el texto "Busca personas, lugares o etiquetas",
+   * que F2.2 cambió al reescribir la pantalla — y encima ahora es el
+   * `placeholder` de un input, no texto de la página. El del mapa nunca existió
+   * como texto. Por rol no dependen ni del copy ni de que lleguen las teselas.
+   */
+  await page.getByRole('tab', { name: 'Buscar' }).click();
+  await page.waitForTimeout(900);
+  await expectRole('textbox', 'Buscar', 'la pestaña Buscar navega y carga');
+  await shot('04-buscar');
+
+  /*
+   * El mapa va aparte: desde F2.3 es un mapa de verdad y no un placeholder, así
+   * que no hay texto suelto que buscar —lo único escrito es el placeholder de un
+   * input— y además tarda en pintar. Se comprueba por su campo de búsqueda, que
+   * existe en cuanto monta la pantalla y no depende de que lleguen las teselas.
+   */
+  await page.getByRole('tab', { name: 'Mapa' }).click();
+  await page.waitForTimeout(1500);
+  await expectRole('textbox', 'Buscar en el mapa', 'la pestaña Mapa navega y carga');
+  await shot('05-mapa');
 
   // --- Modal de Crear --------------------------------------------------------
   step('5. Modal de Crear');
@@ -241,7 +259,12 @@ try {
   await page.reload({ waitUntil: 'networkidle' });
   await page.waitForTimeout(2500);
 
-  if (await seen('Mapa ambiental').isVisible().catch(() => false)) {
+  if (
+    await page
+      .getByRole('textbox', { name: 'Buscar en el mapa' })
+      .isVisible()
+      .catch(() => false)
+  ) {
     ok(`la sesión y la ruta aguantan la recarga (${beforeReload})`);
   } else {
     bad('tras recargar no se mantuvo la sesión o la ruta');

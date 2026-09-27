@@ -60,7 +60,19 @@ export default function ProfileScreen() {
     if (result.error) {
       setError(result.error);
       setSigningOut(false);
+      return;
     }
+
+    /*
+     * A la bienvenida, y explícitamente.
+     *
+     * Antes bastaba con que la sesión desapareciera: al salir `(tabs)` del
+     * árbol, la única ruta que quedaba era `(auth)`. Desde F2.3 el mapa es
+     * público y sigue ahí, así que al cerrar sesión se caía en el mapa — que no
+     * es un error, pero tampoco es la puerta de entrada del producto. Se dice a
+     * dónde en vez de confiar en cuál sobrevive.
+     */
+    router.replace('/welcome');
   }
 
   if (!profile) {

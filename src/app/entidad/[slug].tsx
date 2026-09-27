@@ -54,7 +54,7 @@ async function loadEntity(slug: string, viewerId: string | null): Promise<Loaded
 export default function EntityScreen() {
   const router = useRouter();
   const { slug } = useLocalSearchParams<{ slug: string }>();
-  const { profile: viewer } = useAuth();
+  const { profile: viewer, session } = useAuth();
 
   const [loaded, setLoaded] = useState<Loaded | null>(null);
   const [busy, setBusy] = useState(false);
@@ -153,7 +153,13 @@ export default function EntityScreen() {
     <Screen>
       <View style={styles.backRow}>
         <Pressable
-          onPress={() => (router.canGoBack() ? router.back() : router.replace('/buscar'))}
+          onPress={() =>
+            router.canGoBack()
+              ? router.back()
+              : // Sin sesión, Buscar no existe en el árbol: la salida es el mapa,
+                // que es la otra pantalla pública.
+                router.replace(session === null ? '/mapa' : '/buscar')
+          }
           accessibilityRole="button"
           accessibilityLabel="Volver"
           style={({ pressed }) => [styles.backButton, pressed && styles.pressed]}>
@@ -204,13 +210,27 @@ export default function EntityScreen() {
         </Text>
       </View>
 
-      <Button
-        label={current.following ? 'Siguiendo' : 'Seguir'}
-        variant={current.following ? 'secondary' : 'primary'}
-        fullWidth
-        loading={busy}
-        onPress={toggleFollow}
-      />
+      {/*
+        Esta ficha se ve sin cuenta (F2.3). Seguir sí la exige, y el botón lo
+        dice en vez de no responder: el valor se enseña primero y la cuenta se
+        pide cuando hace falta. Ver @docs/07_CRECIMIENTO.md.
+      */}
+      {session === null ? (
+        <Button
+          label="Inicia sesión para seguir"
+          variant="secondary"
+          fullWidth
+          onPress={() => router.push('/welcome')}
+        />
+      ) : (
+        <Button
+          label={current.following ? 'Siguiendo' : 'Seguir'}
+          variant={current.following ? 'secondary' : 'primary'}
+          fullWidth
+          loading={busy}
+          onPress={toggleFollow}
+        />
+      )}
 
       {entity.description ? (
         <View style={styles.section}>

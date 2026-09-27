@@ -5,6 +5,154 @@ decidió y por qué. Lo más reciente arriba.
 
 ---
 
+## 2026-09-27 — F2.3: el mapa ambiental, y las rutas públicas
+
+La sección que distingue a OVENG. Decisiones que no se ven en el diff.
+
+### Teselas: OSM raster, y las demotiles descartadas con datos
+
+Se midieron antes de elegir. El estilo de demostración de MapLibre llega a
+**zoom 6** y trae tres capas: `countries`, `centroids` y `geolines`. A ese nivel
+Guinea Ecuatorial continental entra en un par de píxeles: Bata y Monte Alén
+caen en el mismo punto y no hay costa, ni carreteras, ni nada que sitúe un
+marcador. Para un mapa cuyo trabajo es responder "¿cómo está esto donde vivo?",
+no sirven.
+
+Se usan las **teselas raster de openstreetmap.org**, que llegan a zoom 19 y
+traen el detalle que se ve en las capturas.
+
+**Su límite hay que respetarlo.** Son un servicio donado y su política
+(https://operations.osmfoundation.org/policies/tiles/) pide atribución visible
+—está puesta—, prohíbe la descarga masiva y avisa de que un uso intenso debe
+moverse a otro proveedor. Para una demo con catorce marcadores va sobrada; **un
+lanzamiento de verdad necesita proveedor propio.** Anotado en el plan.
+
+La estética de satélite de los mockups necesita un proveedor de pago, así que no
+se intenta: un satélite a medias se vería peor que un mapa honesto.
+
+### Acceso sin cuenta: hecho, y lo que costó averiguar cómo
+
+Era la nota que F2.3/F2.4 arrastraban desde @docs/07_CRECIMIENTO.md. **Se ha
+hecho**, y el camino tuvo dos sorpresas que conviene dejar escritas.
+
+`Stack.Protected` guarda **el grupo entero**, así que no se puede sacar una sola
+pestaña de `(tabs)`. Existe `Tabs.Protected` y se probó: dejar `mapa` sin guarda
+y proteger las otras tres funcionaba para el mapa… y rompía la raíz. Sin sesión,
+`/` dejaba de llevar a la bienvenida y caía en el mapa, porque el índice
+protegido desaparece del árbol y expo-router se va a la primera pestaña que
+queda.
+
+Lo que funciona es más simple: **el mapa es una ruta pública de primer nivel**,
+fuera de `(tabs)`. La barra de pestañas es un componente propio que navega por
+ruta —no depende del navegador de pestañas—, así que el mapa la pinta él mismo y
+se ve y se comporta igual.
+
+**Y el orden de declaración importa, que es la sorpresa que costó una
+regresión.** expo-router toma como ruta inicial la primera disponible. Con las
+rutas públicas declaradas **arriba**, el mapa se convertía en la puerta de
+entrada del producto: con sesión, `/` abría el mapa en vez del feed —lo pilló
+`verify:ui` y está en la captura— y al cerrar sesión se caía en el mapa en vez
+de la bienvenida. Declaradas **al final**, con sesión gana `(tabs)` y sin ella
+gana `(auth)`.
+
+Aun así, cerrar sesión ahora **dice a dónde va** en vez de confiar en qué ruta
+sobrevive: antes bastaba con que `(tabs)` saliera del árbol porque solo quedaba
+`(auth)`; con el mapa público eso ya no es cierto.
+
+Lo que exige cuenta sigue exigiéndola, y lo dice en vez de no responder: las
+pestañas privadas y Crear llevan a la bienvenida, y en la ficha de entidad el
+botón pone "Inicia sesión para seguir". Enseñar el valor primero y pedir la
+cuenta cuando hace falta es justo lo que pide el documento de crecimiento.
+
+### Los marcadores son componentes de la app, no de MapLibre
+
+MapLibre acepta un `HTMLElement` por marcador, que habría significado construir
+el pin con DOM y mantener en paralelo un segundo sitio donde vive el color y el
+icono de cada categoría. En vez de eso, los pines son componentes superpuestos
+al lienzo y colocados con `map.project()`: usan el **mismo `EntityAvatar`** que
+las fichas de Buscar, así que el color y el icono se definen una vez. Con
+catorce marcadores, reproyectarlos al mover no se nota.
+
+El contenedor de la capa no recibe toques y cada pin sí; si no, el mapa no se
+podría arrastrar.
+
+### El mapa solo existe mientras se mira
+
+Al ser una ruta de primer nivel, ir a otra pestaña **no desmonta** la pantalla:
+se queda debajo en la pila. Eso daba dos problemas a la vez — el contexto de
+WebGL seguía vivo con el mapa fuera de vista, y al volver el lienzo reaparecía
+**oculto y sin tamaño**, porque MapLibre no se entera de que su contenedor ha
+recuperado el alto. Lo segundo era un fallo de verdad: volver al mapa lo dejaba
+en blanco.
+
+Se monta y se desmonta con el foco (`useIsFocused`). Al salir se destruye de
+verdad, al volver se crea con el tamaño real, y la comprobación lo verifica
+contando lienzos: cero fuera del mapa, exactamente uno al volver.
+
+### Lo que el mapa no enseña, y por qué
+
+- **Distancia en la tarjeta del marcador.** El mockup pone "12.5 km", que exige
+  saber dónde está quien mira: geolocalización, su permiso y qué hacer cuando lo
+  deniega. Es una funcionalidad propia, anotada para después de la demo.
+  Calcularla desde el centro del encuadre habría sido enseñar un número falso.
+- **"Datos ambientales de tu zona".** La tarjeta de calidad del aire **nombra la
+  entidad** de donde sale el dato en vez de decir "tu zona", que sin
+  geolocalización es una promesa que el producto no cumple. Un índice de aire
+  sin lugar no significa nada.
+
+### Dos cosas que solo se vieron mirando las capturas
+
+- **Los controles de zoom estaban debajo de la tarjeta inferior.** El "−" y el
+  de centrar no se veían. Ahora van por encima, con hueco para la más alta de
+  las dos tarjetas.
+- La leyenda es leyenda **y** filtro en la misma fila: una leyenda que solo
+  explica colores obliga a mirar dos sitios para lo mismo. Una capa apagada baja
+  la opacidad y además vacía el punto, porque el theme ya advierte de que varias
+  de estas seis se distinguen por tono pero no por luminancia.
+
+Ojo con un detalle de React Native Web: la fila llevaba `role="listitem"` y
+`accessibilityRole="switch"` a la vez, y **`role` gana**, así que dejaba de ser
+un interruptor para quien lo lee y para quien lo comprueba.
+
+### El worker de MapLibre falla, y se deja así a propósito
+
+La consola del navegador dice `Worker failed to load`. MapLibre crea un worker
+y Metro no lo empaqueta como un chunk aparte, así que la URL no resuelve.
+
+**No afecta a lo que hay**: con teselas raster el trabajo del worker es mínimo y
+el mapa pinta, se arrastra, hace zoom, filtra y responde a los toques — todo
+verificado. El paquete trae un `maplibre-gl-worker.mjs` suelto y existe
+`setWorkerUrl`, así que la salida sería copiarlo a `public/`; **no se hace**
+porque una copia vendorizada se desincroniza en silencio la primera vez que
+alguien actualice `maplibre-gl`, y el precio hoy es un error de consola. Se
+revisa cuando haya teselas vectoriales, que sí lo necesitan.
+
+### Lo que cuesta MapLibre
+
+El bundle web pasa de **1,59 MB a 2,72 MB**. Es un tercio largo de la librería
+del mapa, y es el precio de la sección que distingue al producto. Queda medido
+para que la decisión de proveedor de mapa lo tenga en cuenta.
+
+### Una comprobación caducada que se me escapó en F2.2
+
+`verify:ui` buscaba el texto "Busca personas, lugares o etiquetas" como prueba
+de que la pestaña Buscar cargaba. **F2.2 reescribió esa pantalla y cambió el
+copy**, así que la comprobación quedó rota en ese commit y no me enteré porque
+no pasé `verify:ui` al cerrar F2.2 — solo `verify:f22` y `verify:mvp`.
+
+La lección no es nueva —es la tercera vez que un marcador de texto caduca— pero
+sí lo es la causa: **no basta con pasar la verificación de la fase que tocas.**
+Al cambiar una pantalla hay que pasar también las que la atraviesan. Ahora esa
+comprobación mira el campo por rol, que no depende del copy.
+
+### F2.2 queda cerrada
+
+Aplicada la migración `004`, `verify:f22` pasa entero: seguir una entidad
+persiste y RLS bloquea seguir en nombre de otra cuenta y seguir sin sesión. Era
+lo único que faltaba.
+
+---
+
 ## 2026-09-27 — F2.2: el directorio de Buscar y seguir entidades
 
 La primera pantalla que enseña las catorce entidades de F2.1. Decisiones que no

@@ -23,14 +23,20 @@ de punta a punta contra Supabase real:
 | **Publicar** | Compositor con texto, etiquetas extraídas del propio texto y una imagen reducida antes de subirse. |
 | **Feed** | "Para ti" y "Siguiendo", paginación por cursor, "me gusta", compartir y detalle de publicación. |
 
-Sobre eso, **F2.1** añade los cimientos de lo ambiental: `entities` (lugares,
-empresas e iniciativas) con sus métricas y sus valoraciones, y catorce entidades
-de ejemplo cargadas — cinco lugares reales de Guinea Ecuatorial con sus
-coordenadas verdaderas.
+Sobre eso, **F2.1 a F2.3** construyen lo ambiental: `entities` (lugares,
+empresas e iniciativas) con sus métricas y valoraciones y catorce entidades de
+ejemplo —cinco lugares reales de Guinea Ecuatorial con sus coordenadas
+verdaderas—, el **directorio** en Buscar con seguimiento de entidades, y el
+**mapa ambiental** con las catorce sobre el territorio, filtrables por capa.
 
-Lo que **todavía no hace**: buscar, mapa ambiental, comentarios, valoraciones
-con puntuación y huella ecológica. Las entidades ya están en la base, pero
-ninguna pantalla las enseña aún — eso es F2.2 en adelante, ver el roadmap.
+**El mapa y las fichas de entidad se ven sin cuenta.** Publicar, seguir y
+valorar siguen pidiéndola. Es el principio de utilidad individual de
+[docs/07_CRECIMIENTO.md](docs/07_CRECIMIENTO.md): el producto tiene que servir a
+quien llega solo.
+
+Lo que **todavía no hace**: capas de datos ambientales sobre el territorio (el
+mapa enseña entidades, no superficies), comentarios, valoraciones con puntuación
+y huella ecológica. Ver el roadmap.
 
 ### El recorrido, en imágenes
 
@@ -47,6 +53,8 @@ generado automáticamente por `npm run verify:mvp`.
 ## Stack
 
 - **App:** React Native + Expo SDK 57 + TypeScript estricto + expo-router
+- **Mapa (web):** MapLibre GL JS con teselas raster de OpenStreetMap — sin clave
+  de API. En nativo hay un marcador de posición: es una librería de navegador.
 - **Backend:** Supabase (Auth, Postgres con RLS, Storage)
 - **Web:** export estático de Expo publicado en GitHub Pages vía GitHub Actions
 
@@ -95,6 +103,7 @@ npm run verify:mvp     # recorrido completo en Chromium, con capturas
 | `verify:f15` | Feed, paginación, "me gusta" y filtro "Siguiendo". |
 | `verify:f21` | Entidades: esquema de la migración 003, seed cargado, coordenadas, métricas y RLS. |
 | `verify:f22` | Buscar: directorio, filtros, navegación a la ficha de entidad y seguir entidades. |
+| `verify:f23` | Mapa: marcadores, filtro por capa, tarjetas, acceso sin cuenta y limpieza del mapa. |
 | `verify:mvp` | El recorrido completo de punta a punta. |
 
 Los que abren navegador construyen con `--clear` y comprueban que el bundle
@@ -205,9 +214,11 @@ más. Estado real de cada tarea en [docs/plan.md](docs/plan.md):
 1. ~~**Entidades**~~ — **hecho (F2.1).** Empresas, iniciativas y lugares en su
    propia tabla, con métricas, valoraciones y contenido de ejemplo cargado.
    `profiles` se queda para personas.
-2. **Buscar** — búsqueda real de cuentas, etiquetas y lugares. Es la primera
-   que enseña las entidades en pantalla.
-3. **Mapa ambiental** — capas de aire, agua, suelo y biodiversidad.
+2. ~~**Buscar**~~ — **hecho (F2.2).** Directorio de entidades y personas, con
+   filtros por tipo y seguimiento de entidades.
+3. ~~**Mapa ambiental**~~ — **hecho (F2.3).** Las catorce entidades sobre el
+   territorio, con leyenda que filtra por capa. Las capas de datos ambientales
+   sobre el mapa —superficies de aire, agua, suelo— siguen pendientes.
 4. **Perfil ambiental** — huella ecológica y puntos OVENG con datos reales.
 5. **Datos de zona en el feed** — el estado del entorno junto al contenido.
 

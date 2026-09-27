@@ -3,6 +3,7 @@ import type { EnvironmentalCategory } from '@/theme';
 import type {
   Entity,
   EntityMetric,
+  EntityMetricName,
   EntityType,
   EnvironmentalCategoryName,
 } from './database.types';
@@ -168,6 +169,28 @@ async function withRatings(entities: Entity[]): Promise<EntityResult[]> {
       ratingsCount: count,
     };
   });
+}
+
+/**
+ * Una métrica concreta de varias entidades a la vez, indexada por entidad.
+ *
+ * La usa el mapa para la tarjeta de calidad del aire: necesita saber qué
+ * entidades tienen medición de aire sin pedir las métricas una por una.
+ */
+export async function getMetricByEntity(
+  metric: EntityMetricName,
+  entityIds: string[],
+): Promise<Map<string, EntityMetric>> {
+  if (entityIds.length === 0) return new Map();
+
+  const { data, error } = await supabase
+    .from('entity_metrics')
+    .select('*')
+    .eq('metric', metric)
+    .in('entity_id', entityIds);
+
+  if (error) throw error;
+  return new Map((data ?? []).map((row) => [row.entity_id, row]));
 }
 
 /** Métricas ambientales de una entidad. Vacío si no es un lugar medido. */

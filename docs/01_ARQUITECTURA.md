@@ -55,8 +55,12 @@ se mueve a las tiendas. `expo-router` da navegación basada en ficheros, lo que
 mantiene la estructura de las 5 secciones legible en el árbol de carpetas.
 
 **Coste asumido:** el export web de React Native no es una web nativa; hay
-componentes (especialmente el mapa) que necesitarán una variante por
-plataforma. Se acepta a cambio de no mantener dos apps.
+componentes que necesitan una variante por plataforma. **Ya pasó con el mapa**
+(F2.3): MapLibre GL JS es una librería de navegador, así que el mapa real vive
+en `environmental-map.web.tsx` y en nativo hay un marcador de posición, con el
+mapa nativo anotado como tarea posterior. Metro elige el archivo por la
+extensión y ninguna pantalla tiene que saber en cuál está. Se acepta a cambio de
+no mantener dos apps.
 
 ### Supabase como backend, sin capa propia
 
@@ -102,9 +106,29 @@ Un commit por tarea del plan, push inmediato, tag anotado al cerrar fase. Sin
 ramas ni PRs: con un desarrollador y agentes no hay revisor humano al que servir,
 y el historial por tareas es lo que hace auditable lo que hizo cada sesión.
 
+### El mapa: MapLibre GL JS con teselas de OpenStreetMap
+
+Elegido en F2.3 por ser gratis y no pedir clave de API, que es lo que permite
+que la demo se publique en Pages sin gestionar secretos. Las teselas raster de
+openstreetmap.org dan el detalle que hacía falta; el estilo de demostración de
+MapLibre se descartó porque llega a zoom 6 y a ese nivel Bata y Monte Alén son
+el mismo punto.
+
+**Es una decisión de demo, no de producto.** Las teselas son un servicio donado
+con una política de uso que prohíbe el uso intenso, así que un lanzamiento
+necesita proveedor propio. El razonamiento completo y los límites están en
+@docs/notas.md (2026-09-27).
+
+El mapa es además la primera **ruta pública** de la app: se ve sin cuenta, por
+el principio de utilidad individual de @docs/07_CRECIMIENTO.md. Vive fuera del
+grupo `(tabs)` porque la guarda de ese grupo es de todo el grupo.
+
 ## Pendiente de decidir
 
-- Proveedor de mapa y capas ambientales (F2).
+- Proveedor de teselas para producción, y con él la estética de satélite de los
+  mockups (fuera del alcance de F2).
+- Capas de datos ambientales sobre el territorio: el mapa de F2.3 enseña
+  entidades, no superficies.
 - Fuente de los datos ambientales: APIs públicas, carga manual o mediciones de
   la comunidad (F2).
 - Estrategia de verificación de cuentas de empresa (fuera del MVP).

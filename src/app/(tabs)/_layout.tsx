@@ -18,7 +18,8 @@ export default function TabsLayout() {
       }}>
       <Tabs.Screen name="index" options={{ title: 'Inicio' }} />
       <Tabs.Screen name="buscar" options={{ title: 'Buscar' }} />
-      <Tabs.Screen name="mapa" options={{ title: 'Mapa' }} />
+      {/* Mapa no está aquí: es una ruta pública de primer nivel y pinta la
+          barra ella misma. Ver src/app/_layout.tsx. */}
       <Tabs.Screen name="perfil" options={{ title: 'Perfil' }} />
 
       {/* Referencia visual del design system: accesible por URL, fuera de la barra. */}

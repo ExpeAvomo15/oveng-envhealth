@@ -58,8 +58,28 @@ function RootNavigator() {
         <Stack.Screen name="editar-perfil" options={{ presentation: 'modal' }} />
         <Stack.Screen name="user/[username]" />
         <Stack.Screen name="post/[id]" />
-        <Stack.Screen name="entidad/[slug]" />
       </Stack.Protected>
+
+      {/*
+        Públicas: se ven sin cuenta. Es el principio de utilidad individual de
+        @docs/07_CRECIMIENTO.md — si para ver la calidad del aire hay que
+        registrarse, el producto deja de servir a quien llega solo, que es la
+        única pieza que funciona con la red vacía.
+
+        El mapa vive **fuera** del grupo `(tabs)` porque la guarda de `(tabs)`
+        es de todo el grupo: sacar solo una pestaña obligaba a proteger las
+        otras una a una. Como la barra de pestañas es un componente propio que
+        navega por ruta, el mapa la pinta él mismo y se ve igual.
+
+        **Van al final, y el orden importa.** expo-router toma como ruta inicial
+        la primera disponible, y declaradas arriba el mapa se convertía en la
+        puerta de entrada: con sesión, `/` abría el mapa en vez del feed, y al
+        cerrar sesión se caía en el mapa en vez de la bienvenida. Declaradas
+        después, con sesión gana `(tabs)` y sin ella gana `(auth)`. Medido en
+        notas.md (2026-09-27).
+      */}
+      <Stack.Screen name="mapa" />
+      <Stack.Screen name="entidad/[slug]" />
     </Stack>
   );
 }

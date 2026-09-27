@@ -150,9 +150,14 @@ persona sola y se pierde justo la pieza que funciona en frío. El registro se
 pide más tarde, al **publicar, seguir o valorar** — cuando el valor ya se ha
 demostrado.
 
-Hoy la app no es así: hay un *guard* que manda a la pantalla de bienvenida
-cualquier ruta sin sesión. **Se evalúa en F2.3 y F2.4**: si sale barato, se hace
-ahí; si arrastra el sistema de rutas, se queda para después de F2.
+**Hecho en F2.3.** El mapa y la ficha de una entidad se ven sin cuenta; seguir,
+valorar y publicar siguen pidiéndola y lo dicen — las pestañas privadas y Crear
+llevan a la bienvenida, y en la ficha el botón pone "Inicia sesión para seguir".
+
+Costó averiguar cómo: la guarda de `(tabs)` es de todo el grupo, así que el mapa
+salió a ser una ruta pública de primer nivel, y el orden en que se declaran las
+rutas decide cuál es la puerta de entrada. El detalle está en @docs/notas.md
+(2026-09-27).
 
 **Tarjetas compartibles de datos ambientales:** post-F2, después del mapa. No
 hay tarjeta que compartir hasta que haya dato que enseñar.

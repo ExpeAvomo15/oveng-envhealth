@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Text } from '@/components/ui';
+import { useAuth } from '@/hooks/use-auth';
 import { colors, radius, spacing } from '@/theme';
 
 /**
@@ -28,6 +29,13 @@ type TabDefinition = {
   icon: 'home' | 'search' | 'location' | 'person';
 };
 
+/**
+ * Rutas que se ven sin cuenta. El mapa es pública desde F2.3; las demás
+ * pestañas mandan a la bienvenida, que es donde se decide crear cuenta o
+ * entrar. Ver @docs/07_CRECIMIENTO.md.
+ */
+const PUBLIC_HREFS = new Set<TabDefinition['href']>(['/mapa']);
+
 const TABS: readonly TabDefinition[] = [
   { href: '/', label: 'Inicio', icon: 'home' },
   { href: '/buscar', label: 'Buscar', icon: 'search' },
@@ -51,17 +59,31 @@ export function TabBar() {
   const router = useRouter();
   const pathname = usePathname();
   const insets = useSafeAreaInsets();
+  const { session } = useAuth();
 
   const [inicio, buscar, mapa, perfil] = TABS;
+
+  /**
+   * Sin sesión, lo que exige cuenta lleva a la bienvenida en vez de a una
+   * pantalla que no existe en el árbol. Se navega, no se esconde la pestaña: un
+   * menú que cambia de forma según quién mire desorienta más de lo que protege.
+   */
+  const go = (href: TabDefinition['href']) => {
+    if (session === null && !PUBLIC_HREFS.has(href)) {
+      router.navigate('/welcome');
+      return;
+    }
+    router.navigate(href);
+  };
 
   return (
     <View style={[styles.container, { paddingBottom: insets.bottom }]}>
       <View style={styles.row}>
-        <TabItem tab={inicio} pathname={pathname} onPress={router.navigate} />
-        <TabItem tab={buscar} pathname={pathname} onPress={router.navigate} />
+        <TabItem tab={inicio} pathname={pathname} onPress={go} />
+        <TabItem tab={buscar} pathname={pathname} onPress={go} />
 
         <Pressable
-          onPress={() => router.push('/crear')}
+          onPress={() => router.push(session === null ? '/welcome' : '/crear')}
           accessibilityRole="button"
           accessibilityLabel="Crear publicación"
           style={({ pressed }) => [styles.createSlot, pressed && styles.pressed]}>
@@ -73,8 +95,8 @@ export function TabBar() {
           </Text>
         </Pressable>
 
-        <TabItem tab={mapa} pathname={pathname} onPress={router.navigate} />
-        <TabItem tab={perfil} pathname={pathname} onPress={router.navigate} />
+        <TabItem tab={mapa} pathname={pathname} onPress={go} />
+        <TabItem tab={perfil} pathname={pathname} onPress={go} />
       </View>
     </View>
   );

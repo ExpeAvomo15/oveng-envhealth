@@ -119,7 +119,7 @@ propuesta pendiente de validar.
       saber quién administra cada entidad: hoy el contenido es curado y no tiene
       dueño, así que la columna no tendría a quién apuntar. Se decide cuando haya
       que dejar que una empresa gestione su propia ficha (ver notas).
-- [ ] **F2.2 buscar** — **construida y verificada salvo una cosa; ver abajo.**
+- [x] **F2.2 buscar** —
       La sección Buscar deja de ser un armazón: barra de búsqueda con el icono de
       filtros dentro (el panel avanzado es post-demo), chips de alcance (Todo,
       Empresas, Iniciativas, Personas, Lugares), Sugerencias y Tendencias cuando
@@ -135,33 +135,64 @@ propuesta pendiente de validar.
       Verificado con `npm run verify:f22`: el directorio, el filtro por chip
       comparado contra la base, la navegación a la ficha y a un perfil, y las
       capturas en `docs/verificacion/f22/`. Sin regresiones en `verify:mvp`.
-      **Pendiente para cerrarla: aplicar `004_entity_follows.sql` y volver a
-      ejecutar `verify:f22`.** Las tres comprobaciones de seguir entidades
-      —persistencia y RLS en los dos sentidos— son las únicas que faltan, y el
-      criterio de cierre incluye poder seguirlas. Sin la migración la pantalla
-      funciona igual: leer degrada a "no sigues a nadie" y seguir avisa.
+      Migración `004` aplicada y `verify:f22` entero en verde: seguir una entidad
+      persiste, y RLS bloquea seguir en nombre de otra cuenta y seguir sin
+      sesión.
       **Lo que no incluye:** buscar **publicaciones** por etiqueta. Buscar es el
       directorio de entidades y personas; tocar una etiqueta la usa como término
       de búsqueda del directorio, no encuentra publicaciones con ella. Eso pide
       consultar `posts` y no está en esta capa de datos (ver notas).
-- [ ] **F2.3 mapa ambiental** — capas de aire, agua, suelo y biodiversidad sobre
-      el territorio, con las entidades y las publicaciones geolocalizadas
-      encima. Exige decidir proveedor de mapa y de dónde salen los datos
-      ambientales (APIs públicas, carga manual o mediciones de la comunidad), y
-      probablemente PostGIS: `location` es hoy texto libre.
-      Evaluar acceso sin cuenta al mapa y a los perfiles ambientales (ver
-      @docs/07_CRECIMIENTO.md).
+- [x] **F2.3 mapa ambiental** — mapa a pantalla completa con **MapLibre GL JS**
+      y teselas raster de OpenStreetMap, centrado en Guinea Ecuatorial con Bata
+      y Monte Alén en el encuadre inicial. Las 14 entidades como pines del color
+      e icono de su categoría; leyenda flotante que además **filtra** por capa;
+      búsqueda en el mapa por nombre y ubicación; controles de zoom y de volver
+      al encuadre inicial. Al tocar un pin, tarjeta inferior con tipo, nombre,
+      descripción y valoración que lleva a `/entidad/[slug]`; sin selección, la
+      calidad del aire de la entidad medida más cercana al centro, con su fecha.
+      **Acceso sin cuenta hecho aquí** (la nota que arrastraban F2.3/F2.4): el
+      mapa y la ficha de entidad se ven sin sesión; seguir, valorar y publicar
+      siguen pidiendo cuenta y lo dicen. El mapa es una ruta pública de primer
+      nivel, fuera de `(tabs)`, porque la guarda de ese grupo es de todo el
+      grupo — y **el orden de declaración importa**: arriba convertía el mapa en
+      la puerta de entrada del producto (ver notas).
+      Verificado con `npm run verify:f23`: los 14 marcadores con y sin sesión, el
+      filtro por capa contra los recuentos de la base, la búsqueda, la tarjeta
+      con los datos de la base, la navegación a la ficha, la tarjeta de aire y
+      que el mapa se destruye al salir y no se duplica al volver. Capturas en
+      `docs/verificacion/f23/`. Sin regresiones: `verify:ui`, `verify:mvp`,
+      `verify:f13`, `verify:f14`, `verify:f15` y `verify:f22` en verde.
+      **Lo que no hace:** mapa en nativo —MapLibre GL JS es de navegador; en iOS
+      y Android queda un marcador de posición honesto—, distancia en la tarjeta
+      (necesita geolocalización) y capas de datos ambientales sobre el
+      territorio: el mapa enseña **entidades**, no superficies de aire o agua.
+      Eso último sigue necesitando decidir de dónde salen los datos.
 - [ ] **F2.4 perfil ambiental** — huella ecológica y puntos OVENG con datos
       reales. Los componentes del perfil ya reciben sus valores por props
-      esperando esto.
-      Evaluar acceso sin cuenta al mapa y a los perfiles ambientales (ver
-      @docs/07_CRECIMIENTO.md).
+      esperando esto. El acceso sin cuenta ya está resuelto en F2.3.
 - [ ] **F2.5 datos de zona en el feed** — el estado ambiental del entorno junto
       al contenido social, que es la idea que sostiene el producto: que el dato
       no viva en un panel aparte.
 
 ### Fuera del alcance de F2, anotado para no perderlo
 
+- **Proveedor de teselas propio.** Las de openstreetmap.org son un servicio
+  donado: su política pide atribución, prohíbe la descarga masiva y avisa de que
+  un uso intenso se mueva a otro proveedor. Va sobrada para la demo y **no para
+  un lanzamiento**. Con ello llega la estética de satélite de los mockups, que
+  hoy no se puede replicar sin pagar.
+- **Mapa en nativo.** MapLibre GL JS es una librería de navegador. En iOS y
+  Android hay un marcador de posición; hace falta
+  `@maplibre/maplibre-react-native` o `react-native-maps`.
+- **Capas ambientales sobre el territorio.** El mapa de F2.3 enseña entidades,
+  no superficies de aire, agua o suelo. Exige decidir de dónde salen esos datos
+  (APIs públicas, carga manual o mediciones de la comunidad) y probablemente
+  PostGIS: `location` de `posts` es hoy texto libre.
+- **Geolocalización**, que desbloquea la distancia en la tarjeta del mapa y un
+  "datos de tu zona" que sea verdad.
+- **El worker de MapLibre no carga** (`Worker failed to load`). Con teselas
+  raster no afecta —el mapa funciona—, pero hay que resolverlo antes de usar
+  teselas vectoriales. Ver notas.
 - **Búsqueda sin acentos.** `ilike` resuelve las mayúsculas y no los acentos:
   "malaga" y "alen" devuelven **cero** resultados contra el seed actual. En una
   app en español es lo primero que hay que arreglar de Buscar, y pide la
