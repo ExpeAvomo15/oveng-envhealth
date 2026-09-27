@@ -10,7 +10,7 @@ comunitarias y huella ecológica personal.
 
 ---
 
-## Estado: MVP social completo
+## Estado: MVP social completo, y la capa de datos ambientales puesta
 
 La fase F1 está cerrada y etiquetada como `v0.1-mvp`. El ciclo social funciona
 de punta a punta contra Supabase real:
@@ -23,8 +23,14 @@ de punta a punta contra Supabase real:
 | **Publicar** | Compositor con texto, etiquetas extraídas del propio texto y una imagen reducida antes de subirse. |
 | **Feed** | "Para ti" y "Siguiendo", paginación por cursor, "me gusta", compartir y detalle de publicación. |
 
+Sobre eso, **F2.1** añade los cimientos de lo ambiental: `entities` (lugares,
+empresas e iniciativas) con sus métricas y sus valoraciones, y catorce entidades
+de ejemplo cargadas — cinco lugares reales de Guinea Ecuatorial con sus
+coordenadas verdaderas.
+
 Lo que **todavía no hace**: buscar, mapa ambiental, comentarios, valoraciones
-con puntuación y huella ecológica. Todo eso es F2 — ver el roadmap abajo.
+con puntuación y huella ecológica. Las entidades ya están en la base, pero
+ninguna pantalla las enseña aún — eso es F2.2 en adelante, ver el roadmap.
 
 ### El recorrido, en imágenes
 
@@ -86,10 +92,16 @@ npm run verify:mvp     # recorrido completo en Chromium, con capturas
 | `verify:f13` | Perfiles, avatar y seguimiento, con RLS. |
 | `verify:f14` | Compositor, etiquetas, imagen y límite de caracteres. |
 | `verify:f15` | Feed, paginación, "me gusta" y filtro "Siguiendo". |
+| `verify:f21` | Entidades: esquema de la migración 003, seed cargado, coordenadas, métricas y RLS. |
 | `verify:mvp` | El recorrido completo de punta a punta. |
 
-Todos construyen con `--clear` y comprueban que el bundle apunta al proyecto
-del `.env` antes de dar nada por bueno.
+Los que abren navegador construyen con `--clear` y comprueban que el bundle
+apunta al proyecto del `.env` antes de dar nada por bueno. `verify:auth` y
+`verify:f21` no necesitan navegador: hablan con la base directamente, con la
+clave anónima, que es la que usa la app.
+
+Cada uno deja sus capturas en su propio subdirectorio de
+[`docs/verificacion/`](docs/verificacion/) y limpia solo el suyo.
 
 ## Estructura
 
@@ -128,6 +140,23 @@ protege los datos es **RLS en Postgres**, así que toda tabla nueva se crea con
 RLS activado y sus políticas en la misma migración.
 
 ## Desarrollo
+
+### Cargar las entidades de ejemplo
+
+La migración `003` crea las tablas de entidades vacías; el contenido lo mete el
+seed: catorce lugares, empresas e iniciativas con sus métricas.
+
+```bash
+SUPABASE_SERVICE_ROLE_KEY='...' npm run seed:entities -- --dry-run   # solo enumera
+SUPABASE_SERVICE_ROLE_KEY='...' npm run seed:entities                # escribe
+```
+
+Necesita `service_role` porque `entities` y `entity_metrics` **no tienen ninguna
+política de escritura**: son contenido curado y la app no puede tocarlas. Mismo
+trato que abajo — la clave se pasa al ejecutar y no se guarda en ningún fichero.
+
+Es idempotente por `slug`: repetirlo actualiza en vez de duplicar. Comprobar con
+`npm run verify:f21`.
 
 ### Limpiar cuentas de prueba
 
@@ -169,14 +198,18 @@ apuntando al proyecto equivocado—, que los assets cuelgan del subpath
 ## Roadmap — F2, demo ambiental
 
 Lo que convierte esto en una red social **ambiental** y no en una red social
-más. Propuesta a validar en [docs/plan.md](docs/plan.md):
+más. Estado real de cada tarea en [docs/plan.md](docs/plan.md):
 
-1. **Entidades** — empresas e iniciativas como tabla propia, con datos de
-   ejemplo. `profiles` se queda para personas.
-2. **Buscar** — búsqueda real de cuentas, etiquetas y lugares.
+1. ~~**Entidades**~~ — **hecho (F2.1).** Empresas, iniciativas y lugares en su
+   propia tabla, con métricas, valoraciones y contenido de ejemplo cargado.
+   `profiles` se queda para personas.
+2. **Buscar** — búsqueda real de cuentas, etiquetas y lugares. Es la primera
+   que enseña las entidades en pantalla.
 3. **Mapa ambiental** — capas de aire, agua, suelo y biodiversidad.
 4. **Perfil ambiental** — huella ecológica y puntos OVENG con datos reales.
 5. **Datos de zona en el feed** — el estado del entorno junto al contenido.
+
+Las cuatro que quedan siguen siendo propuesta pendiente de validar.
 
 ## Cómo se trabaja aquí
 

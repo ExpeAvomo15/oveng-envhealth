@@ -118,16 +118,42 @@ padre, que nadie limpia, sobrevive; dentro de `ui/` la borraría el próximo
 `verify:ui`. La regla que queda: los subdirectorios son de los scripts, el
 padre es para lo que se guarda a mano.
 
+### F2.1 se cierra, y una parte de su enunciado se queda fuera
+
+Aplicada la migración 003 y cargado el seed, `verify:f21` pasa entero: 14
+entidades (5 lugares, 5 empresas, 4 iniciativas), 25 métricas, coordenadas
+dentro de su país y RLS en los dos sentidos. Las dos correcciones del seed
+quedan comprobadas: Monte Alén tiene **exactamente** sus cuatro métricas y el
+Ntem sale con `aire` 42 AQI e `indice_aire` 8.9/10 conviviendo.
+
+**Lo que el enunciado de F2.1 pedía y no se ha hecho:** "su relación con
+`profiles` para saber quién administra cada una". No hay tal columna. La única
+referencia de `entities` a `profiles` es `entity_ratings.user_id`, que es quien
+**valora**, no quien administra.
+
+No es un olvido, pero tampoco estaba anotado, así que queda aquí. El contenido
+de `entities` es curado: lo escribe el seed con `service_role` y la tabla no
+tiene ninguna política de escritura. Una columna de administrador hoy no tendría
+a quién apuntar, y RLS no podría usarla para nada porque no hay escritura que
+permitir. Cobra sentido el día que una empresa pueda reclamar y gestionar su
+propia ficha — y ese día trae consigo más de una columna: cómo se verifica que
+quien reclama es quien dice ser, qué puede editar y qué no, y qué pasa con la
+valoración de la comunidad mientras tanto. Es una tarea propia, no un `alter
+table` de paso.
+
+Hasta entonces, `profiles` son personas y `entities` no tiene dueño.
+
 ### Estado al cerrar la sesión
 
 En verde contra Supabase real: `verify:auth`, `verify:f13`, `verify:f14`,
-`verify:f15`, `verify:ui` y `verify:mvp`. Lint y typecheck limpios. La demo
-publicada responde y el bundle apunta al proyecto correcto.
+`verify:f15`, `verify:f21`, `verify:ui` y `verify:mvp`. Lint y typecheck
+limpios. La demo publicada responde y el bundle apunta al proyecto correcto.
 
-`verify:f21` sigue en rojo por lo único que le falta: **la migración 003 no está
-aplicada y el seed no se ha ejecutado**, las dos cosas manuales. Sus
-comprobaciones nuevas son, por tanto, lo único de esta tanda que no se ha podido
-ejecutar todavía.
+Documentación al día con la base: `03_MODELO_DATOS.md` lleva ya las
+instrucciones de aplicación y verificación de 003 —incluida la trampa del
+`--dry-run` del seed, que imprime las catorce entidades y no escribe ninguna—,
+los recuentos corregidos (siete tablas y una vista, 20 políticas) y el
+enumerado de métricas explicado. El README lista `verify:f21` y `seed:entities`.
 
 **Pendientes que salieron y no se tocan aquí:** la consola del navegador escupe
 un `React error #418` (mismatch de hidratación) y un 404 de recurso que no

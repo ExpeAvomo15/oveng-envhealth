@@ -86,7 +86,7 @@ erDiagram
 
     entity_metrics {
         uuid entity_id PK "FK entities.id"
-        entity_metric metric PK "aire, agua, suelo, biodiversidad, cobertura_forestal, temperatura_media, calidad_general"
+        entity_metric metric PK "aire, indice_aire, agua, suelo, biodiversidad, cobertura_forestal, temperatura_media, calidad_general"
         numeric value
         text unit "AQI, pH, %, C, /10"
         text label "Buena, Alta, Excelente"
@@ -274,7 +274,7 @@ propia carpeta.
 
 ### Categorías ambientales
 
-`aire`, `agua`, `suelo`, `biodiversidad`, `residuos`. Definidas en
+`aire`, `agua`, `suelo`, `biodiversidad`, `energia`, `residuos`. Definidas en
 `src/theme/categories.ts` junto con su color y el color de texto que contrasta
 sobre él.
 
@@ -291,6 +291,27 @@ color de cada una vive en `src/theme/categories.ts`, con el razonamiento y las
 medidas de contraste; una guarda de tipos en `src/lib/entities.ts` hace que la
 compilación falle si el enumerado de la base y el del theme dejan de coincidir.
 
+### Métricas de una entidad
+
+`entity_metric`, ocho valores: `aire`, `indice_aire`, `agua`, `suelo`,
+`biodiversidad`, `cobertura_forestal`, `temperatura_media` y `calidad_general`.
+Es un enumerado y no texto libre para que la app pueda dar a cada métrica su
+icono, su formato y su orden sin adivinar.
+
+**`aire` e `indice_aire` no son la misma métrica en otra unidad**, y conviene
+saberlo antes de pintarlas. El mockup 2 enseña las dos a la vez en la ficha del
+Río Ntem: un AQI crudo de 42 en "Datos clave" y un subíndice normalizado de
+8.9 sobre 10 en la fila de índices. **Un AQI baja cuando el aire mejora y un
+índice sube**, así que no hay conversión posible entre ellas; y tampoco caben en
+la misma fila, porque la clave primaria de `entity_metrics` es
+`(entity_id, metric)`.
+
+Queda una incoherencia anotada: en esa misma fila de índices, `suelo` (8.5) y
+`biodiversidad` (9.1) son también valores de índice sobre 10, pero se guardan
+bajo los nombres "crudos", mientras el aire sí distingue los dos. Se decide en
+F2.3/F2.4, cuando haya una pantalla que los pinte. Ver @docs/notas.md
+(2026-09-27).
+
 ### Etiquetas (`hashtags`)
 
 Se extraen del propio texto al publicar (`src/lib/hashtags.ts`) y se guardan
@@ -301,8 +322,8 @@ normalizadas: en minúsculas, sin `#`, sin repetir y **conservando las tildes**.
 
 **No existe: es deliberado.** `profiles` modela **personas**. Empresas e
 iniciativas son entidades distintas —con campos, ciclo de vida y permisos
-propios— y tendrán su tabla en F2, con datos de ejemplo. `verified` sigue
-sirviendo para marcar cuentas comprobadas.
+propios— y desde F2.1 tienen su propia tabla, `entities`, con contenido de
+ejemplo cargado. `verified` sigue sirviendo para marcar cuentas comprobadas.
 
 La decisión y su razonamiento están en @docs/notas.md (F1.3).
 
@@ -325,14 +346,25 @@ aplicado a medias.
 con menos fricción — no hay que instalar el CLI, ni enlazar el proyecto, ni tener
 a mano la contraseña de la base de datos.
 
+**Van en orden y una por query.** Cada archivo es una transacción completa: o
+entra entero o no entra nada, así que un fallo a mitad no deja el esquema a
+medias, pero tampoco aplica la mitad buena.
+
 1. Supabase → **SQL Editor** → *New query*.
 2. Pegar el contenido íntegro de `supabase/migrations/001_initial_schema.sql`.
 3. *Run*. Debe terminar con `Success. No rows returned`.
 4. Repetir con `002_storage.sql` en una query nueva.
+5. Repetir con `003_entities.sql` en otra query nueva.
 
 Si el paso 4 devuelve un error de permisos al crear políticas sobre
 `storage.objects`, crear las mismas reglas desde **Storage → Policies** en el
 dashboard.
+
+**Ninguna es re-ejecutable.** Usan `create table` y `create type` a secas, sin
+`if not exists`: lanzarlas dos veces da `already exists` y la transacción se
+deshace sola. Eso es deliberado — un `create ... if not exists` sobre un esquema
+que ya cambió pasa en silencio y deja la base diciendo una cosa y el repositorio
+otra. Si hay que rehacer una, se borra antes lo que creó.
 
 > **Sobre el CLI:** `supabase db push` espera nombres con marca de tiempo
 > (`20260918120000_initial_schema.sql`) y **rechaza** los prefijos `001_` /
@@ -341,7 +373,24 @@ dashboard.
 
 ### Después de aplicar
 
-Regenerar los tipos, que son la otra mitad del contrato:
+**1. Cargar el contenido curado de las entidades.** `003` crea las tablas
+vacías; los catorce lugares, empresas e iniciativas los mete el seed. Escribe
+con `service_role` porque `entities` y `entity_metrics` **no tienen ninguna
+política de escritura** (ver más arriba), así que la clave se pasa solo en el
+momento de ejecutar y nunca se guarda en un fichero:
+
+```bash
+SUPABASE_SERVICE_ROLE_KEY='...' npm run seed:entities -- --dry-run   # solo enumera
+SUPABASE_SERVICE_ROLE_KEY='...' npm run seed:entities                # escribe
+```
+
+> **Cuidado con `--dry-run`:** imprime el listado completo y termina con
+> "Simulacro: no se ha escrito nada". Es fácil leerlo como un éxito. Si
+> `verify:f21` dice que `entities` está vacía, es que solo se pasó el simulacro.
+
+Es idempotente por `slug`: repetirlo actualiza en vez de duplicar.
+
+**2. Regenerar los tipos**, que son la otra mitad del contrato:
 
 ```bash
 npx supabase login
@@ -350,11 +399,25 @@ npx supabase gen types typescript \
 npm run typecheck
 ```
 
+Los tipos del repositorio ya incluyen lo de `003`, así que aquí regenerar sirve
+de comprobación: si el `git diff` sale vacío, la base y el código dicen lo
+mismo.
+
 ## Cómo verificar que funciona
 
-Todo esto se ejecuta en el **SQL Editor**.
+**Lo rápido, desde la terminal.** Dos scripts cubren casi todo esto sin tocar el
+dashboard, y son los que hay que creer porque usan la clave anónima, la misma
+que la app:
 
-### 1. RLS activado en las cuatro tablas
+```bash
+npm run verify:auth   # 001 y 002: tablas, RLS en ambos sentidos, trigger, buckets
+npm run verify:f21    # 003: tablas, seed, coordenadas, métricas y RLS de entidades
+```
+
+Lo de abajo es la comprobación a mano, en el **SQL Editor**, para cuando algo
+falla y hay que ver por qué.
+
+### 1. RLS activado en las siete tablas
 
 ```sql
 select relname as tabla, relrowsecurity as rls_activado
@@ -363,7 +426,12 @@ where relnamespace = 'public'::regnamespace and relkind = 'r'
 order by relname;
 ```
 
-Las cuatro deben dar `true`. Una sola en `false` es una tabla abierta a internet.
+Las siete deben dar `true`: `profiles`, `posts`, `follows`, `likes`, `entities`,
+`entity_metrics` y `entity_ratings`. Una sola en `false` es una tabla abierta a
+internet.
+
+`entity_rating_summary` no sale en esta consulta porque es una vista, no una
+tabla. La suya se comprueba en el punto 8.
 
 ### 2. Las políticas están donde deben
 
@@ -374,8 +442,17 @@ where schemaname = 'public'
 order by tablename, cmd;
 ```
 
-Esperado: 4 políticas en `profiles` y en `posts`, 3 en `follows` y en `likes`
-(sin UPDATE, como se explicó arriba).
+Esperado, 20 en total:
+
+| Tabla | Políticas | |
+| ----- | --------- | - |
+| `profiles` | 4 | |
+| `posts` | 4 | |
+| `follows` | 3 | sin UPDATE, como se explicó arriba |
+| `likes` | 3 | sin UPDATE |
+| `entities` | 1 | solo SELECT: contenido curado, nadie lo escribe |
+| `entity_metrics` | 1 | solo SELECT |
+| `entity_ratings` | 4 | esto sí lo escribe la gente |
 
 ### 3. El trigger crea el perfil
 
@@ -462,6 +539,83 @@ order by policyname;
 Dos buckets y ocho políticas (cuatro por bucket). Prueba práctica: sube un
 archivo desde **Storage → avatars** a una carpeta con el nombre de tu uuid y
 comprueba que la URL pública lo sirve.
+
+### 8. Entidades ambientales (migración 003)
+
+**El seed ha entrado, y con el reparto que toca:**
+
+```sql
+select type, count(*) from public.entities group by type order by type;
+```
+
+Esperado: 5 `lugar`, 5 `empresa`, 4 `iniciativa`. Catorce en total. Si sale
+vacío, la migración está pero el seed no — ver "Después de aplicar".
+
+**Las métricas son las de los mockups, exactamente.** Estos números se enseñan
+como datos reales, así que ni faltan ni sobran:
+
+```sql
+select e.slug, m.metric, m.value, m.unit, m.label
+from public.entity_metrics m
+join public.entities e on e.id = m.entity_id
+where e.slug in ('parque-nacional-monte-alen', 'rio-ntem')
+order by e.slug, m.metric;
+```
+
+Monte Alén tiene **cuatro** (aire 42 AQI, agua 8.2 pH, biodiversidad 8.7/10,
+cobertura forestal 78 %) y ninguna más: no lleva calidad general. El Ntem tiene
+**siete**, y entre ellas el aire dos veces — `aire` con el AQI crudo de 42 e
+`indice_aire` con el subíndice de 8.9/10, que son cosas distintas y no
+convertibles. `indice_aire` va con `label` nulo a propósito.
+
+**Nadie puede escribir el contenido curado.** Ni un anónimo ni una cuenta con
+sesión: la tabla tiene RLS y **ninguna** política de escritura, así que la
+denegación es por defecto.
+
+```sql
+-- Debe FALLAR las dos veces
+begin;
+  set local role anon;
+  insert into public.entities (slug, name, type, category)
+  values ('intruso', 'Intruso', 'lugar', 'aire');
+rollback;
+
+begin;
+  set local request.jwt.claims = '{"sub":"<TU_UUID>"}';
+  set local role authenticated;
+  insert into public.entities (slug, name, type, category)
+  values ('intruso', 'Intruso', 'lugar', 'aire');
+rollback;
+```
+
+Si alguno de los dos **funciona**, alguien le ha añadido una política a
+`entities` y el contenido ha dejado de ser curado.
+
+**Las valoraciones sí son de la gente**, con las tres reglas de siempre: solo en
+nombre propio, una por entidad y puntuación de 1 a 5.
+
+```sql
+-- Debe FALLAR por el check de rango
+begin;
+  set local request.jwt.claims = '{"sub":"<TU_UUID>"}';
+  set local role authenticated;
+  insert into public.entity_ratings (entity_id, user_id, score)
+  select id, '<TU_UUID>', 9 from public.entities limit 1;
+rollback;
+```
+
+**La vista de resumen respeta las políticas de quien consulta**, porque se creó
+con `security_invoker = on`:
+
+```sql
+select c.relname, c.reloptions
+from pg_class c
+where c.relnamespace = 'public'::regnamespace and c.relname = 'entity_rating_summary';
+```
+
+`reloptions` debe contener `security_invoker=on`. Aquí da igual porque las
+valoraciones son públicas, pero una vista que ignora RLS es una fuga esperando a
+que alguien la reutilice con una tabla que sí importe.
 
 ## Limitaciones conocidas
 

@@ -95,15 +95,30 @@ Convención de commit: `F<fase>.<tarea>: descripción`.
 
 ## F2 — Demo ambiental
 
-**Propuesta, pendiente de validar.** Es lo que convierte esto en una red social
-*ambiental* y no en una red social más. El orden va de dentro afuera: primero
-los datos, luego las pantallas que los enseñan.
+Es lo que convierte esto en una red social *ambiental* y no en una red social
+más. El orden va de dentro afuera: primero los datos, luego las pantallas que
+los enseñan. **F2.1 está cerrada**; las cuatro restantes siguen siendo
+propuesta pendiente de validar.
 
-- [ ] **F2.1 modelo de entidades + seed** — tabla propia para empresas e
-      iniciativas (campos, ciclo de vida y permisos distintos de los de una
-      persona; ver la decisión de F1.3), su relación con `profiles` para saber
-      quién administra cada una, y datos de ejemplo suficientes para que el
-      resto de F2 tenga algo que enseñar. Migración `003`.
+- [x] **F2.1 modelo de entidades + seed** — migración `003`: `entities`
+      (lugares, empresas e iniciativas), `entity_metrics`, `entity_ratings` y la
+      vista `entity_rating_summary`, más los enumerados `entity_type`,
+      `environmental_category` (seis categorías, la unión de los dos mockups) y
+      `entity_metric`. Seed curado de **14 entidades y 25 métricas**, idempotente
+      por `slug`, con cinco lugares reales de Guinea Ecuatorial y sus
+      coordenadas verdaderas.
+      `entities` y `entity_metrics` **no tienen ninguna política de escritura**:
+      son contenido curado que carga el seed con `service_role` y la app no puede
+      tocar. Las valoraciones sí son de la gente, con política de propietario.
+      Verificado con `npm run verify:f21` contra la base real: las cuatro tablas,
+      el reparto 5/5/4, las coordenadas dentro de su país, RLS en los dos
+      sentidos, y las métricas de Monte Alén y del Río Ntem exactas según los
+      mockups — comparando el **conjunto completo**, así que una métrica de más
+      falla igual que una que falte.
+      **Queda fuera la relación con `profiles`** que el enunciado preveía para
+      saber quién administra cada entidad: hoy el contenido es curado y no tiene
+      dueño, así que la columna no tendría a quién apuntar. Se decide cuando haya
+      que dejar que una empresa gestione su propia ficha (ver notas).
 - [ ] **F2.2 buscar** — la sección Buscar, hoy un armazón: búsqueda de cuentas,
       entidades, etiquetas y lugares, más descubrimiento para quien acaba de
       llegar. Habilita también el toque en las etiquetas del feed, que hoy solo

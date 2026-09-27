@@ -56,6 +56,16 @@ if (entitiesError) {
   process.exit(1);
 }
 
+// Sin contenido no hay nada que comprobar, y los apartados de abajo dan por
+// hecho que Monte Alén existe. Se corta aquí con el motivo real en vez de
+// estrellarse más adelante con un "cannot read properties of null".
+if (entities.length === 0) {
+  bad('la tabla "entities" está vacía — el seed no se ha ejecutado');
+  console.log('\nEjecuta el seed (sin --dry-run, que no escribe nada):');
+  console.log("  SUPABASE_SERVICE_ROLE_KEY='...' npm run seed:entities");
+  process.exit(1);
+}
+
 const PLURAL = { lugar: 'lugares', empresa: 'empresas', iniciativa: 'iniciativas' };
 const esperado = { lugar: 5, empresa: 5, iniciativa: 4 };
 for (const [tipo, cuantas] of Object.entries(esperado)) {
@@ -185,6 +195,11 @@ await comprobarMetricas('rio-ntem', 'Río Ntem', [
   { metric: 'biodiversidad', value: 9.1, unit: '/10', label: 'Alto' },
   { metric: 'temperatura_media', value: 26.4, unit: '°C', label: 'Templada' },
 ]);
+
+if (!monteAlen) {
+  console.log('\nSin Monte Alén no se pueden comprobar las valoraciones. Revisa el seed.');
+  process.exit(1);
+}
 
 // --- 5. RLS: contenido curado, no escribible -------------------------------------
 step('5. RLS: nadie escribe el contenido curado');
