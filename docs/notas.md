@@ -127,6 +127,21 @@ Dos lecciones, y la segunda es nueva:
    cortos y dejó de serlo al enriquecerlos. Los dos scripts usan ya el mismo
    criterio.
 
+### Comprobado en la demo desplegada
+
+El criterio de cierre era recorrer el camino completo ahí, no en local: del mapa
+a Monte Alén y al Ntem, con sus métricas fieles al seed —incluida la ausencia
+del círculo en Monte Alén— y valorando de verdad, con la valoración llegando a
+la base y limpiada después. Captura en `docs/verificacion/produccion/`.
+
+### Un tropiezo de infraestructura, por si se repite
+
+El primer `git push` de F2.4 falló con `HTTP 408`: el commit lleva 49 capturas y
+las de pantalla completa pesan unos 275 KB cada una. Se resolvió subiendo
+`http.postBuffer` y fijando `http.version` a HTTP/1.1 en la configuración local
+del repositorio. Si vuelve a pasar, es por ahí — y conviene plantearse si las
+capturas de pantalla completa merecen su peso en el historial.
+
 ### Estado
 
 Las once verificaciones en verde contra Supabase real: `auth`, `f13`, `f14`,
