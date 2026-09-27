@@ -1,6 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image } from 'expo-image';
-import { useRouter } from 'expo-router';
+import { usePathname, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Platform, Pressable, Share, StyleSheet, View } from 'react-native';
 
@@ -22,6 +22,8 @@ export type PostCardProps = {
 
 export function PostCard({ post, onPressBody }: PostCardProps) {
   const router = useRouter();
+  // La raíz de la app se deduce de la ruta actual; ver lib/site.ts.
+  const pathname = usePathname();
   const { profile } = useAuth();
 
   /**
@@ -72,7 +74,7 @@ export function PostCard({ post, onPressBody }: PostCardProps) {
   }
 
   async function share() {
-    const url = postUrl(post.id);
+    const url = postUrl(post.id, pathname);
 
     if (Platform.OS !== 'web') {
       await Share.share({ message: `${post.content}\n\n${url}` });

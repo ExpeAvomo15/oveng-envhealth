@@ -1,10 +1,17 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
+import { useLocalSearchParams, usePathname, useRouter } from 'expo-router';
+import { useEffect, useMemo, useState } from 'react';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
-import { EntityAvatar, RatingBadge } from '@/components/search';
-import { Button, Callout, Card, Screen, Text } from '@/components/ui';
+import {
+  CategoryReadings,
+  EntityCover,
+  MetricCards,
+  QualityCircle,
+  RatingList,
+  RatingSheet,
+} from '@/components/entity';
+import { Badge, Button, Callout, Screen, Text } from '@/components/ui';
 import { showToast } from '@/components/ui/toast';
 import { useAuth } from '@/hooks/use-auth';
 import type { EntityMetric } from '@/lib/database.types';
@@ -16,10 +23,17 @@ import {
   getEntityFollowerCount,
   getEntityMetrics,
   getFollowedEntityIds,
+  getMyRating,
+  getRatingSummary,
+  getRatings,
+  rateEntity,
   unfollowEntity,
   type EntityResult,
+  type RatingWithAuthor,
 } from '@/lib/entities';
-import { colors, environmentalCategories, radius, screenPadding, spacing } from '@/theme';
+import { groupMetrics } from '@/lib/metrics';
+import { entityUrl } from '@/lib/site';
+import { colors, environmentalCategories, screenPadding, spacing } from '@/theme';
 
 type Loaded = {
   slug: string;
@@ -27,37 +41,73 @@ type Loaded = {
   metrics: EntityMetric[];
   followers: number;
   following: boolean;
+  ratings: RatingWithAuthor[];
+  average: number | null;
+  count: number;
+  mine: { score: number; comment: string | null } | null;
 };
 
 async function loadEntity(slug: string, viewerId: string | null): Promise<Loaded> {
   const entity = await getEntityBySlug(slug);
-  if (!entity) return { slug, entity: null, metrics: [], followers: 0, following: false };
+  const vacio = {
+    slug,
+    entity: null,
+    metrics: [],
+    followers: 0,
+    following: false,
+    ratings: [],
+    average: null,
+    count: 0,
+    mine: null,
+  };
+  if (!entity) return vacio;
 
-  const [metrics, followers, followed] = await Promise.all([
+  // Todo lo de la ficha en paralelo: no dependen entre sí.
+  const [metrics, followers, followed, ratings, summary, mine] = await Promise.all([
     getEntityMetrics(entity.id),
     getEntityFollowerCount(entity.id),
     viewerId ? getFollowedEntityIds(viewerId, [entity.id]) : Promise.resolve(new Set<string>()),
+    getRatings(entity.id),
+    getRatingSummary(entity.id),
+    viewerId ? getMyRating(entity.id, viewerId) : Promise.resolve(null),
   ]);
 
-  return { slug, entity, metrics, followers, following: followed.has(entity.id) };
+  return {
+    slug,
+    entity,
+    metrics,
+    followers,
+    following: followed.has(entity.id),
+    ratings,
+    average: summary.average,
+    count: summary.count,
+    mine,
+  };
 }
 
 /**
- * Ficha de una entidad. **Mínima a propósito.**
+ * Perfil ambiental de una entidad.
  *
- * Enseña lo que hay en la base y nada más: identidad, ubicación, descripción y
- * las métricas en bruto. El perfil ambiental de verdad —los índices con su
- * escala, la evolución, la comparación con la media— es F2.4, y adelantarlo
- * aquí a medias significaría construirlo dos veces. Lo que sí hace falta ya es
- * que desde Buscar se pueda llegar a algo y seguirlo.
+ * Combina las dos pantallas 4 de los mockups, que son **la misma con distintos
+ * datos**: el círculo de calidad general y la fila de subíndices del mockup 2 y
+ * las tarjetas de datos del 1. Qué aparece lo decide `groupMetrics` a partir de
+ * lo que la entidad tenga en la base, así que Monte Alén sale como el mockup 1
+ * —sin círculo, porque no tiene calidad general— y el Ntem como el 2, sin una
+ * sola rama por entidad.
+ *
+ * Se ve **sin cuenta** (F2.3). Seguir y valorar piden sesión y lo dicen.
  */
 export default function EntityScreen() {
   const router = useRouter();
+  const pathname = usePathname();
   const { slug } = useLocalSearchParams<{ slug: string }>();
   const { profile: viewer, session } = useAuth();
 
   const [loaded, setLoaded] = useState<Loaded | null>(null);
   const [busy, setBusy] = useState(false);
+  const [rating, setRating] = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   const viewerId = viewer?.id ?? null;
   const current = loaded?.slug === slug ? loaded : null;
@@ -65,22 +115,34 @@ export default function EntityScreen() {
 
   useEffect(() => {
     if (!slug) return;
-    let active = true;
+    let live = true;
 
     loadEntity(slug, viewerId)
       .then((data) => {
-        if (active) setLoaded(data);
+        if (live) setLoaded(data);
       })
       .catch(() => {
-        if (!active) return;
-        setLoaded({ slug, entity: null, metrics: [], followers: 0, following: false });
+        if (!live) return;
+        setLoaded({
+          slug,
+          entity: null,
+          metrics: [],
+          followers: 0,
+          following: false,
+          ratings: [],
+          average: null,
+          count: 0,
+          mine: null,
+        });
         showToast('No se ha podido cargar la entidad.');
       });
 
     return () => {
-      active = false;
+      live = false;
     };
   }, [slug, viewerId]);
+
+  const grouped = useMemo(() => groupMetrics(current?.metrics ?? []), [current?.metrics]);
 
   async function toggleFollow() {
     if (!entity || !viewerId || busy) return;
@@ -122,6 +184,68 @@ export default function EntityScreen() {
     }
   }
 
+  async function submitRating(score: number, comment: string) {
+    if (!entity || !viewerId) return;
+
+    setRating(true);
+    try {
+      await rateEntity(entity.id, viewerId, score, comment);
+
+      // La media la calcula la vista, no el cliente: se vuelve a leer en vez de
+      // estimarla, que con pocas valoraciones se nota enseguida.
+      const [summary, ratings] = await Promise.all([
+        getRatingSummary(entity.id),
+        getRatings(entity.id),
+      ]);
+
+      setLoaded((previous) =>
+        previous === null
+          ? previous
+          : {
+              ...previous,
+              ratings,
+              average: summary.average,
+              count: summary.count,
+              mine: { score, comment: comment.trim() || null },
+            },
+      );
+      setSheetOpen(false);
+      showToast(current?.mine ? 'Valoración actualizada.' : 'Gracias por tu valoración.');
+    } catch {
+      showToast('No se ha podido guardar tu valoración.');
+    } finally {
+      setRating(false);
+    }
+  }
+
+  async function loadMoreRatings() {
+    if (!entity || loadingMore || !current) return;
+
+    setLoadingMore(true);
+    try {
+      const more = await getRatings(entity.id, { offset: current.ratings.length });
+      setLoaded((previous) =>
+        previous === null ? previous : { ...previous, ratings: [...previous.ratings, ...more] },
+      );
+    } catch {
+      showToast('No se han podido cargar más opiniones.');
+    } finally {
+      setLoadingMore(false);
+    }
+  }
+
+  async function share() {
+    if (!entity) return;
+    const url = entityUrl(entity.slug, pathname);
+
+    try {
+      await navigator.clipboard.writeText(url);
+      showToast('Enlace copiado al portapapeles.');
+    } catch {
+      showToast('No se ha podido copiar el enlace.');
+    }
+  }
+
   if (current === null) {
     return (
       <Screen scroll={false}>
@@ -150,132 +274,160 @@ export default function EntityScreen() {
   const place = [entity.location_name, entity.country].filter(Boolean).join(' · ');
 
   return (
-    <Screen>
-      <View style={styles.backRow}>
-        <Pressable
-          onPress={() =>
-            router.canGoBack()
-              ? router.back()
-              : // Sin sesión, Buscar no existe en el árbol: la salida es el mapa,
-                // que es la otra pantalla pública.
-                router.replace(session === null ? '/mapa' : '/buscar')
-          }
-          accessibilityRole="button"
-          accessibilityLabel="Volver"
-          style={({ pressed }) => [styles.backButton, pressed && styles.pressed]}>
-          <Ionicons name="arrow-back" size={22} color={colors.text} />
-        </Pressable>
-      </View>
+    <Screen padded={false}>
+      <EntityCover
+        category={entity.category}
+        average={current.average}
+        count={current.count}
+        onBack={() =>
+          router.canGoBack() ? router.back() : router.replace(session === null ? '/mapa' : '/buscar')
+        }
+        onShare={share}
+        // La píldora dice "Sé el primero en valorar": que lleve a valorar, en
+        // vez de avisar de que hay que bajar. Sin sesión, a la bienvenida.
+        onRate={() => (session === null ? router.push('/welcome') : setSheetOpen(true))}
+      />
 
-      <View style={styles.identity}>
-        <EntityAvatar category={entity.category} size={72} />
-
-        <View style={styles.nameRow}>
-          {/* Es el encabezado de la pantalla: anunciarlo como tal deja que un
-              lector de pantalla salte aquí, y da un nombre estable al que
-              apuntar desde las comprobaciones. */}
-          <Text variant="title" accessibilityRole="header" style={styles.name}>
+      <View style={styles.body}>
+        <View style={styles.identity}>
+          <Text variant="title" accessibilityRole="header">
             {entity.name}
           </Text>
-          {entity.verified ? (
-            <Ionicons
-              name="checkmark-circle"
-              size={20}
-              color={colors.accent}
-              accessibilityLabel="Verificada"
-            />
+
+          <View style={styles.badges}>
+            <Badge label={entityTypeLabels[entity.type]} tone="accent" />
+            <Badge label={category.label} tone="neutral" />
+            {/* El estado general del mockup 2 ("Muy bueno"), si lo hay. */}
+            {grouped.general?.label ? (
+              <Badge label={grouped.general.label} tone="info" />
+            ) : null}
+            {entity.verified ? (
+              <Ionicons
+                name="checkmark-circle"
+                size={18}
+                color={colors.accent}
+                accessibilityLabel="Verificada"
+              />
+            ) : null}
+          </View>
+
+          {place ? (
+            <View style={styles.placeRow}>
+              <Ionicons name="location-outline" size={15} color={colors.textSecondary} />
+              <Text variant="caption" color="textSecondary">
+                {place}
+              </Text>
+            </View>
           ) : null}
+
+          <Text variant="caption" color="textMuted">
+            {current.followers === 1 ? '1 seguidor' : `${current.followers} seguidores`}
+          </Text>
         </View>
 
-        <Text
-          variant="caption"
-          color="textSecondary"
-          accessibilityLabel={`${entityTypeLabels[entity.type]} · ${category.label}`}>
-          {entityTypeLabels[entity.type]} · {category.label}
-        </Text>
+        {/*
+          Sin cuenta se ve todo lo de arriba; seguir y valorar la piden y lo
+          dicen en el propio botón. Ver @docs/07_CRECIMIENTO.md.
+        */}
+        {session === null ? (
+          <Button
+            label="Inicia sesión para seguir y valorar"
+            variant="secondary"
+            fullWidth
+            onPress={() => router.push('/welcome')}
+          />
+        ) : (
+          <View style={styles.actions}>
+            <Button
+              label={current.following ? 'Siguiendo' : 'Seguir'}
+              variant={current.following ? 'secondary' : 'primary'}
+              loading={busy}
+              onPress={toggleFollow}
+              style={styles.action}
+            />
+            <Button
+              label={current.mine ? 'Cambiar valoración' : 'Valorar'}
+              variant="secondary"
+              onPress={() => setSheetOpen(true)}
+              style={styles.action}
+            />
+          </View>
+        )}
 
-        {place ? (
-          <View style={styles.placeRow}>
-            <Ionicons name="location-outline" size={15} color={colors.textSecondary} />
-            <Text variant="caption" color="textSecondary">
-              {place}
-            </Text>
+        {entity.description ? <Text variant="body">{entity.description}</Text> : null}
+
+        {grouped.general ? (
+          <View style={styles.section}>
+            <QualityCircle metric={grouped.general} />
           </View>
         ) : null}
 
-        <RatingBadge average={entity.ratingAverage} count={entity.ratingsCount} />
+        {grouped.categories.length > 0 ? (
+          <View style={styles.section}>
+            {/*
+              "Estado por capa" y no "Índices": para el Ntem son índices sobre
+              10, pero para Monte Alén son mediciones crudas —42 AQI, 8,2 pH— y
+              llamarlas índices sería falso. El título tiene que valer para las
+              dos, porque la fila es la misma.
+            */}
+            <Text variant="subtitle">Estado por capa</Text>
+            <CategoryReadings readings={grouped.categories} />
+          </View>
+        ) : null}
 
-        <Text variant="caption" color="textMuted">
-          {current.followers === 1 ? '1 seguidor' : `${current.followers} seguidores`}
-        </Text>
+        {grouped.key.length > 0 ? (
+          <View style={styles.section}>
+            <Text variant="subtitle">Datos clave</Text>
+            <MetricCards metrics={grouped.key} />
+          </View>
+        ) : null}
+
+        {grouped.general === null &&
+        grouped.categories.length === 0 &&
+        grouped.key.length === 0 ? (
+          <View style={styles.section}>
+            <Callout tone="info">
+              {`Esta ${entityTypeLabels[entity.type].toLowerCase()} no tiene mediciones ambientales: las llevan los lugares. Lo que la describe es su valoración comunitaria.`}
+            </Callout>
+          </View>
+        ) : null}
+
+        <View style={styles.section}>
+          <View style={styles.ratingsHead}>
+            <Text variant="subtitle">Opiniones</Text>
+            {current.count > 0 ? (
+              <Text variant="caption" color="textSecondary">
+                {String(current.average).replace('.', ',')} de 5 · {current.count}
+              </Text>
+            ) : null}
+          </View>
+
+          <RatingList
+            ratings={current.ratings}
+            hasMore={current.ratings.length < current.count}
+            loadingMore={loadingMore}
+            onLoadMore={loadMoreRatings}
+          />
+        </View>
       </View>
 
       {/*
-        Esta ficha se ve sin cuenta (F2.3). Seguir sí la exige, y el botón lo
-        dice en vez de no responder: el valor se enseña primero y la cuenta se
-        pide cuando hace falta. Ver @docs/07_CRECIMIENTO.md.
+        La hoja se monta solo cuando se abre, con una clave que incluye la
+        valoración propia: así entra siempre rellenada con lo que hay ahora.
       */}
-      {session === null ? (
-        <Button
-          label="Inicia sesión para seguir"
-          variant="secondary"
-          fullWidth
-          onPress={() => router.push('/welcome')}
+      {sheetOpen ? (
+        <RatingSheet
+          key={`${current.mine?.score ?? 0}-${current.mine?.comment ?? ''}`}
+          visible
+          entityName={entity.name}
+          current={current.mine}
+          busy={rating}
+          onClose={() => setSheetOpen(false)}
+          onSubmit={submitRating}
         />
-      ) : (
-        <Button
-          label={current.following ? 'Siguiendo' : 'Seguir'}
-          variant={current.following ? 'secondary' : 'primary'}
-          fullWidth
-          loading={busy}
-          onPress={toggleFollow}
-        />
-      )}
-
-      {entity.description ? (
-        <View style={styles.section}>
-          <Text variant="body">{entity.description}</Text>
-        </View>
       ) : null}
-
-      {current.metrics.length > 0 ? (
-        <View style={styles.section}>
-          <Text variant="subtitle">Datos ambientales</Text>
-          <Card>
-            <View style={styles.metrics}>
-              {current.metrics.map((metric) => (
-                <View key={metric.metric} style={styles.metricRow}>
-                  <Text variant="caption" color="textSecondary" style={styles.metricName}>
-                    {metricLabel(metric.metric)}
-                  </Text>
-                  <Text variant="bodyStrong">
-                    {formatValue(metric.value)}
-                    {metric.unit ? ` ${metric.unit}` : ''}
-                    {metric.label ? ` · ${metric.label}` : ''}
-                  </Text>
-                </View>
-              ))}
-            </View>
-          </Card>
-        </View>
-      ) : null}
-
-      <View style={styles.section}>
-        <Callout tone="info">Perfil ambiental completo en F2.4.</Callout>
-      </View>
     </Screen>
   );
-}
-
-/** `cobertura_forestal` → "Cobertura forestal". Sin tabla de traducción: en bruto. */
-function metricLabel(metric: string): string {
-  const words = metric.replace(/_/g, ' ');
-  return words.charAt(0).toUpperCase() + words.slice(1);
-}
-
-/** 42 → "42"; 8.2 → "8,2". Coma decimal, que es lo que se lee en español. */
-function formatValue(value: number): string {
-  return Number.isInteger(value) ? String(value) : String(value).replace('.', ',');
 }
 
 const styles = StyleSheet.create({
@@ -290,54 +442,38 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: spacing.md,
   },
-  backRow: {
-    paddingTop: spacing.md,
-    marginLeft: -spacing.sm,
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: radius.full,
-    alignItems: 'center',
-    justifyContent: 'center',
+  body: {
+    gap: spacing.lg,
+    paddingHorizontal: screenPadding,
+    paddingTop: spacing.lg,
   },
   identity: {
-    alignItems: 'center',
     gap: spacing.sm,
-    paddingVertical: spacing.lg,
   },
-  nameRow: {
+  badges: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     alignItems: 'center',
     gap: spacing.xs,
-    paddingHorizontal: screenPadding,
-  },
-  name: {
-    textAlign: 'center',
-    flexShrink: 1,
   },
   placeRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs,
   },
+  actions: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  action: {
+    flex: 1,
+  },
   section: {
     gap: spacing.md,
-    paddingTop: spacing.xl,
   },
-  metrics: {
-    gap: spacing.md,
-  },
-  metricRow: {
+  ratingsHead: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: spacing.md,
-  },
-  metricName: {
-    flexShrink: 1,
-  },
-  pressed: {
-    opacity: 0.6,
   },
 });

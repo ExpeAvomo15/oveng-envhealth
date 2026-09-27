@@ -167,15 +167,51 @@ propuesta pendiente de validar.
       (necesita geolocalización) y capas de datos ambientales sobre el
       territorio: el mapa enseña **entidades**, no superficies de aire o agua.
       Eso último sigue necesitando decidir de dónde salen los datos.
-- [ ] **F2.4 perfil ambiental** — huella ecológica y puntos OVENG con datos
-      reales. Los componentes del perfil ya reciben sus valores por props
-      esperando esto. El acceso sin cuenta ya está resuelto en F2.3.
+- [x] **F2.4 perfil ambiental de entidad** — la ficha mínima de F2.3 pasa a ser
+      el perfil completo: portada con degradado de la categoría y su icono
+      —`cover_image_url` sigue nulo en el seed—, botones de volver y compartir,
+      identidad con píldoras de tipo, categoría y estado general, ubicación y
+      seguidores, círculo de calidad general **solo si la entidad la tiene**,
+      fila de estado por capa, "Datos clave" en dos columnas, y Seguir más
+      Valorar.
+      **Una sola regla de reparto reproduce los dos mockups.** `groupMetrics`
+      coloca lo que haya en tres zonas, así que Monte Alén sale como el mockup 1
+      —sin círculo, porque no tiene calidad general— y el Río Ntem como el 2, sin
+      una rama por entidad. `indice_aire` desplaza a `aire` de la fila y el AQI
+      baja a "Datos clave": un índice sube cuando el aire mejora y un AQI baja,
+      y juntos se contradecían.
+      **Valoraciones** (`entity_ratings` de F2.1): hoja de 5 estrellas con
+      comentario opcional de hasta 300 caracteres, `upsert` sobre la clave
+      `(entity_id, user_id)` — valorar dos veces sustituye, y el botón lo dice
+      ("Cambiar valoración"). Media y número desde la vista, lista de opiniones
+      con avatar y fecha, paginada de 10 en 10. Se ve sin cuenta; valorar y
+      seguir la piden.
+      Verificado con `npm run verify:f24` contra la base real: las cuatro
+      métricas exactas de Monte Alén y **que no aparece el círculo**, el 8,7 y los
+      subíndices del Ntem, que valorar persiste con su comentario y la media de
+      la vista se actualiza, que volver a valorar sustituye sin duplicar, y RLS
+      en los dos sentidos —un anónimo no valora y nadie edita la valoración de
+      otro—. Capturas en `docs/verificacion/f24/`. Las once verificaciones del
+      repositorio en verde.
+      **Lo que no lleva:** la gráfica de evolución del mockup 1 y la distancia
+      en km; las dos, abajo.
+      La huella ecológica y los puntos OVENG **de las personas** no son esto:
+      siguen pendientes (ver abajo).
 - [ ] **F2.5 datos de zona en el feed** — el estado ambiental del entorno junto
       al contenido social, que es la idea que sostiene el producto: que el dato
       no viva en un panel aparte.
 
 ### Fuera del alcance de F2, anotado para no perderlo
 
+- **Gráfica de "Evolución de la calidad ambiental"** (mockup 1). No hay series
+  temporales en el modelo: `entity_metrics` guarda un valor por métrica con su
+  `updated_at`, no un histórico. Depende de una fuente de datos histórica real;
+  dibujar cinco puntos inventados sería lo contrario de la trazabilidad que
+  costó conseguir en F2.1.
+- **Huella ecológica y puntos OVENG de las personas.** F2.4 construyó el perfil
+  ambiental de una **entidad**; las tarjetas de impacto del perfil propio siguen
+  recibiendo sus valores por props a la espera de datos reales. Necesita decidir
+  de qué se calcula una huella y qué la mueve.
 - **Proveedor de teselas propio.** Las de openstreetmap.org son un servicio
   donado: su política pide atribución, prohíbe la descarga masiva y avisa de que
   un uso intenso se mueva a otro proveedor. Va sobrada para la demo y **no para

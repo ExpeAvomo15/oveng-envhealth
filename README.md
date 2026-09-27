@@ -29,14 +29,17 @@ ejemplo —cinco lugares reales de Guinea Ecuatorial con sus coordenadas
 verdaderas—, el **directorio** en Buscar con seguimiento de entidades, y el
 **mapa ambiental** con las catorce sobre el territorio, filtrables por capa.
 
-**El mapa y las fichas de entidad se ven sin cuenta.** Publicar, seguir y
+Y **F2.4** convierte la ficha de una entidad en su perfil ambiental: calidad
+general, estado por capa, datos clave y las valoraciones de la comunidad.
+
+**El mapa y los perfiles de entidad se ven sin cuenta.** Publicar, seguir y
 valorar siguen pidiéndola. Es el principio de utilidad individual de
 [docs/07_CRECIMIENTO.md](docs/07_CRECIMIENTO.md): el producto tiene que servir a
 quien llega solo.
 
 Lo que **todavía no hace**: capas de datos ambientales sobre el territorio (el
-mapa enseña entidades, no superficies), comentarios, valoraciones con puntuación
-y huella ecológica. Ver el roadmap.
+mapa enseña entidades, no superficies), comentarios en las publicaciones, y la
+huella ecológica de las personas. Ver el roadmap.
 
 ### El recorrido, en imágenes
 
@@ -104,6 +107,7 @@ npm run verify:mvp     # recorrido completo en Chromium, con capturas
 | `verify:f21` | Entidades: esquema de la migración 003, seed cargado, coordenadas, métricas y RLS. |
 | `verify:f22` | Buscar: directorio, filtros, navegación a la ficha de entidad y seguir entidades. |
 | `verify:f23` | Mapa: marcadores, filtro por capa, tarjetas, acceso sin cuenta y limpieza del mapa. |
+| `verify:f24` | Perfil de entidad: métricas fieles al seed, valoraciones y su RLS. |
 | `verify:mvp` | El recorrido completo de punta a punta. |
 
 Los que abren navegador construyen con `--clear` y comprueban que el bundle
@@ -219,7 +223,9 @@ más. Estado real de cada tarea en [docs/plan.md](docs/plan.md):
 3. ~~**Mapa ambiental**~~ — **hecho (F2.3).** Las catorce entidades sobre el
    territorio, con leyenda que filtra por capa. Las capas de datos ambientales
    sobre el mapa —superficies de aire, agua, suelo— siguen pendientes.
-4. **Perfil ambiental** — huella ecológica y puntos OVENG con datos reales.
+4. ~~**Perfil ambiental**~~ — **hecho (F2.4)**, el de las entidades: métricas
+   fieles al seed y valoraciones de la comunidad. La huella ecológica de las
+   personas sigue pendiente.
 5. **Datos de zona en el feed** — el estado del entorno junto al contenido.
 
 Las cuatro que quedan siguen siendo propuesta pendiente de validar.

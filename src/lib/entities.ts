@@ -3,6 +3,7 @@ import type { EnvironmentalCategory } from '@/theme';
 import type {
   Entity,
   EntityMetric,
+  Profile,
   EntityMetricName,
   EntityType,
   EnvironmentalCategoryName,
@@ -191,6 +192,106 @@ export async function getMetricByEntity(
 
   if (error) throw error;
   return new Map((data ?? []).map((row) => [row.entity_id, row]));
+}
+
+/** Una valoración con quien la escribió, para la lista de opiniones. */
+export type RatingWithAuthor = {
+  entity_id: string;
+  user_id: string;
+  score: number;
+  comment: string | null;
+  created_at: string;
+  author: Pick<Profile, 'username' | 'display_name' | 'avatar_url'> | null;
+};
+
+/** Cuántas opiniones trae cada página de la lista. */
+export const RATINGS_PAGE = 10;
+
+/**
+ * Opiniones de una entidad, las más recientes primero.
+ *
+ * Trae el perfil de quien valora en la misma consulta: una lista de diez
+ * opiniones con una petición por avatar serían once viajes para una pantalla.
+ */
+export async function getRatings(
+  entityId: string,
+  { offset = 0, limit = RATINGS_PAGE }: { offset?: number; limit?: number } = {},
+): Promise<RatingWithAuthor[]> {
+  const { data, error } = await supabase
+    .from('entity_ratings')
+    .select('entity_id, user_id, score, comment, created_at, author:profiles(username, display_name, avatar_url)')
+    .eq('entity_id', entityId)
+    .order('created_at', { ascending: false })
+    .range(offset, offset + limit - 1);
+
+  if (error) throw error;
+  return (data ?? []) as RatingWithAuthor[];
+}
+
+/** La valoración propia de esta entidad, si ya la hay. */
+export async function getMyRating(
+  entityId: string,
+  userId: string,
+): Promise<{ score: number; comment: string | null } | null> {
+  const { data, error } = await supabase
+    .from('entity_ratings')
+    .select('score, comment')
+    .eq('entity_id', entityId)
+    .eq('user_id', userId)
+    .maybeSingle();
+
+  if (error) throw error;
+  return data;
+}
+
+/** Tope de caracteres del comentario. La base admite 500; aquí se pide menos. */
+export const RATING_COMMENT_MAX = 300;
+
+/**
+ * Deja o cambia la valoración propia.
+ *
+ * Es un `upsert` sobre la clave primaria `(entity_id, user_id)`: **valorar dos
+ * veces sustituye, no duplica**. Es lo que la tabla ya impone, y hacerlo con un
+ * `insert` obligaría a preguntar antes si existe — dos viajes y una carrera
+ * entre ellos.
+ */
+export async function rateEntity(
+  entityId: string,
+  userId: string,
+  score: number,
+  comment: string | null,
+): Promise<void> {
+  const clean = comment?.trim();
+
+  const { error } = await supabase.from('entity_ratings').upsert(
+    {
+      entity_id: entityId,
+      user_id: userId,
+      score,
+      comment: clean && clean.length > 0 ? clean.slice(0, RATING_COMMENT_MAX) : null,
+    },
+    { onConflict: 'entity_id,user_id' },
+  );
+
+  if (error) throw error;
+}
+
+/** Media y número de valoraciones de una entidad, recién leídos de la vista. */
+export async function getRatingSummary(
+  entityId: string,
+): Promise<{ average: number | null; count: number }> {
+  const { data, error } = await supabase
+    .from('entity_rating_summary')
+    .select('average, ratings_count')
+    .eq('entity_id', entityId)
+    .maybeSingle();
+
+  if (error) throw error;
+
+  const count = Number(data?.ratings_count ?? 0);
+  // La vista no devuelve fila para una entidad sin valorar: ausencia es cero,
+  // no media cero.
+  return { average: count > 0 && data?.average != null ? Number(data.average) : null, count };
 }
 
 /** Métricas ambientales de una entidad. Vacío si no es un lugar medido. */

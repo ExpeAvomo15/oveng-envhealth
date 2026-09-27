@@ -5,6 +5,135 @@ decidió y por qué. Lo más reciente arriba.
 
 ---
 
+## 2026-09-27 — F2.4: el perfil ambiental, y una regla en vez de dos pantallas
+
+Las pantallas 4 de los dos mockups parecían dos diseños distintos. No lo son:
+son **el mismo con distintos datos**, y eso es lo que decide toda la tarea.
+
+### Una regla de reparto, y los dos mockups salen solos
+
+El mockup 1 (Monte Alén) pone tres tarjetas de categoría y los datos sueltos
+debajo. El mockup 2 (Río Ntem) pone un círculo de calidad general, una fila de
+cuatro subíndices y una sección de "Datos clave". La diferencia no está en el
+diseño: está en que **las dos entidades no tienen las mismas métricas**.
+
+`groupMetrics` reparte lo que haya en tres zonas —círculo, fila de capas y
+tarjetas— y con eso el mismo código pinta las dos pantallas, sin una sola rama
+por entidad:
+
+| | Monte Alén | Río Ntem |
+| --- | --- | --- |
+| Círculo | **no lo tiene** | 8,7/10 "Muy bueno" |
+| Fila por capa | aire 42 AQI · agua 8,2 pH · biodiversidad 8,7/10 | aire 8,9/10 · agua 8,2 pH · suelo 8,5/10 · biodiversidad 9,1/10 |
+| Datos clave | cobertura forestal 78 % | AQI 42 · temperatura 26,4 °C |
+
+Que Monte Alén **no** tenga círculo no es un hueco: el mockup 1 no enseña
+calidad general y F2.1 se negó a inventársela. La comprobación lo verifica en
+negativo —que el círculo *no* esté— porque si algún día aparece por un cálculo
+"razonable", eso es exactamente lo que hay que cazar.
+
+**`indice_aire` desplaza a `aire` de la fila.** El Ntem tiene las dos y ponerlas
+juntas daría dos casillas de aire contradiciéndose: el AQI baja cuando el aire
+mejora y el índice sube. En la fila va el índice, que es lo comparable con agua,
+suelo y biodiversidad; el AQI baja a "Datos clave" con su unidad delante. Si una
+entidad solo tiene `aire`, como Monte Alén, entonces `aire` ocupa la casilla.
+
+### "Estado por capa", no "Índices por capa"
+
+La primera versión titulaba la fila "Índices por capa". Al ver la captura de
+Monte Alén se cayó: ahí dentro hay 42 AQI y 8,2 de pH, que son **mediciones**,
+no índices. El título tiene que valer para las dos entidades, porque la fila es
+la misma.
+
+Por lo mismo, **la unidad se enseña siempre**. En el Ntem conviven un 8,9 sobre
+10 y un 8,2 de pH; sin la unidad, dos números parecidos parecerían comparables.
+Es la diferencia entre un índice y una medición, y se ve en la pantalla.
+
+### La contradicción de los mockups sobre las valoraciones: no hay que elegir
+
+Quedó anotado en F2.2 que los mockups no coinciden —Monte Alén sale con 4,7 y
+135 votos en uno y con 4,9 y 312 en el otro— y que había que elegir. **La
+respuesta es que la pregunta no aplica.**
+
+Las valoraciones no se siembran: `entity_ratings` referencia a `profiles`, así
+que una valoración necesita una persona real detrás. Toda entidad arranca sin
+opiniones, el estado vacío es el normal y los números saldrán de quien valore.
+Los dos mockups estaban enseñando datos de relleno.
+
+De ahí que la ficha diga "Sé el primero en valorar" en vez de un 0,0, igual que
+las fichas de Buscar.
+
+### Valorar sustituye, y lo dice antes de pulsar
+
+La clave primaria de `entity_ratings` es `(entity_id, user_id)`: una valoración
+por persona y entidad. La app usa `upsert` con ese conflicto, así que valorar
+dos veces **sustituye**. Hacerlo con un `insert` obligaría a preguntar antes si
+existe: dos viajes y una carrera entre ellos.
+
+Y se dice en la interfaz: si ya valoraste, el botón pone "Cambiar valoración" y
+la hoja entra rellenada con tu nota y tu comentario. Abrirla vacía haría creer
+que se añade una segunda.
+
+El comentario se limita a **300** caracteres en el campo. La base admite 500
+(`entity_ratings_comment_length`), así que el tope de la interfaz es una
+decisión de producto —una opinión, no un artículo— y por debajo de la
+restricción, que es como tiene que ser para no chocar nunca.
+
+### La portada es un marcador, con degradado
+
+`cover_image_url` va nulo en todo el seed —decidido en F2.1: no se enlazan fotos
+de terceros y no hay activos propios—, así que en vez de un rectángulo gris la
+portada es el color de la categoría en degradado con su icono grande. Entra una
+dependencia nueva, `expo-linear-gradient`, que es del propio SDK de Expo.
+
+El degradado **acaba en negro translúcido**, no en otro color de la paleta: así
+los botones y la píldora de valoración se leen encima sea cual sea la categoría,
+sin medir el contraste de las seis por separado.
+
+### La gráfica de evolución no se construye
+
+El mockup 1 tiene una "Evolución de la calidad ambiental" de 2020 a 2024. **No
+hay series temporales en el modelo**: `entity_metrics` guarda un valor por
+métrica con su `updated_at`, no un histórico. Dibujar cinco puntos inventados en
+la pantalla que presume de trazabilidad sería lo contrario de todo lo demás.
+Anotada como mejora dependiente de una fuente histórica real.
+
+### Un enlace roto que nadie había pulsado
+
+Al añadir el botón de compartir salió que `postUrl` construía la raíz de la app
+quitando por expresión regular una lista de rutas conocidas… que no incluía
+`/entidad/...`. Compartir desde una ficha habría copiado un enlace roto.
+
+Ahora la raíz se obtiene **restándole a `window.location.pathname` la ruta de
+expo-router**: si el navegador está en `/oveng-envhealth/entidad/rio-ntem` y la
+ruta interna es `/entidad/rio-ntem`, lo que sobra es la raíz. No necesita saber
+qué rutas existen, así que no vuelve a caducar.
+
+### Cuarta vez, y esta fue mi propio helper
+
+`verify:f22` comprobaba la pantalla mínima que F2.4 ha sustituido, incluido el
+aviso "Perfil ambiental completo en F2.4" que ya no debe existir. Eso era
+esperable. Lo que no: dos de las tres comprobaciones nuevas también fallaron
+**con la pantalla correcta delante**, y la causa fue que el `expectLabel` de ese
+script usa `exact: true` mientras los nombres accesibles llevan sufijo
+("Cobertura forestal: 78 %**, Alta**").
+
+Dos lecciones, y la segunda es nueva:
+
+1. Otra vez los marcadores por texto. Las píldoras de tipo y categoría no tienen
+   nombre accesible propio y buscarlas por texto falló; se comprueban por rol.
+2. **Los helpers de las comprobaciones también caducan.** No basta con mirar los
+   marcadores: `exact: true` era razonable cuando los nombres accesibles eran
+   cortos y dejó de serlo al enriquecerlos. Los dos scripts usan ya el mismo
+   criterio.
+
+### Estado
+
+Las once verificaciones en verde contra Supabase real: `auth`, `f13`, `f14`,
+`f15`, `ui`, `mvp`, `f21`, `f22`, `f23` y `f24`. Lint y typecheck limpios.
+
+---
+
 ## 2026-09-27 — F2.3: el mapa ambiental, y las rutas públicas
 
 La sección que distingue a OVENG. Decisiones que no se ven en el diff.

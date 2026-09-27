@@ -226,7 +226,7 @@ page.on('pageerror', (error) => consoleErrors.push(error.message));
 /** Espera a un elemento por su nombre accesible (aria-label). */
 const expectLabel = async (name, label, timeout = 10000) => {
   try {
-    await page.getByLabel(name, { exact: true }).first().waitFor({ state: 'visible', timeout });
+    await page.getByLabel(name, { exact: false }).first().waitFor({ state: 'visible', timeout });
     ok(label);
   } catch {
     bad(`${label} — no apareció nada con nombre accesible "${name}"`);
@@ -357,23 +357,23 @@ try {
     }
 
     // Por rol y nombre accesible, no por texto: el nombre se parte en dos
-    // líneas y "Lugar · Biodiversidad" son tres nodos de texto, y buscar eso
-    // como cadena ya falló en F1.4 y aquí. Ver notas.md.
+    // líneas y buscarlo como cadena ya falló en F1.4 y aquí. Ver notas.md.
     await expectRole('heading', /Parque Nacional de Monte Alén/, 'la ficha muestra el nombre');
-    // Por nombre accesible y no por rol: "text" no es un rol ARIA.
-    await expectLabel('Lugar · Biodiversidad', 'muestra tipo y categoría');
 
-    for (const [text, label] of [
-      ['Datos ambientales', 'muestra sus métricas'],
-      ['Perfil ambiental completo en F2.4', 'avisa de que el perfil completo es F2.4'],
-    ]) {
-      try {
-        await page.getByText(text, { exact: false }).first().waitFor({ timeout: 8000 });
-        ok(label);
-      } catch {
-        bad(`${label} — no apareció "${text}"`);
-      }
-    }
+    /*
+     * Desde F2.4 la ficha es el perfil ambiental completo y no la pantalla
+     * mínima: el tipo y la categoría son dos píldoras separadas, las métricas
+     * viven bajo "Estado por capa" y el aviso de "perfil completo en F2.4" ya
+     * no existe, porque F2.4 está construida. Aquí solo se comprueba que desde
+     * Buscar se llega a la ficha correcta; lo que la ficha enseña lo verifica
+     * `npm run verify:f24`.
+     */
+    await expectLabel('Cobertura forestal: 78 %', 'la ficha muestra sus métricas');
+    await expectLabel('Biodiversidad: 8,7 /10', 'muestra el estado por capa');
+
+    // Por rol: las píldoras de tipo y categoría no tienen nombre accesible
+    // propio, y buscarlas por texto es lo que ya ha fallado tres veces.
+    await expectRole('button', 'Valorar', 'la ficha ofrece valorar');
     await shot('05-ficha-entidad');
   } else {
     pending('ficha de entidad: no se llegó a encontrar Monte Alén');

@@ -201,6 +201,12 @@ menos que lo que dice quien vive al lado. Una valoración por persona y entidad
 
 `entity_rating_summary` es una vista que devuelve media y número por entidad.
 
+**La app escribe con `upsert` sobre la clave primaria**, así que valorar dos
+veces sustituye en vez de duplicar — es lo que la tabla ya impone. Y limita el
+comentario a **300** caracteres, por debajo de los 500 del `check`: el tope de
+la interfaz es una decisión de producto y tiene que caber siempre dentro de la
+restricción, no al revés.
+
 ### entity_follows
 
 Quién sigue a qué entidad (F2.2, migración `004`). Es el equivalente de
