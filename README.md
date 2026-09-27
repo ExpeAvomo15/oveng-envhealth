@@ -168,7 +168,8 @@ Y lo que tarda en llegar, medido contra Pages (tres peticiones, mejor de tres):
 
 | | |
 | --- | --- |
-| HTML de entrada | 23 KB · TTFB **0,23 s** |
+| HTML de entrada | 24 KB · TTFB **0,19 s** |
+| Feed interactivo desde cero | **6,4 s** en un navegador limpio |
 | Bundle de JavaScript | 2,89 MB, un solo fichero |
 | Hoja de MapLibre | 83 KB |
 

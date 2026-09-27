@@ -142,6 +142,20 @@ Se quita con `SUPABASE_SERVICE_ROLE_KEY='...' npm run cleanup:test-users
 reales de demo —`@bosque_vivo` y `@juve_obama`— no pueden caer ahí: el dominio
 está fijo en el código.
 
+### Comprobado en la demo desplegada
+
+Los ocho pasos del recorrido sin cuenta, contra
+https://expeavomo15.github.io/oveng-envhealth/: abre en el feed en **6,4 s**
+(TTFB de 0,19 s; lo que tarda es el bundle), los datos de la zona con el lugar
+que los mide, el cambio a Málaga diciendo que no tiene mediciones, el mapa con
+las catorce, el filtro por capa, del marcador al perfil ambiental con sus cuatro
+métricas exactas y **sin** círculo de calidad general, y valorar llevando a la
+bienvenida. Capturas en `docs/verificacion/produccion/`.
+
+Confirmado también que el adelgazamiento llegó: el bundle publicado referencia
+**cinco** ficheros de fuente —los cuatro pesos de Inter y los iconos— y no
+diecinueve.
+
 ### Estado
 
 Las **trece** verificaciones en verde contra Supabase real. Lint y typecheck
