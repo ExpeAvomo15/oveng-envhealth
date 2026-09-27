@@ -145,6 +145,19 @@ sí lo es la causa: **no basta con pasar la verificación de la fase que tocas.*
 Al cambiar una pantalla hay que pasar también las que la atraviesan. Ahora esa
 comprobación mira el campo por rol, que no depende del copy.
 
+### Comprobado en la demo desplegada
+
+El criterio de cierre decía "en la demo desplegada", así que se comprobó ahí y
+no solo en local: sin sesión, el mapa carga con los 14 marcadores, apagar
+Biodiversidad deja 9, la tarjeta del marcador abre y lleva a la ficha, y un
+enlace profundo a `/entidad/rio-ntem` arranca por el fallback de `404.html`
+—Pages devuelve 404 en una ruta dinámica y la app se encarga desde ahí—.
+
+Las capturas van a `docs/verificacion/produccion/`, **fuera de los
+subdirectorios de los scripts**, que los borran al ejecutarse. La regla que ya
+se anotó: los subdirectorios son de los scripts, lo que se guarda a mano vive
+aparte.
+
 ### F2.2 queda cerrada
 
 Aplicada la migración `004`, `verify:f22` pasa entero: seguir una entidad
