@@ -9,7 +9,15 @@ OVENG EnvHealth — red social ambiental que conecta personas, empresas e
 iniciativas verdes. Feed social, mapa ambiental (aire, agua, suelo,
 biodiversidad), valoraciones comunitarias y huella ecológica personal.
 
-Documento maestro: @docs/00_VISION.md · Plan vivo: @docs/plan.md
+### Índice de documentación
+
+- **Producto:** @docs/00_VISION.md — el documento maestro.
+- **Estado real:** @docs/plan.md — fases y tareas; se marca al verificar.
+- **Bitácora:** @docs/notas.md — decisiones y aprendizajes, con fecha.
+- **Arquitectura:** @docs/01_ARQUITECTURA.md
+- **Modelo de datos:** @docs/03_MODELO_DATOS.md — esquema, RLS y migraciones.
+- **Crecimiento y comunidad:** @docs/07_CRECIMIENTO.md — estrategia de
+  distribución y lo que obliga a construir. Transversal, no es una fase.
 
 ## Stack
 

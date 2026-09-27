@@ -63,6 +63,7 @@ producto es móvil.
 | [docs/00_VISION.md](docs/00_VISION.md) | Producto, usuarios objetivo y las 5 secciones de la app. |
 | [docs/01_ARQUITECTURA.md](docs/01_ARQUITECTURA.md) | Arquitectura y decisiones técnicas. |
 | [docs/03_MODELO_DATOS.md](docs/03_MODELO_DATOS.md) | Esquema, RLS, storage y cómo aplicar las migraciones. |
+| [docs/07_CRECIMIENTO.md](docs/07_CRECIMIENTO.md) | Estrategia de crecimiento y comunidad, y lo que obliga a construir. |
 | [docs/design/](docs/design/) | Mockups oficiales — referencia estética vinculante. |
 
 ## Puesta en marcha
@@ -210,6 +211,10 @@ más. Estado real de cada tarea en [docs/plan.md](docs/plan.md):
 5. **Datos de zona en el feed** — el estado del entorno junto al contenido.
 
 Las cuatro que quedan siguen siendo propuesta pendiente de validar.
+
+Cómo se consigue que haya gente dentro —comunidad inicial, distribución y qué
+obliga a construir, como que el mapa se pueda ver sin cuenta— está en
+[docs/07_CRECIMIENTO.md](docs/07_CRECIMIENTO.md), con las tareas en F3 del plan.
 
 ## Cómo se trabaja aquí
 

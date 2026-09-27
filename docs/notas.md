@@ -5,6 +5,38 @@ decidió y por qué. Lo más reciente arriba.
 
 ---
 
+## 2026-09-27 — Estrategia de crecimiento, y una tensión con la visión
+
+Queda registrada en @docs/07_CRECIMIENTO.md, con F3 en el plan y una nota en
+F2.3/F2.4. Es documentación transversal: **no es una fase** y no marca ninguna
+tarea.
+
+**Lo que hay que no perder de vista:** la tesis de producto de ese documento
+—que el valor diferencial es mapa + datos + directorio, y que el feed es
+complemento— **contradice a @docs/00_VISION.md**, que dice hoy que el producto
+es "primero una red social y después un visor de datos: el feed es la puerta de
+entrada y el mapa es la profundidad". Es exactamente el orden inverso.
+
+No se ha tocado la visión. La tesis entra **como hipótesis con fecha de
+validación** (F3.1, 20-30 conversaciones antes de cualquier lanzamiento) y
+mientras tanto manda 00_VISION.md. Lo que no puede pasar es que se quede así
+para siempre: si la validación confirma la tesis, hay que revisar la visión, y
+si la tumba, hay que corregir el documento de crecimiento. Dos documentos
+maestros diciendo cosas distintas sobre qué es el producto es peor que
+cualquiera de las dos respuestas.
+
+La aclaración va escrita dentro del propio 07_CRECIMIENTO.md, en un aviso, para
+que no haga falta leer esta bitácora para enterarse.
+
+**Lo que ya obliga a construir**, y por eso aparece en el plan y no solo aquí:
+el mapa y los datos ambientales tienen que verse **sin cuenta**. Es la
+consecuencia directa del principio de utilidad individual — si para ver la
+calidad del aire hay que registrarse, se pierde la única pieza que funciona con
+la red vacía. Hoy la app no es así: un *guard* manda a bienvenida cualquier ruta
+sin sesión. Se evalúa en F2.3/F2.4 y se decide allí según lo que cueste.
+
+---
+
 ## 2026-09-27 — Sesión de diagnóstico: el seed, las pruebas caducas y las capturas
 
 Repaso completo del estado real del proyecto antes de seguir con F2. Lo que

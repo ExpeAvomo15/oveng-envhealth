@@ -128,9 +128,13 @@ propuesta pendiente de validar.
       encima. Exige decidir proveedor de mapa y de dónde salen los datos
       ambientales (APIs públicas, carga manual o mediciones de la comunidad), y
       probablemente PostGIS: `location` es hoy texto libre.
+      Evaluar acceso sin cuenta al mapa y a los perfiles ambientales (ver
+      @docs/07_CRECIMIENTO.md).
 - [ ] **F2.4 perfil ambiental** — huella ecológica y puntos OVENG con datos
       reales. Los componentes del perfil ya reciben sus valores por props
       esperando esto.
+      Evaluar acceso sin cuenta al mapa y a los perfiles ambientales (ver
+      @docs/07_CRECIMIENTO.md).
 - [ ] **F2.5 datos de zona en el feed** — el estado ambiental del entorno junto
       al contenido social, que es la idea que sostiene el producto: que el dato
       no viva en un panel aparte.
@@ -142,3 +146,20 @@ propuesta pendiente de validar.
 - Verificación real de cuentas: hoy `verified` lo puede cambiar su propio dueño.
 - Pantalla para elegir contraseña nueva tras el email de recuperación.
 - Notificaciones: la campana de la cabecera todavía no hace nada.
+
+## F3 — Comunidad y lanzamiento (post-demo)
+
+Conseguir que haya gente dentro. La estrategia, con su razonamiento y sus
+anti-patrones, está en **@docs/07_CRECIMIENTO.md**; aquí solo van las tareas.
+
+**Empieza cuando F2 esté cerrada**: sin mapa no hay producto que enseñar, y sin
+producto las conversaciones de validación no miden nada.
+
+- [ ] **F3.1 conversaciones de validación** — 20-30 con la comunidad primaria,
+      antes de cualquier lanzamiento.
+- [ ] **F3.2 lanzamiento concentrado** — con la comunidad *beachhead*.
+- [ ] **F3.3 motor de contenido y tarjetas compartibles**.
+
+El orden no es negociable: F3.1 sirve para confirmar o tumbar la tesis de
+producto mientras cambiarla es barato, y adelantar F3.2 la convierte en una
+justificación de lo ya lanzado.
