@@ -16,8 +16,8 @@ Convención de commit: `F<fase>.<tarea>: descripción`.
 - [x] **F0.2 app Expo + design system** — scaffold Expo SDK 57 + TypeScript
       estricto + expo-router; tokens en `src/theme/` (color, espaciado, radios,
       tipografía, sombras) y componentes base en `src/components/ui/`
-      (Text, Screen, Card, Button, Badge, Avatar, Divider). Pendiente de
-      reconciliar con los mockups oficiales cuando se suban a `docs/design/`.
+      (Text, Screen, Card, Button, Badge, Avatar, Divider). Reconciliado con
+      los mockups oficiales en **F0.2c**.
 - [x] **F0.3 Supabase esquema + cliente** — migraciones `001_initial_schema.sql`
       (profiles, posts, follows, likes, RLS y trigger de registro) y
       `002_storage.sql` (buckets `avatars` y `post-images`); cliente tipado en
@@ -36,9 +36,8 @@ Convención de commit: `F<fase>.<tarea>: descripción`.
 > **F0 cerrada** con el tag `f0-completa`.
 > Lo que quedaba pendiente de decidir de F0.3 ya está resuelto, y en los dos
 > casos sin añadir columnas: `account_type` **no** se añade (F1.3) y `category`
-> en `posts` **tampoco** (F1.4). Pendiente por decidir antes de las
-> tareas que las tocan: `account_type` en `profiles` (F1.3) y `category` en
-> `posts` (F1.4) — ver limitaciones en @docs/03_MODELO_DATOS.md.
+> en `posts` **tampoco** (F1.4). El razonamiento de las dos decisiones está
+> en @docs/03_MODELO_DATOS.md.
 
 ## F1 — Core social
 
@@ -97,8 +96,7 @@ Convención de commit: `F<fase>.<tarea>: descripción`.
 
 Es lo que convierte esto en una red social *ambiental* y no en una red social
 más. El orden va de dentro afuera: primero los datos, luego las pantallas que
-los enseñan. **F2.1 está cerrada**; las cuatro restantes siguen siendo
-propuesta pendiente de validar.
+los enseñan. **Cerrada**: las seis tareas están hechas y verificadas.
 
 - [x] **F2.1 modelo de entidades + seed** — migración `003`: `entities`
       (lugares, empresas e iniciativas), `entity_metrics`, `entity_ratings` y la
@@ -191,7 +189,7 @@ propuesta pendiente de validar.
       subíndices del Ntem, que valorar persiste con su comentario y la media de
       la vista se actualiza, que volver a valorar sustituye sin duplicar, y RLS
       en los dos sentidos —un anónimo no valora y nadie edita la valoración de
-      otro—. Capturas en `docs/verificacion/f24/`. Las once verificaciones del
+      otro—. Capturas en `docs/verificacion/f24/`. Las diez verificaciones del
       repositorio en verde.
       **Lo que no lleva:** la gráfica de evolución del mockup 1 y la distancia
       en km; las dos, abajo.
@@ -252,7 +250,7 @@ propuesta pendiente de validar.
       baja de **10 MB a 5,4 MB**.
       Y la campana de notificaciones, que era el único control de la app sin
       acción, ahora avisa. Nada queda huérfano: inventario en notas.
-      Las **trece** verificaciones del repositorio en verde.
+      Las **doce** verificaciones del repositorio en verde.
 
 > **F2 cerrada el 27 de septiembre de 2026.** Tags: `v0.2-demo-ambiental` (las
 > cinco tareas de producto) y `v0.2.1-demo-completa` (el cierre de F2.6, que es

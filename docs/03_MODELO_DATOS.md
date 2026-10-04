@@ -127,11 +127,11 @@ Un perfil por cuenta. No se crea desde la app: lo crea el trigger al registrarse
 | `display_name` | `text`        | Nombre visible. Nullable: el username hace de respaldo. |
 | `bio`          | `text`        | Descripción libre. |
 | `avatar_url`   | `text`        | URL pública en el bucket `avatars`. |
-| `location`     | `text`        | Texto libre por ahora; cuando llegue el mapa (F2) hará falta algo geográfico. |
+| `location`     | `text`        | Texto libre. El mapa (F2.3) sitúa **entidades**, que sí tienen `lat`/`lng`; las personas no tienen coordenadas. |
 | `verified`     | `boolean`     | Cuenta verificada (empresas e iniciativas). |
 | `created_at`   | `timestamptz` | |
 
-**`verified` no lo puede cambiar su dueño.** La política de update solo
+**Ojo: `verified` lo puede cambiar su dueño.** La política de update solo
 comprueba que seas tú, así que hoy podrías marcarte como verificado desde la
 app. Está anotado como limitación abajo: la verificación real necesita una
 columna protegida o una función aparte, y eso es trabajo de cuando exista el
@@ -232,8 +232,9 @@ ausencia se trata como "sin valoraciones".
 
 ## Políticas RLS
 
-El mismo patrón en las cuatro tablas: **cualquiera lee, solo el propietario
-escribe.**
+El mismo patrón en las ocho tablas: **cualquiera lee**; lo que escribe la gente
+solo lo escribe su propietario, y el contenido curado (`entities`,
+`entity_metrics`) no lo escribe nadie desde la app.
 
 | Tabla      | SELECT            | INSERT                       | UPDATE                       | DELETE                       |
 | ---------- | ----------------- | ---------------------------- | ---------------------------- | ---------------------------- |
@@ -279,8 +280,8 @@ todo va con el esquema explícito.
 
 **Si el username ya existe o no cumple el formato, el registro entero falla.** Es
 deliberado: es mejor que la app pida otro username a que la cuenta quede creada
-con un nombre que el usuario no eligió. La pantalla de registro (F1.1) tiene que
-tratar ese error.
+con un nombre que el usuario no eligió. La pantalla de registro (F1.1) traduce
+ese error a un mensaje sobre el username.
 
 ## Storage
 
@@ -290,6 +291,10 @@ tratar ese error.
 | `post-images` | sí      | 10 MB       | JPEG, PNG, WebP            |
 
 Los límites se aplican en el servidor: un cliente manipulado no puede saltárselos.
+
+Los dos están en uso: `avatars` desde F1.3 (la app reduce a 512 px antes de
+subir, `src/lib/avatars.ts`) y `post-images` desde F1.4 (1600 px,
+`src/lib/posts.ts`). La mecánica común vive en `src/lib/images.ts`.
 
 **Convención de rutas: `{uid}/{archivo}`.** La primera carpeta del objeto es el
 id del usuario, y de ahí salen las políticas de escritura:
@@ -339,11 +344,16 @@ Río Ntem: un AQI crudo de 42 en "Datos clave" y un subíndice normalizado de
 la misma fila, porque la clave primaria de `entity_metrics` es
 `(entity_id, metric)`.
 
-Queda una incoherencia anotada: en esa misma fila de índices, `suelo` (8.5) y
-`biodiversidad` (9.1) son también valores de índice sobre 10, pero se guardan
-bajo los nombres "crudos", mientras el aire sí distingue los dos. Se decide en
-F2.3/F2.4, cuando haya una pantalla que los pinte. Ver @docs/notas.md
-(2026-09-27).
+**`suelo` y `biodiversidad` se quedan con su nombre, aunque guarden un índice
+sobre 10.** Era una incoherencia anotada en F2.1 y F2.4 la resolvió sin
+migración: la métrica dice **de qué capa** es el dato y `unit` dice **en qué
+escala** está. La fila "Estado por capa" del perfil ambiental
+(`src/lib/metrics.ts`, `groupMetrics`) enseña la unidad siempre, así que un
+8,5 /10 y un 8,2 pH no se leen como comparables. El aire es el único caso con
+dos métricas porque es el único con dos mediciones distintas de la misma capa
+en la misma entidad: ahí `indice_aire` ocupa la fila y el AQI baja a "Datos
+clave". Si mañana una entidad trae un suelo crudo **y** un índice de suelo, se
+añade `indice_suelo` como se hizo con el aire.
 
 ### Etiquetas (`hashtags`)
 
@@ -694,30 +704,34 @@ Un anónimo no puede insertar en ningún caso: la política de INSERT es solo pa
 
 ## Limitaciones conocidas
 
-Ninguna bloquea F1, pero conviene decidirlas antes de las tareas que las tocan:
+Ninguna bloquea la demo. Las tachadas están resueltas y se conservan por el
+razonamiento; las demás siguen abiertas en el backlog de @docs/plan.md.
 
 1. ~~**No hay `account_type` en `profiles`.**~~ **Resuelto en F1.3, y no con una
    columna:** `profiles` representa **personas** y nada más. Empresas e
-   iniciativas serán entidades propias con su tabla en F2. Ver la decisión de
+   iniciativas son entidades propias, con su tabla desde F2.1. Ver la decisión de
    diseño en @docs/notas.md.
 2. ~~**No hay `category` en `posts`.**~~ **Resuelto en F1.4, y tampoco con una
    columna:** la clasificación temática de una publicación son sus `hashtags`,
    libres y escritos por quien publica. Las categorías ambientales
-   estructuradas pertenecen a las entidades y a las capas del mapa (F2), no al
+   estructuradas pertenecen a las entidades y a las capas del mapa, no al
    contenido social. Ver la decisión en @docs/notas.md.
 3. **`verified` es escribible por su dueño.** Cualquiera puede marcarse como
    cuenta verificada editando su perfil desde la app. Hace falta sacarla de la
    política de update —con un trigger que impida cambiarla, o moviéndola a otra
    tabla— cuando exista el flujo de verificación.
-4. **`likes` es un "me gusta", no la valoración comunitaria** que describe la
-   visión. La valoración con puntuación y el promedio por cuenta son trabajo de
-   F2.
+4. ~~**`likes` no es la valoración comunitaria.**~~ **Resuelto en F2.1/F2.4:**
+   `likes` sigue siendo el "me gusta" de una publicación, y la valoración de la
+   visión es `entity_ratings` —de 1 a 5 con comentario, una por persona y
+   entidad— con su media en `entity_rating_summary`. Se valora desde el perfil
+   ambiental de la entidad.
 5. **`location` de `profiles` sigue siendo texto libre.** `entities` sí tiene
    `lat`/`lng`; para consultas por área con volumen haría falta PostGIS, pero
    con un índice normal basta para la demo.
 6. **Las entidades no tienen imagen.** `cover_image_url` es nulo en todo el
    seed: no se enlazan fotos de terceros y todavía no hay imágenes propias. La
-   UI usará un marcador por categoría hasta que existan.
+   portada del perfil ambiental es un degradado del color de la categoría con
+   su icono (F2.4).
 7. **El seed no trae valoraciones.** `entity_ratings` referencia a `profiles`,
-   así que una valoración necesita una persona real detrás. Las fichas
-   aparecerán como "sin valoraciones" hasta que alguien valore desde la app.
+   así que una valoración necesita una persona real detrás. Por eso las fichas
+   dicen "Nuevo" o "Sé el primero en valorar" en vez de un 0,0.
