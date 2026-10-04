@@ -14,7 +14,7 @@ import { splitByHashtags } from '@/lib/hashtags';
  * así que tocar #reforestación busca empresas, iniciativas y lugares que hablen
  * de reforestación — **no publicaciones con esa etiqueta**. Buscar
  * publicaciones por etiqueta necesita consultar `posts`, que no está en la capa
- * de datos de F2.2. Anotado en notas.md.
+ * de datos de F2.2. Anotado en notas-archivo-f0-f2.md.
  */
 export function PostText({ content }: { content: string }) {
   const router = useRouter();

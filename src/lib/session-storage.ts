@@ -23,7 +23,7 @@ import { Platform } from 'react-native';
  * La alternativa oficial de Supabase es cifrar la sesión con AES y guardarla en
  * AsyncStorage dejando solo la clave en SecureStore; se descartó porque añade
  * tres dependencias y deja el contenido fuera del almacén seguro. Ver
- * docs/notas.md.
+ * docs/notas-archivo-f0-f2.md.
  */
 export type SessionStorage = {
   getItem: (key: string) => Promise<string | null>;

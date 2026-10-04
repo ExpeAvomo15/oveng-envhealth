@@ -357,7 +357,7 @@ try {
     }
 
     // Por rol y nombre accesible, no por texto: el nombre se parte en dos
-    // líneas y buscarlo como cadena ya falló en F1.4 y aquí. Ver notas.md.
+    // líneas y buscarlo como cadena ya falló en F1.4 y aquí. Ver notas-archivo-f0-f2.md.
     await expectRole('heading', /Parque Nacional de Monte Alén/, 'la ficha muestra el nombre');
 
     /*

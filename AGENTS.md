@@ -13,7 +13,9 @@ biodiversidad), valoraciones comunitarias y huella ecológica personal.
 
 - **Producto:** @docs/00_VISION.md — el documento maestro.
 - **Estado real:** @docs/plan.md — fases y tareas; se marca al verificar.
-- **Bitácora:** @docs/notas.md — decisiones y aprendizajes, con fecha.
+- **Bitácora:** @docs/notas.md — decisiones vigentes, pendientes y las dos
+  últimas sesiones. Lo anterior está en `docs/notas-archivo-*.md`, que se
+  consulta cuando hace falta el porqué y **no se importa con `@`**.
 - **Arquitectura:** @docs/01_ARQUITECTURA.md
 - **Modelo de datos:** @docs/03_MODELO_DATOS.md — esquema, RLS y migraciones.
 - **Crecimiento y comunidad:** @docs/07_CRECIMIENTO.md — estrategia de
@@ -44,6 +46,11 @@ biodiversidad), valoraciones comunitarias y huella ecológica personal.
 2. Una tarea a la vez. Al terminar: verificar → commit → marcar [x] en
    plan.md → preguntar si seguimos.
 3. Cualquier decisión no trivial se anota en docs/notas.md con fecha.
+4. Al cerrar cada fase, las notas de las fases anteriores van al archivo
+   (`docs/notas-archivo-<fases>.md`, íntegras) y en notas.md queda una línea por
+   decisión vigente, con enlace. Lo que arranca cada sesión (este fichero y sus
+   `@`, que se siguen en cadena) tiene que quedar **por debajo de 150k
+   caracteres**: un archivo se enlaza, nunca se importa.
 
 ## Cosas que NO hacer
 

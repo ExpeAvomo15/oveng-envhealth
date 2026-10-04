@@ -76,7 +76,7 @@ function RootNavigator() {
         arriba, el mapa se convertía en la puerta de entrada y al cerrar sesión
         se caía en él en vez de en la bienvenida. Al final, pedir una ruta
         privada sin sesión sigue llevando a `(auth)`, que es lo que se quiere.
-        Medido en notas.md (2026-09-27).
+        Medido en notas-archivo-f0-f2.md (2026-09-27).
 
         `index` es el feed, y es pública desde F2.6: quien llega sin cuenta ve
         el contenido antes de que se le pida nada. Publicar, seguir, valorar y

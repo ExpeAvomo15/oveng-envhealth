@@ -101,7 +101,8 @@ producto es móvil.
 | --------- | ------------ |
 | [AGENTS.md](AGENTS.md) | Reglas de trabajo, convenciones y protocolo. Fuente única de verdad. |
 | [docs/plan.md](docs/plan.md) | Plan vivo por fases y tareas. El estado real del proyecto. |
-| [docs/notas.md](docs/notas.md) | Bitácora de decisiones y aprendizajes, con fecha. |
+| [docs/notas.md](docs/notas.md) | Bitácora viva: decisiones vigentes, pendientes y las dos últimas sesiones. |
+| [docs/notas-archivo-f0-f2.md](docs/notas-archivo-f0-f2.md) | Bitácora íntegra de F0 a F2, archivada. |
 | [docs/00_VISION.md](docs/00_VISION.md) | Producto, usuarios objetivo y las 5 secciones de la app. |
 | [docs/01_ARQUITECTURA.md](docs/01_ARQUITECTURA.md) | Arquitectura y decisiones técnicas. |
 | [docs/03_MODELO_DATOS.md](docs/03_MODELO_DATOS.md) | Esquema, RLS, storage y cómo aplicar las migraciones. |

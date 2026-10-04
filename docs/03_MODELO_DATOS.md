@@ -368,7 +368,8 @@ iniciativas son entidades distintas —con campos, ciclo de vida y permisos
 propios— y desde F2.1 tienen su propia tabla, `entities`, con contenido de
 ejemplo cargado. `verified` sigue sirviendo para marcar cuentas comprobadas.
 
-La decisión y su razonamiento están en @docs/notas.md (F1.3).
+La decisión y su razonamiento están en el
+[archivo de notas, F1.3](notas-archivo-f0-f2.md#2026-09-18--f13-perfiles-completos-y-seguimiento).
 
 ## Migraciones
 
@@ -709,13 +710,14 @@ razonamiento; las demás siguen abiertas en el backlog de @docs/plan.md.
 
 1. ~~**No hay `account_type` en `profiles`.**~~ **Resuelto en F1.3, y no con una
    columna:** `profiles` representa **personas** y nada más. Empresas e
-   iniciativas son entidades propias, con su tabla desde F2.1. Ver la decisión de
-   diseño en @docs/notas.md.
+   iniciativas son entidades propias, con su tabla desde F2.1. Ver la decisión
+   en el [archivo de notas, F1.3](notas-archivo-f0-f2.md#2026-09-18--f13-perfiles-completos-y-seguimiento).
 2. ~~**No hay `category` en `posts`.**~~ **Resuelto en F1.4, y tampoco con una
    columna:** la clasificación temática de una publicación son sus `hashtags`,
    libres y escritos por quien publica. Las categorías ambientales
    estructuradas pertenecen a las entidades y a las capas del mapa, no al
-   contenido social. Ver la decisión en @docs/notas.md.
+   contenido social. Ver la decisión en el
+   [archivo de notas, F1.4](notas-archivo-f0-f2.md#2026-09-18--f14-composición-de-publicaciones).
 3. **`verified` es escribible por su dueño.** Cualquiera puede marcarse como
    cuenta verificada editando su perfil desde la app. Hace falta sacarla de la
    política de update —con un trigger que impida cambiarla, o moviéndola a otra

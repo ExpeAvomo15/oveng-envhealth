@@ -186,7 +186,7 @@ if (entry && readFileSync(join(bundleDir, entry), 'utf8').includes(url)) {
 
 // Cada script limpia solo SU subdirectorio: antes los cuatro compartían
 // docs/verificacion/f1/ y el rmSync de verify-ui se llevaba las capturas de los
-// demás. Ver notas.md (2026-09-27).
+// demás. Ver notas-archivo-f0-f2.md (2026-09-27).
 rmSync(SHOTS, { recursive: true, force: true });
 mkdirSync(SHOTS, { recursive: true });
 mkdirSync(TMP, { recursive: true });

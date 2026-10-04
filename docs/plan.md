@@ -31,7 +31,8 @@ Convención de commit: `F<fase>.<tarea>: descripción`.
       paleta coincidía; se corrigieron ocho diferencias de forma, la mayor de
       ellas la barra de navegación (Crear no es un botón flotante). Capturas
       antes/después en `docs/verificacion/f02c/`. Lo que quedó fuera por ser
-      funcionalidad y no estética está anotado en notas.md.
+      funcionalidad y no estética está anotado en el
+      [archivo de notas](notas-archivo-f0-f2.md#2026-09-19--f02c-contraste-con-los-mockups-oficiales).
 
 > **F0 cerrada** con el tag `f0-completa`.
 > Lo que quedaba pendiente de decidir de F0.3 ya está resuelto, y en los dos
@@ -330,5 +331,5 @@ es un olvido: cada línea dice por qué está aquí y no en el producto.
 - **Búsqueda sin acentos.** `ilike` resuelve las mayúsculas y no los acentos:
   "malaga" y "alen" devuelven **cero** resultados contra el seed actual. En una
   app en español es lo primero que arreglaría de Buscar, y pide la extensión
-  `unaccent` o una columna normalizada — es decir, una migración. Medido en
-  notas.md (2026-09-27).
+  `unaccent` o una columna normalizada — es decir, una migración. Medido en el
+  [archivo de notas, F2.2](notas-archivo-f0-f2.md#2026-09-27--f22-el-directorio-de-buscar-y-seguir-entidades).

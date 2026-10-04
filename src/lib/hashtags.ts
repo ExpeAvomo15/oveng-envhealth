@@ -4,7 +4,7 @@
  * Los hashtags son la clasificación temática del contenido: libres, escritos
  * por quien publica. Las categorías ambientales estructuradas (aire, agua,
  * suelo…) NO viven aquí — pertenecen a las entidades y a las capas del mapa de
- * F2. Ver la decisión en @docs/notas.md.
+ * F2. Ver la decisión en docs/notas-archivo-f0-f2.md.
  */
 
 /**

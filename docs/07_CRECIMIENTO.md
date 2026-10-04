@@ -156,8 +156,8 @@ llevan a la bienvenida, y en la ficha el botón pone "Inicia sesión para seguir
 
 Costó averiguar cómo: la guarda de `(tabs)` es de todo el grupo, así que el mapa
 salió a ser una ruta pública de primer nivel, y el orden en que se declaran las
-rutas decide cuál es la puerta de entrada. El detalle está en @docs/notas.md
-(2026-09-27).
+rutas decide cuál es la puerta de entrada. El detalle está en el
+[archivo de notas, F2.3](notas-archivo-f0-f2.md#2026-09-27--f23-el-mapa-ambiental-y-las-rutas-públicas).
 
 **Tarjetas compartibles de datos ambientales:** post-F2, después del mapa. No
 hay tarjeta que compartir hasta que haya dato que enseñar.

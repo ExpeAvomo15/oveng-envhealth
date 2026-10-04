@@ -80,7 +80,7 @@ const entities = [
     verified: true,
     // Valores exactos del mockup 1, pantalla "Perfil Ambiental". Son los cuatro
     // que esa pantalla muestra, y ni uno más: NO lleva calidad general. Había
-    // aquí un 8.6 que no sale de ningún mockup; ver notas.md (2026-09-27).
+    // aquí un 8.6 que no sale de ningún mockup; ver notas-archivo-f0-f2.md (2026-09-27).
     metrics: [
       { metric: 'aire', value: 42, unit: 'AQI', label: 'Bueno' },
       { metric: 'agua', value: 8.2, unit: 'pH', label: 'Excelente' },

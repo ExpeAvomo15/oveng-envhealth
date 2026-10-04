@@ -129,8 +129,8 @@ el mismo punto.
 
 **Es una decisión de demo, no de producto.** Las teselas son un servicio donado
 con una política de uso que prohíbe el uso intenso, así que un lanzamiento
-necesita proveedor propio. El razonamiento completo y los límites están en
-@docs/notas.md (2026-09-27).
+necesita proveedor propio. El razonamiento completo y los límites están en el
+[archivo de notas, F2.3](notas-archivo-f0-f2.md#2026-09-27--f23-el-mapa-ambiental-y-las-rutas-públicas).
 
 ### Rutas públicas y privadas
 

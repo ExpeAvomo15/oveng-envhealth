@@ -130,7 +130,7 @@ step('4. Métricas (exactas según los mockups)');
  * como datos reales, así que uno que no salga de un mockup no puede colarse
  * sin que nadie lo note. Antes solo se comprobaba que las esperadas
  * estuvieran, y así pasó inadvertido un `calidad_general` de Monte Alén que no
- * aparece en ningún mockup (notas.md, 2026-09-27).
+ * aparece en ningún mockup (notas-archivo-f0-f2.md, 2026-09-27).
  */
 async function comprobarMetricas(slug, nombre, esperadas) {
   const entity = entities.find((e) => e.slug === slug);

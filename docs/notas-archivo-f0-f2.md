@@ -1,0 +1,1862 @@
+# Archivo de la bitácora — F0 a F2
+
+Contenido **íntegro** de `docs/notas.md` tal como estaba al cerrar F2 (último
+apunte: 2026-09-27), archivado el 2026-10-04 para que la bitácora viva no pese
+en cada sesión. No se edita: es historia. Lo que sigue vigente está resumido,
+una línea por decisión y con enlace aquí, en [notas.md](notas.md).
+
+> **No se importa con `@`** desde ningún documento que cargue al arrancar: los
+> `@` se siguen en cadena y esto devolvería los 100k al contexto. Se enlaza con
+> enlaces normales de markdown.
+
+---
+
+
+## 2026-09-27 — F2.6: cierre de la demo
+
+Lo que faltaba para poder enseñarla, y el inventario honesto de lo que no está.
+
+### El feed pasa a ser público
+
+Era la decisión que quedó pendiente en F2.5 y se ha tomado: quien llega ve el
+producto antes de que se le pida nada. Encaja con el principio de utilidad
+individual de @docs/07_CRECIMIENTO.md, y sin ello el recorrido de un visitante
+empezaba en un muro de registro.
+
+Se hizo como el mapa en F2.3: `index` sale del grupo `(tabs)`, porque la guarda
+de ese grupo es de todo el grupo. Lo que quedó dentro de `(tabs)` son
+**las pestañas que exigen cuenta**, que ahora es lo que el grupo significa.
+
+Tres cosas que hubo que arreglar y que no se veían desde fuera:
+
+- **El feed no sabía leer sin lector.** `fetchFeed` filtraba
+  `my_like.user_id` por el id de quien mira, y sin id el filtro no es válido.
+  Ahora hay dos `select`: con lector se pide `my_like`, y sin lector **no se
+  pide**. Sin filtrar habría devuelto *todos* los "me gusta" de cada
+  publicación, así que pesaría más y además pintaría el corazón relleno para
+  cualquiera.
+- **Entrar aterrizaba en Buscar.** Al salir `index` del grupo, la ruta de
+  referencia de `(tabs)` pasó a ser otra pestaña, y registrarse o entrar caía
+  ahí. Login y registro llevan ahora **explícitamente** al feed. Es la tercera
+  vez que esto aparece —logout en F2.3, la ruta inicial en F2.3, y ahora— y la
+  lección ya está clara: **no confiar en qué ruta queda disponible; decir a
+  dónde se va.**
+- **Lo que exige cuenta lo dice.** "Entrar" en la cabecera, el "me gusta" y
+  Crear llevando a la bienvenida, y el selector "Siguiendo" que no se ofrece sin
+  sesión porque no hay a quién seguir.
+
+### El único control muerto que quedaba
+
+La campana de notificaciones era un `Pressable` con rol de botón y **sin
+`onPress`**. Se veía pulsable y no respondía, que es justo el patrón que el
+resto de la app evita: los comentarios avisan, los filtros de Buscar avisan, las
+etiquetas navegan. Ahora avisa también.
+
+Buscado a conciencia: cero `TODO`, `FIXME`, `XXX` o `HACK` en `src/` y
+`scripts/`, y ningún otro control sin acción.
+
+### Lo que queda fuera, y no es un olvido
+
+Consolidado en el **backlog post-demo** de @docs/plan.md, agrupado y sin
+duplicados — la lista anterior repetía la geolocalización y seguía pidiendo
+cosas que F2.4 ya había hecho. Resumen de lo que un visitante podría echar en
+falta y por qué no está:
+
+| Falta | Por qué |
+| ----- | ------- |
+| Gráfica de evolución | No hay series temporales en el modelo |
+| Capas ambientales sobre el mapa | Hay que decidir de dónde salen los datos |
+| Huella y puntos OVENG de personas | Hay que decidir de qué se calculan |
+| Comentarios | El detalle les reserva el sitio; el icono avisa |
+| Buscar publicaciones por etiqueta | Buscar consulta el directorio, no `posts` |
+| Historias, notificaciones, filtros avanzados | Funcionalidad, no estética |
+| Mapa nativo | MapLibre GL JS es de navegador |
+| Geolocalización | Permiso, denegación e imprecisión en escritorio |
+| Búsqueda sin acentos | Pide `unaccent`, o sea una migración |
+
+De paso se corrigió un texto que había caducado: la tarjeta de impacto del
+perfil decía *"Se calculará con tu actividad en F2"*, y F2 cierra **sin** la
+huella personal. Prometer una fase ya cerrada es peor que no prometer nada.
+
+### El recorrido, en un script
+
+`verify:demo` hace lo que haría un visitante, en dos mitades y en el orden real:
+sin cuenta primero —feed, zona, cambio de zona, mapa, filtro, marcador, perfil
+ambiental, CTA— y con cuenta después —registro, publicar con etiqueta, "me
+gusta", buscar y seguir EcoGuinea, valorar el Ntem, perfil propio, cerrar
+sesión—. Las dieciséis capturas van numeradas por orden: son el guion para
+enseñar la demo, no un archivo de pruebas.
+
+### Rendimiento: un quick win que valía 4,6 MB
+
+El export llevaba **dieciocho** variantes de Inter —los nueve pesos y sus
+cursivas, 6,3 MB— cuando el theme usa cuatro y ninguna cursiva. La causa:
+importar desde el índice del paquete, que las referencia todas, y un asset no
+se elimina por no usarse. Con subrutas por peso (`@expo-google-fonts/inter/400Regular`)
+entran solo los cuatro: el artefacto **baja de 10 MB a 5,4 MB**.
+
+El navegador nunca descargó las otras catorce —`useFonts` solo declara las que
+carga—, así que esto no acelera la primera visita: adelgaza cada despliegue y
+el repositorio. La siguiente palanca sí sería de carga, y **no se toca**:
+partir el bundle de JavaScript por rutas, del que MapLibre es un tercio largo.
+Eso es trabajo, no un quick win, y optimizar antes de tener a quién enseñárselo
+es el anti-patrón que el propio documento de crecimiento señala.
+
+### Cinco veces ya: `getByText`
+
+Al pasar la batería completa, `verify:mvp` falló en "la ubicación se ve en el
+perfil" y en los contadores con la pantalla **correcta** delante — la captura de
+esa misma ejecución muestra "Bata, Litoral". Es la quinta vez.
+
+Las dos causas de siempre: la ubicación se pinta con un icono al lado (dos
+nodos, y un lector los lee como fragmentos sueltos, así que ahora tiene nombre
+accesible propio), y el contador se buscaba como el texto `"1"`, que aparece en
+media pantalla. Los contadores ya tenían nombre accesible desde F1.3; solo había
+que usarlo.
+
+Y una consecuencia de abrir el feed: cuatro comprobaciones daban por hecho que
+la raíz sin sesión era la bienvenida. Lo era, y ha dejado de serlo a propósito.
+Ahora comprueban las dos mitades: que la raíz abre el feed público **y** que
+pedir una ruta privada sigue llevando a la bienvenida.
+
+### `verify:f25` era el más frágil de los trece, y se arregló de raíz
+
+Falló al pasar la batería completa, y por dos motivos que conviene separar:
+
+- **Contaba solo sus propias publicaciones** para saber si había entrado la
+  segunda página. Con la base llena de publicaciones de otras pruebas, el feed
+  las mezcla por fecha y las veintidós sembradas no caben necesariamente en las
+  dos primeras páginas. Ahora cuenta **cualquiera**: lo que se comprueba es que
+  el feed pasó de una página, no de quién son las filas.
+- **Sembraba antes de construir.** Una ejecución que muriera en el build —pasó,
+  con dos scripts pisándose el `dist`— dejaba veintidós publicaciones y su
+  cuenta en la base **para siempre**, porque la limpieza está al final. Ahora se
+  siembra después del build: lo que se crea, se crea lo más tarde posible.
+
+La regla que sale de aquí, y que vale para los trece: **una comprobación no debe
+suponer en qué estado está la base**, y lo que cree tiene que poder limpiarlo
+aunque falle en medio.
+
+### Higiene: la base arrastra la basura de esta sesión
+
+Contado al cerrar: **22 perfiles de prueba** (de 24) y **70 publicaciones**, de
+las decenas de ejecuciones de esta sesión. Dos de esos perfiles son de las
+ejecuciones de `verify:f25` que murieron antes de limpiar, y son justo el caso
+que el arreglo de arriba evita a partir de ahora.
+
+Se quita con `SUPABASE_SERVICE_ROLE_KEY='...' npm run cleanup:test-users
+-- --confirm`, que borra solo los correos `@ovengtest.dev`. Las dos cuentas
+reales de demo —`@bosque_vivo` y `@juve_obama`— no pueden caer ahí: el dominio
+está fijo en el código.
+
+### Comprobado en la demo desplegada
+
+Los ocho pasos del recorrido sin cuenta, contra
+https://expeavomo15.github.io/oveng-envhealth/: abre en el feed en **6,4 s**
+(TTFB de 0,19 s; lo que tarda es el bundle), los datos de la zona con el lugar
+que los mide, el cambio a Málaga diciendo que no tiene mediciones, el mapa con
+las catorce, el filtro por capa, del marcador al perfil ambiental con sus cuatro
+métricas exactas y **sin** círculo de calidad general, y valorar llevando a la
+bienvenida. Capturas en `docs/verificacion/produccion/`.
+
+Confirmado también que el adelgazamiento llegó: el bundle publicado referencia
+**cinco** ficheros de fuente —los cuatro pesos de Inter y los iconos— y no
+diecinueve.
+
+### Estado
+
+Las **trece** verificaciones en verde contra Supabase real. Lint y typecheck
+limpios. La demo está cerrada y publicada; lo siguiente es F3, que no es código
+sino conversaciones.
+
+---
+
+## 2026-09-27 — F2.5: el dato ambiental dentro del feed
+
+La tarea que cierra F2 y la que sostiene la idea del producto: que el dato
+ambiental **no viva en un panel aparte**.
+
+### "Tu zona" es elegida, no detectada
+
+Sin geolocalización, y a propósito: pide un permiso que mucha gente deniega, en
+escritorio da una precisión de ciudad o peor, y obliga a diseñar el caso "me han
+dicho no". La zona se elige, con Guinea Ecuatorial por defecto.
+
+Eso cambia una palabra del mockup. Donde pone "Datos ambientales de **tu
+zona**", la tarjeta pone el **nombre** de la zona elegida: "tu zona" sin
+geolocalización sería una promesa que el producto no cumple. Y por lo mismo la
+tarjeta dice **qué lugar** mide el dato —"medido en Río Ntem"— porque un índice
+de aire sin lugar no significa nada.
+
+### Las zonas son recuadros de coordenadas, no países
+
+Filtrar por `country` habría metido Madrid y Barcelona dentro de "Málaga y
+Andalucía": las tres entidades españolas del seed comparten país y no región. Un
+recuadro sobre las coordenadas reales deja fuera lo que no está en la zona, que
+es lo que la palabra promete.
+
+### Málaga no tiene mediciones, y la tarjeta lo dice en vez de irse
+
+Medido antes de diseñar:
+
+| Zona | Entidades | Lugares medidos |
+| ---- | --------- | --------------- |
+| Guinea Ecuatorial | 10 | 5, tres con medición de aire |
+| Málaga y Andalucía | 2 | **0** |
+
+Las mediciones las llevan los lugares (F2.1) y las dos entidades de Málaga son
+una empresa y una iniciativa. Así que la zona existe y no tiene datos.
+
+El enunciado decía que las tarjetas "desaparecen limpiamente si la zona no tiene
+datos" y **aquí no se ha hecho así**, por una razón concreta: el selector de
+zona vive dentro de la tarjeta. Si la tarjeta se va, se va con ella la única
+forma de volver a cambiar de zona desde el feed, y quien eligiera Málaga se
+quedaría sin salida. La tarjeta se queda y dice qué pasa —"Todavía no hay
+mediciones en Málaga y Andalucía"—, que además enseña algo verdadero: que estos
+datos son reales y escasos.
+
+Lo que sí desaparece limpiamente es el destacado cuando la zona no tiene
+iniciativas, y la tarjeta entera si la zona no tiene ninguna entidad.
+
+### Cómo se eligen la referencia y el destacado
+
+Hacía falta un criterio documentado y determinista, para que la misma zona dé
+siempre la misma tarjeta:
+
+- **Referencia:** de los **lugares** de la zona con medición de aire, el que
+  tenga más mediciones; a igualdad, por nombre. Elige al lugar mejor medido, que
+  es el que más tiene que contar. En Guinea Ecuatorial sale el **Río Ntem**, con
+  siete.
+- **Destacado:** la iniciativa de la zona **de la misma categoría que la
+  referencia**; si no hay, la primera por nombre. Así el destacado habla de lo
+  mismo que la medición que tiene encima: la referencia es un río (`agua`) y
+  sale "Río limpio, vida sana", que es una limpieza de ese río. En Málaga, sin
+  referencia, sale la única iniciativa que hay.
+
+### La preferencia de zona no va a la base de datos
+
+Se valoró una tabla `user_preferences` y se descartó por coste:
+
+- Es **una migración más**, y aquí las aplica una persona a mano: esquema, RLS,
+  documentación y verificación para guardar un identificador de zona.
+- Es **preferencia de vista, no dato compartido**. Que sea por dispositivo es
+  defendible, incluso mejor: la zona que te interesa en el móvil no tiene que
+  ser la del portátil.
+- Y el día que haya que sincronizarla entre dispositivos, **entonces** se gana
+  la tabla. Hoy no lo pide nada.
+
+Va en `localStorage` en web y `expo-secure-store` en nativo, que es lo que ya
+había instalado. Sin trocear, porque un identificador de zona son veinte
+caracteres y no los 3–4 KB de una sesión.
+
+### Las tarjetas se calculan, no se insertan
+
+`buildFeedRows` deriva las filas de la lista completa de publicaciones en cada
+render. Eso resuelve de una vez las tres cosas que pedía la tarea, sin código
+extra:
+
+- **No rompen la paginación**: el cursor sigue siendo de `posts`; las tarjetas
+  no son filas de la base y no cuentan para el "hay más".
+- **No se duplican en la página 2**: la posición es fija, así que por muchas
+  páginas que entren sigue habiendo una de cada. Verificado cargando las dos.
+- **Desaparecen limpiamente**: si no hay datos de zona, no se añaden.
+
+Van **tras la tercera publicación**. Encabezar el feed con un panel de datos lo
+convertiría en un cuadro de mandos con publicaciones debajo, que es justo lo que
+la visión dice que OVENG no es: el feed es la puerta y el dato aparece dentro.
+Con menos de tres publicaciones bajan al final, porque no hay una tercera tras
+la que colarse.
+
+### El criterio de cierre pedía algo que hoy no se puede: el feed sin sesión
+
+El enunciado decía "abro el feed (con o sin sesión)". **El feed no es
+público.** F2.3 dejó públicos el mapa y las fichas de entidad, y nada más, por
+una razón que sigue en pie: el feed es `/`, la ruta de entrada, y hacerla
+pública significa que quien llega sin cuenta aterriza en el feed en vez de en la
+bienvenida. Eso es exactamente la regresión que F2.3 tuvo que arreglar.
+
+Lo que **sí** está comprobado es que los datos de zona no necesitan sesión: la
+verificación los lee con la clave anónima y salen completos, porque `entities` y
+`entity_metrics` son de lectura pública. Si mañana se decide abrir el feed, la
+tarjeta funciona tal cual.
+
+Queda como decisión pendiente, no como olvido: abrir el feed es una decisión
+sobre la puerta de entrada del producto, no un detalle de esta tarea.
+
+### Una comprobación que daba por vacío un feed que no lo estaba
+
+El paso del "feed vacío" falló: al borrar las publicaciones de prueba, el feed
+**no queda vacío**, porque hay una publicación real de las cuentas de demo del
+autor. Y esas no se tocan.
+
+Así que la comprobación pregunta cuántas quedan y verifica la rama que toque:
+con cero, el estado vacío; con una o dos, que las tarjetas hayan bajado al final
+en vez de colarse tras una tercera que no existe. Una comprobación que depende
+de que la base esté en un estado concreto es una comprobación que fallará el día
+que alguien publique algo.
+
+### Comprobado en la demo desplegada
+
+El recorrido del criterio, en producción: el feed con la tarjeta **integrada
+entre publicaciones** tras la tercera, con la medición real y el lugar que la
+mide, el cambio de zona a Málaga persistiendo tras recargar —lo que confirma
+que el almacenamiento local funciona en el origen publicado— y de la tarjeta al
+perfil ambiental del Ntem. Capturas en `docs/verificacion/produccion/`.
+
+Lo único del criterio que no se pudo comprobar es el feed sin sesión, porque el
+feed no es público; está explicado arriba.
+
+### Estado
+
+Las doce verificaciones en verde contra Supabase real: `auth`, `f13`, `f14`,
+`f15`, `ui`, `mvp`, `f21`, `f22`, `f23`, `f24` y `f25`. Lint y typecheck
+limpios. **F2 queda completa**, con el tag `v0.2-demo-ambiental`.
+
+---
+
+## 2026-09-27 — F2.4: el perfil ambiental, y una regla en vez de dos pantallas
+
+Las pantallas 4 de los dos mockups parecían dos diseños distintos. No lo son:
+son **el mismo con distintos datos**, y eso es lo que decide toda la tarea.
+
+### Una regla de reparto, y los dos mockups salen solos
+
+El mockup 1 (Monte Alén) pone tres tarjetas de categoría y los datos sueltos
+debajo. El mockup 2 (Río Ntem) pone un círculo de calidad general, una fila de
+cuatro subíndices y una sección de "Datos clave". La diferencia no está en el
+diseño: está en que **las dos entidades no tienen las mismas métricas**.
+
+`groupMetrics` reparte lo que haya en tres zonas —círculo, fila de capas y
+tarjetas— y con eso el mismo código pinta las dos pantallas, sin una sola rama
+por entidad:
+
+| | Monte Alén | Río Ntem |
+| --- | --- | --- |
+| Círculo | **no lo tiene** | 8,7/10 "Muy bueno" |
+| Fila por capa | aire 42 AQI · agua 8,2 pH · biodiversidad 8,7/10 | aire 8,9/10 · agua 8,2 pH · suelo 8,5/10 · biodiversidad 9,1/10 |
+| Datos clave | cobertura forestal 78 % | AQI 42 · temperatura 26,4 °C |
+
+Que Monte Alén **no** tenga círculo no es un hueco: el mockup 1 no enseña
+calidad general y F2.1 se negó a inventársela. La comprobación lo verifica en
+negativo —que el círculo *no* esté— porque si algún día aparece por un cálculo
+"razonable", eso es exactamente lo que hay que cazar.
+
+**`indice_aire` desplaza a `aire` de la fila.** El Ntem tiene las dos y ponerlas
+juntas daría dos casillas de aire contradiciéndose: el AQI baja cuando el aire
+mejora y el índice sube. En la fila va el índice, que es lo comparable con agua,
+suelo y biodiversidad; el AQI baja a "Datos clave" con su unidad delante. Si una
+entidad solo tiene `aire`, como Monte Alén, entonces `aire` ocupa la casilla.
+
+### "Estado por capa", no "Índices por capa"
+
+La primera versión titulaba la fila "Índices por capa". Al ver la captura de
+Monte Alén se cayó: ahí dentro hay 42 AQI y 8,2 de pH, que son **mediciones**,
+no índices. El título tiene que valer para las dos entidades, porque la fila es
+la misma.
+
+Por lo mismo, **la unidad se enseña siempre**. En el Ntem conviven un 8,9 sobre
+10 y un 8,2 de pH; sin la unidad, dos números parecidos parecerían comparables.
+Es la diferencia entre un índice y una medición, y se ve en la pantalla.
+
+### La contradicción de los mockups sobre las valoraciones: no hay que elegir
+
+Quedó anotado en F2.2 que los mockups no coinciden —Monte Alén sale con 4,7 y
+135 votos en uno y con 4,9 y 312 en el otro— y que había que elegir. **La
+respuesta es que la pregunta no aplica.**
+
+Las valoraciones no se siembran: `entity_ratings` referencia a `profiles`, así
+que una valoración necesita una persona real detrás. Toda entidad arranca sin
+opiniones, el estado vacío es el normal y los números saldrán de quien valore.
+Los dos mockups estaban enseñando datos de relleno.
+
+De ahí que la ficha diga "Sé el primero en valorar" en vez de un 0,0, igual que
+las fichas de Buscar.
+
+### Valorar sustituye, y lo dice antes de pulsar
+
+La clave primaria de `entity_ratings` es `(entity_id, user_id)`: una valoración
+por persona y entidad. La app usa `upsert` con ese conflicto, así que valorar
+dos veces **sustituye**. Hacerlo con un `insert` obligaría a preguntar antes si
+existe: dos viajes y una carrera entre ellos.
+
+Y se dice en la interfaz: si ya valoraste, el botón pone "Cambiar valoración" y
+la hoja entra rellenada con tu nota y tu comentario. Abrirla vacía haría creer
+que se añade una segunda.
+
+El comentario se limita a **300** caracteres en el campo. La base admite 500
+(`entity_ratings_comment_length`), así que el tope de la interfaz es una
+decisión de producto —una opinión, no un artículo— y por debajo de la
+restricción, que es como tiene que ser para no chocar nunca.
+
+### La portada es un marcador, con degradado
+
+`cover_image_url` va nulo en todo el seed —decidido en F2.1: no se enlazan fotos
+de terceros y no hay activos propios—, así que en vez de un rectángulo gris la
+portada es el color de la categoría en degradado con su icono grande. Entra una
+dependencia nueva, `expo-linear-gradient`, que es del propio SDK de Expo.
+
+El degradado **acaba en negro translúcido**, no en otro color de la paleta: así
+los botones y la píldora de valoración se leen encima sea cual sea la categoría,
+sin medir el contraste de las seis por separado.
+
+### La gráfica de evolución no se construye
+
+El mockup 1 tiene una "Evolución de la calidad ambiental" de 2020 a 2024. **No
+hay series temporales en el modelo**: `entity_metrics` guarda un valor por
+métrica con su `updated_at`, no un histórico. Dibujar cinco puntos inventados en
+la pantalla que presume de trazabilidad sería lo contrario de todo lo demás.
+Anotada como mejora dependiente de una fuente histórica real.
+
+### Un enlace roto que nadie había pulsado
+
+Al añadir el botón de compartir salió que `postUrl` construía la raíz de la app
+quitando por expresión regular una lista de rutas conocidas… que no incluía
+`/entidad/...`. Compartir desde una ficha habría copiado un enlace roto.
+
+Ahora la raíz se obtiene **restándole a `window.location.pathname` la ruta de
+expo-router**: si el navegador está en `/oveng-envhealth/entidad/rio-ntem` y la
+ruta interna es `/entidad/rio-ntem`, lo que sobra es la raíz. No necesita saber
+qué rutas existen, así que no vuelve a caducar.
+
+### Cuarta vez, y esta fue mi propio helper
+
+`verify:f22` comprobaba la pantalla mínima que F2.4 ha sustituido, incluido el
+aviso "Perfil ambiental completo en F2.4" que ya no debe existir. Eso era
+esperable. Lo que no: dos de las tres comprobaciones nuevas también fallaron
+**con la pantalla correcta delante**, y la causa fue que el `expectLabel` de ese
+script usa `exact: true` mientras los nombres accesibles llevan sufijo
+("Cobertura forestal: 78 %**, Alta**").
+
+Dos lecciones, y la segunda es nueva:
+
+1. Otra vez los marcadores por texto. Las píldoras de tipo y categoría no tienen
+   nombre accesible propio y buscarlas por texto falló; se comprueban por rol.
+2. **Los helpers de las comprobaciones también caducan.** No basta con mirar los
+   marcadores: `exact: true` era razonable cuando los nombres accesibles eran
+   cortos y dejó de serlo al enriquecerlos. Los dos scripts usan ya el mismo
+   criterio.
+
+### Comprobado en la demo desplegada
+
+El criterio de cierre era recorrer el camino completo ahí, no en local: del mapa
+a Monte Alén y al Ntem, con sus métricas fieles al seed —incluida la ausencia
+del círculo en Monte Alén— y valorando de verdad, con la valoración llegando a
+la base y limpiada después. Captura en `docs/verificacion/produccion/`.
+
+### Un tropiezo de infraestructura, por si se repite
+
+El primer `git push` de F2.4 falló con `HTTP 408`: el commit lleva 49 capturas y
+las de pantalla completa pesan unos 275 KB cada una. Se resolvió subiendo
+`http.postBuffer` y fijando `http.version` a HTTP/1.1 en la configuración local
+del repositorio. Si vuelve a pasar, es por ahí — y conviene plantearse si las
+capturas de pantalla completa merecen su peso en el historial.
+
+### Estado
+
+Las once verificaciones en verde contra Supabase real: `auth`, `f13`, `f14`,
+`f15`, `ui`, `mvp`, `f21`, `f22`, `f23` y `f24`. Lint y typecheck limpios.
+
+---
+
+## 2026-09-27 — F2.3: el mapa ambiental, y las rutas públicas
+
+La sección que distingue a OVENG. Decisiones que no se ven en el diff.
+
+### Teselas: OSM raster, y las demotiles descartadas con datos
+
+Se midieron antes de elegir. El estilo de demostración de MapLibre llega a
+**zoom 6** y trae tres capas: `countries`, `centroids` y `geolines`. A ese nivel
+Guinea Ecuatorial continental entra en un par de píxeles: Bata y Monte Alén
+caen en el mismo punto y no hay costa, ni carreteras, ni nada que sitúe un
+marcador. Para un mapa cuyo trabajo es responder "¿cómo está esto donde vivo?",
+no sirven.
+
+Se usan las **teselas raster de openstreetmap.org**, que llegan a zoom 19 y
+traen el detalle que se ve en las capturas.
+
+**Su límite hay que respetarlo.** Son un servicio donado y su política
+(https://operations.osmfoundation.org/policies/tiles/) pide atribución visible
+—está puesta—, prohíbe la descarga masiva y avisa de que un uso intenso debe
+moverse a otro proveedor. Para una demo con catorce marcadores va sobrada; **un
+lanzamiento de verdad necesita proveedor propio.** Anotado en el plan.
+
+La estética de satélite de los mockups necesita un proveedor de pago, así que no
+se intenta: un satélite a medias se vería peor que un mapa honesto.
+
+### Acceso sin cuenta: hecho, y lo que costó averiguar cómo
+
+Era la nota que F2.3/F2.4 arrastraban desde @docs/07_CRECIMIENTO.md. **Se ha
+hecho**, y el camino tuvo dos sorpresas que conviene dejar escritas.
+
+`Stack.Protected` guarda **el grupo entero**, así que no se puede sacar una sola
+pestaña de `(tabs)`. Existe `Tabs.Protected` y se probó: dejar `mapa` sin guarda
+y proteger las otras tres funcionaba para el mapa… y rompía la raíz. Sin sesión,
+`/` dejaba de llevar a la bienvenida y caía en el mapa, porque el índice
+protegido desaparece del árbol y expo-router se va a la primera pestaña que
+queda.
+
+Lo que funciona es más simple: **el mapa es una ruta pública de primer nivel**,
+fuera de `(tabs)`. La barra de pestañas es un componente propio que navega por
+ruta —no depende del navegador de pestañas—, así que el mapa la pinta él mismo y
+se ve y se comporta igual.
+
+**Y el orden de declaración importa, que es la sorpresa que costó una
+regresión.** expo-router toma como ruta inicial la primera disponible. Con las
+rutas públicas declaradas **arriba**, el mapa se convertía en la puerta de
+entrada del producto: con sesión, `/` abría el mapa en vez del feed —lo pilló
+`verify:ui` y está en la captura— y al cerrar sesión se caía en el mapa en vez
+de la bienvenida. Declaradas **al final**, con sesión gana `(tabs)` y sin ella
+gana `(auth)`.
+
+Aun así, cerrar sesión ahora **dice a dónde va** en vez de confiar en qué ruta
+sobrevive: antes bastaba con que `(tabs)` saliera del árbol porque solo quedaba
+`(auth)`; con el mapa público eso ya no es cierto.
+
+Lo que exige cuenta sigue exigiéndola, y lo dice en vez de no responder: las
+pestañas privadas y Crear llevan a la bienvenida, y en la ficha de entidad el
+botón pone "Inicia sesión para seguir". Enseñar el valor primero y pedir la
+cuenta cuando hace falta es justo lo que pide el documento de crecimiento.
+
+### Los marcadores son componentes de la app, no de MapLibre
+
+MapLibre acepta un `HTMLElement` por marcador, que habría significado construir
+el pin con DOM y mantener en paralelo un segundo sitio donde vive el color y el
+icono de cada categoría. En vez de eso, los pines son componentes superpuestos
+al lienzo y colocados con `map.project()`: usan el **mismo `EntityAvatar`** que
+las fichas de Buscar, así que el color y el icono se definen una vez. Con
+catorce marcadores, reproyectarlos al mover no se nota.
+
+El contenedor de la capa no recibe toques y cada pin sí; si no, el mapa no se
+podría arrastrar.
+
+### El mapa solo existe mientras se mira
+
+Al ser una ruta de primer nivel, ir a otra pestaña **no desmonta** la pantalla:
+se queda debajo en la pila. Eso daba dos problemas a la vez — el contexto de
+WebGL seguía vivo con el mapa fuera de vista, y al volver el lienzo reaparecía
+**oculto y sin tamaño**, porque MapLibre no se entera de que su contenedor ha
+recuperado el alto. Lo segundo era un fallo de verdad: volver al mapa lo dejaba
+en blanco.
+
+Se monta y se desmonta con el foco (`useIsFocused`). Al salir se destruye de
+verdad, al volver se crea con el tamaño real, y la comprobación lo verifica
+contando lienzos: cero fuera del mapa, exactamente uno al volver.
+
+### Lo que el mapa no enseña, y por qué
+
+- **Distancia en la tarjeta del marcador.** El mockup pone "12.5 km", que exige
+  saber dónde está quien mira: geolocalización, su permiso y qué hacer cuando lo
+  deniega. Es una funcionalidad propia, anotada para después de la demo.
+  Calcularla desde el centro del encuadre habría sido enseñar un número falso.
+- **"Datos ambientales de tu zona".** La tarjeta de calidad del aire **nombra la
+  entidad** de donde sale el dato en vez de decir "tu zona", que sin
+  geolocalización es una promesa que el producto no cumple. Un índice de aire
+  sin lugar no significa nada.
+
+### Dos cosas que solo se vieron mirando las capturas
+
+- **Los controles de zoom estaban debajo de la tarjeta inferior.** El "−" y el
+  de centrar no se veían. Ahora van por encima, con hueco para la más alta de
+  las dos tarjetas.
+- La leyenda es leyenda **y** filtro en la misma fila: una leyenda que solo
+  explica colores obliga a mirar dos sitios para lo mismo. Una capa apagada baja
+  la opacidad y además vacía el punto, porque el theme ya advierte de que varias
+  de estas seis se distinguen por tono pero no por luminancia.
+
+Ojo con un detalle de React Native Web: la fila llevaba `role="listitem"` y
+`accessibilityRole="switch"` a la vez, y **`role` gana**, así que dejaba de ser
+un interruptor para quien lo lee y para quien lo comprueba.
+
+### El worker de MapLibre falla, y se deja así a propósito
+
+La consola del navegador dice `Worker failed to load`. MapLibre crea un worker
+y Metro no lo empaqueta como un chunk aparte, así que la URL no resuelve.
+
+**No afecta a lo que hay**: con teselas raster el trabajo del worker es mínimo y
+el mapa pinta, se arrastra, hace zoom, filtra y responde a los toques — todo
+verificado. El paquete trae un `maplibre-gl-worker.mjs` suelto y existe
+`setWorkerUrl`, así que la salida sería copiarlo a `public/`; **no se hace**
+porque una copia vendorizada se desincroniza en silencio la primera vez que
+alguien actualice `maplibre-gl`, y el precio hoy es un error de consola. Se
+revisa cuando haya teselas vectoriales, que sí lo necesitan.
+
+### Lo que cuesta MapLibre
+
+El bundle web pasa de **1,59 MB a 2,72 MB**. Es un tercio largo de la librería
+del mapa, y es el precio de la sección que distingue al producto. Queda medido
+para que la decisión de proveedor de mapa lo tenga en cuenta.
+
+### Una comprobación caducada que se me escapó en F2.2
+
+`verify:ui` buscaba el texto "Busca personas, lugares o etiquetas" como prueba
+de que la pestaña Buscar cargaba. **F2.2 reescribió esa pantalla y cambió el
+copy**, así que la comprobación quedó rota en ese commit y no me enteré porque
+no pasé `verify:ui` al cerrar F2.2 — solo `verify:f22` y `verify:mvp`.
+
+La lección no es nueva —es la tercera vez que un marcador de texto caduca— pero
+sí lo es la causa: **no basta con pasar la verificación de la fase que tocas.**
+Al cambiar una pantalla hay que pasar también las que la atraviesan. Ahora esa
+comprobación mira el campo por rol, que no depende del copy.
+
+### Comprobado en la demo desplegada
+
+El criterio de cierre decía "en la demo desplegada", así que se comprobó ahí y
+no solo en local: sin sesión, el mapa carga con los 14 marcadores, apagar
+Biodiversidad deja 9, la tarjeta del marcador abre y lleva a la ficha, y un
+enlace profundo a `/entidad/rio-ntem` arranca por el fallback de `404.html`
+—Pages devuelve 404 en una ruta dinámica y la app se encarga desde ahí—.
+
+Las capturas van a `docs/verificacion/produccion/`, **fuera de los
+subdirectorios de los scripts**, que los borran al ejecutarse. La regla que ya
+se anotó: los subdirectorios son de los scripts, lo que se guarda a mano vive
+aparte.
+
+### F2.2 queda cerrada
+
+Aplicada la migración `004`, `verify:f22` pasa entero: seguir una entidad
+persiste y RLS bloquea seguir en nombre de otra cuenta y seguir sin sesión. Era
+lo único que faltaba.
+
+---
+
+## 2026-09-27 — F2.2: el directorio de Buscar y seguir entidades
+
+La primera pantalla que enseña las catorce entidades de F2.1. Decisiones que no
+se ven en el diff.
+
+### `entity_follows` es su propia tabla
+
+`follows` referencia `profiles` por los dos lados. Meter ahí una entidad pedía
+una columna nula y un check de "o una u otra", que es exactamente la deuda que
+F1.3 evitó al no meter empresas en `profiles`. Tabla aparte, clave primaria
+compuesta, y las mismas tres políticas que `follows` (sin UPDATE: una fila de
+seguimiento no tiene nada que actualizar).
+
+### La búsqueda pelea con dos gramáticas, no con una
+
+`sanitizeSearchTerm` no es paranoia:
+
+- **PostgREST**: en `or=(name.ilike.x,description.ilike.y)` la coma separa
+  condiciones y los paréntesis agrupan. Buscar `a,b` partía el filtro en dos
+  condiciones inválidas y la consulta **devolvía un error**, no cero
+  resultados.
+- **SQL `LIKE`**: `%` y `_` son comodines. Sin escapar, quien escribe `%` pide
+  "cualquier cosa" sin saberlo.
+
+Se quitan los caracteres estructurales y se escapan los comodines.
+
+### `ilike` no ignora los acentos, y eso se nota
+
+Comprobado contra la base sembrada:
+
+| Se busca | Resultados |
+| -------- | ---------- |
+| `alén`   | 2 — Monte Alén y Bosques Vivos |
+| `alen`   | **0** |
+| `málaga` | 2 |
+| `malaga` | **0** |
+
+En una app en español, con topónimos acentuados y gente escribiendo en un móvil,
+**esto es un agujero de verdad**: quien teclea "malaga" o "alen" no encuentra
+nada y concluye que el directorio está vacío. `ilike` resuelve las mayúsculas y
+nada más.
+
+Arreglarlo no es un parche en el cliente: pide la extensión `unaccent` y un
+índice sobre la expresión, o una columna normalizada que se mantenga sola. Las
+dos cosas son una migración, y F2.2 se especificó con `ilike`. **Queda anotado
+como lo primero que hay que mirar de Buscar.**
+
+De paso se vio que la subcadena suelta es ruidosa: `rio` devuelve seis
+entidades, y varias no por "Río" sino por *escena**rio*** y *estua**rio***. Una
+búsqueda de texto completo (`tsvector`) resolvería las dos cosas a la vez.
+
+### "Nuevo", no "0,0"
+
+El seed no trae valoraciones a propósito —una valoración necesita una persona
+real detrás—, así que hoy **todas** las fichas están sin valorar. Pintar "0,0"
+ahí se lee como "valorada pésimamente", que es lo contrario de la verdad; y en
+una red cuya tesis es que la valoración comunitaria pesa, arrancar acusando a
+todo el directorio de un cero sería mentir sobre el único dato que importa.
+
+### Un chip puesto ya es una búsqueda
+
+Al escribir la comprobación salió un fallo de producto: con el chip "Empresas"
+y el campo vacío, la pantalla enseñaba las Sugerencias en vez de las cinco
+empresas. Pero el criterio de cierre es **recorrer las catorce entidades desde
+Buscar**, y sin escribir nada eso se hace con los chips. Así que hay búsqueda
+activa con texto, con categoría **o con un chip que no sea "Todo"**.
+
+Por lo mismo, el chip "Personas" sin término devuelve **las cuentas más
+recientes** en vez de una lista vacía: la visión pide que Buscar resuelva el
+arranque en frío, y para eso hay que poder ver a quién hay. `profiles` es de
+lectura pública por RLS, así que no se enseña nada que no se vea ya en cualquier
+perfil.
+
+### Dos ajustes que salieron de mirar las capturas
+
+- **El subtítulo se quedó en "categoría · ubicación", sin el tipo.** Estaba, y
+  se comía la ubicación: "Empresa · Energía · Mal…" deja fuera justo el dato que
+  distingue una empresa de otra. Y era redundante por los dos lados — con
+  alcance "Todo" lo dice el título de la sección, y con un chip puesto lo dice
+  el chip.
+- **El design system gana un tamaño de botón, `sm`.** El de `md` dentro de una
+  fila de resultado truncaba el nombre a "Parque Nacio…". El texto acompaña al
+  tamaño: un `bodyStrong` dentro de un botón compacto lo obliga a crecer y deja
+  de ser compacto.
+
+También el icono de filtros pasó a ir **dentro** de la píldora, como en el
+mockup 2: fuera se comía el ancho del campo y el placeholder se cortaba a media
+palabra.
+
+### Seguir entidades funciona sin la migración aplicada
+
+`004` se aplica a mano, pero el push despliega. Entre una cosa y otra hay una
+ventana en la que `entity_follows` no existe, y una pantalla de Buscar que
+revienta entera por no poder pintar un botón sería un precio absurdo: el
+directorio se lee perfectamente sin saber a quién sigues.
+
+Así que leer degrada a "no sigues a nadie" (`isMissingTableError` mira `42P01` de
+Postgres y `PGRST205` de PostgREST), y **escribir sí avisa**: lanza
+`EntityFollowsUnavailable` y la pantalla lo traduce a un aviso. Disimular un
+fallo de escritura sería peor que la ventana.
+
+### Tercera vez que `getByText` falla y el producto está bien
+
+Pasó con `#reforestación` en F1.4 y ha pasado dos veces aquí: con el nombre de
+la entidad y con "Lugar · Biodiversidad". Las capturas de la propia ejecución
+que falló muestran los tres textos en pantalla.
+
+El patrón ya está claro y la salida también: **por rol y nombre accesible, no por
+texto**. Y aquí el arreglo fue en el producto, no en la comprobación, porque lo
+que faltaba era accesibilidad de verdad:
+
+- El nombre de la entidad se anuncia como `header`: es el encabezado de la
+  pantalla, y así un lector de pantalla puede saltar ahí.
+- "Lugar · Biodiversidad" son tres nodos de texto, que un lector lee como
+  fragmentos sueltos; ahora tiene un nombre accesible propio.
+- Las fichas de resultado son `link` con su nombre completo, que es lo que
+  permite comprobar "las cinco empresas y nada más" comparando con la base en
+  vez de contar filas.
+
+Ojo con `role: 'text'`: no es un rol ARIA y `getByRole` no lo acepta. Para eso
+está `getByLabel`.
+
+### Las etiquetas del feed ya llevan a algún sitio, con un matiz
+
+Era parte del enunciado de F2.2 en el plan. Tocar `#reforestación` abre Buscar
+con el término puesto, en vez de avisar de que no lleva a ninguna parte.
+
+**Pero encuentra el directorio, no publicaciones.** Buscar consulta `entities` y
+`profiles`; buscar publicaciones por etiqueta es consultar `posts`, que no está
+en la capa de datos de F2.2. El plan prometía "búsqueda de cuentas, entidades,
+etiquetas y lugares" y lo que hay es la etiqueta **como término de búsqueda del
+directorio**. Anotado en el plan, no dado por hecho.
+
+### Lo demás
+
+- **La fila de una ficha no es un único pulsable.** El botón Seguir tendría que
+  ir dentro, y un pulsable dentro de otro hace que en web el clic burbujee:
+  seguir a una entidad navegaría además a su ficha. La zona de texto es el
+  pulsable y el botón va al lado, hermanos. Es lo que ya hace la tarjeta del
+  feed.
+- **El icono de filtros avisa en vez de no hacer nada.** El panel es post-demo.
+  Un control que se ve pulsable y no responde se lee como una avería.
+- **La ficha de entidad es mínima a propósito.** Enseña lo que hay en la base y
+  nada más; el perfil ambiental con escalas y evolución es F2.4, y adelantarlo a
+  medias sería construirlo dos veces. Lo dice en pantalla.
+- **Una respuesta lenta no puede pintarse sobre otra búsqueda.** Los resultados
+  se guardan junto a la clave de la búsqueda a la que pertenecen, así que
+  `loading` no es un estado que encender y apagar: es "todavía no hay respuesta
+  para esta búsqueda".
+
+---
+
+## 2026-09-27 — Estrategia de crecimiento, y una tensión con la visión
+
+Queda registrada en @docs/07_CRECIMIENTO.md, con F3 en el plan y una nota en
+F2.3/F2.4. Es documentación transversal: **no es una fase** y no marca ninguna
+tarea.
+
+**Lo que hay que no perder de vista:** la tesis de producto de ese documento
+—que el valor diferencial es mapa + datos + directorio, y que el feed es
+complemento— **contradice a @docs/00_VISION.md**, que dice hoy que el producto
+es "primero una red social y después un visor de datos: el feed es la puerta de
+entrada y el mapa es la profundidad". Es exactamente el orden inverso.
+
+No se ha tocado la visión. La tesis entra **como hipótesis con fecha de
+validación** (F3.1, 20-30 conversaciones antes de cualquier lanzamiento) y
+mientras tanto manda 00_VISION.md. Lo que no puede pasar es que se quede así
+para siempre: si la validación confirma la tesis, hay que revisar la visión, y
+si la tumba, hay que corregir el documento de crecimiento. Dos documentos
+maestros diciendo cosas distintas sobre qué es el producto es peor que
+cualquiera de las dos respuestas.
+
+La aclaración va escrita dentro del propio 07_CRECIMIENTO.md, en un aviso, para
+que no haga falta leer esta bitácora para enterarse.
+
+**Lo que ya obliga a construir**, y por eso aparece en el plan y no solo aquí:
+el mapa y los datos ambientales tienen que verse **sin cuenta**. Es la
+consecuencia directa del principio de utilidad individual — si para ver la
+calidad del aire hay que registrarse, se pierde la única pieza que funciona con
+la red vacía. Hoy la app no es así: un *guard* manda a bienvenida cualquier ruta
+sin sesión. Se evalúa en F2.3/F2.4 y se decide allí según lo que cueste.
+
+---
+
+## 2026-09-27 — Sesión de diagnóstico: el seed, las pruebas caducas y las capturas
+
+Repaso completo del estado real del proyecto antes de seguir con F2. Lo que
+salió y lo que se corrigió.
+
+### Un número que no salía de ningún sitio
+
+El seed daba a Monte Alén una métrica `calidad_general` de **8.6/10** con el
+comentario "Valores exactos del mockup 1". Ampliando el mockup 1, la pantalla
+"Perfil Ambiental" de Monte Alén **no tiene ninguna métrica de calidad
+general**: tiene aire 42 AQI, agua 8.2 pH, biodiversidad 8.7/10 y cobertura
+forestal 78 %. El 8.7 es biodiversidad. Y esta bitácora, en la entrada de
+F2.1, decía "8.7/10 de calidad general" para Monte Alén: ese 8.7 es de **Río
+Ntem**, que sí la lleva en el mockup 2.
+
+Así que el 8.6 no venía de ninguna parte. **Se quita.** Si algún día hay un
+índice general para los lugares que no lo traen, será calculado y etiquetado
+como tal, no sembrado como si fuera una medición.
+
+Lo que más importa de este hallazgo no es el número: es **cómo se escapó**. La
+entrada de F2.1 se felicitaba por no adivinar un decimal ("adivinar un decimal
+en datos que se enseñan como reales no habría sido aceptable") y aun así entró
+un valor inventado, porque `verify:f21` comprobaba que las métricas esperadas
+**estuvieran** y no que no **sobrara** ninguna. La única de las cinco de Monte
+Alén que no se comprobaba era justo la que no tenía fuente.
+
+Ahora `verify:f21` compara el conjunto **exacto**: una métrica de más falla
+igual que una de menos. Cubre Monte Alén y el Ntem.
+
+### El aire del Ntem se mide dos veces, y las dos cuentan
+
+El mockup 2 enseña el aire del Ntem por duplicado: un **AQI crudo de 42** en
+"Datos clave" y un **subíndice de 8.9 sobre 10** en la fila de cuatro índices.
+El seed solo guardaba el AQI. Se añade el 8.9.
+
+No podían compartir fila: la clave primaria de `entity_metrics` es
+`(entity_id, metric)`, una medición por entidad y métrica. Y tampoco son la
+misma cosa en otra unidad — **un AQI baja cuando el aire mejora y un índice
+sube**, no hay conversión. Son dos métricas: `aire` e `indice_aire`, valor
+nuevo del enumerado `entity_metric`.
+
+Como 003 todavía no estaba aplicada, el enumerado se corrige **en la propia
+migración** en vez de encadenar una 004 para arreglar algo que nunca llegó a
+existir en la base.
+
+`indice_aire` va con `label` **nulo** a propósito: la fila de índices del mockup
+no pone ninguna palabra debajo del 8.9. Antes que inventarle un "Bueno", no
+lleva ninguno.
+
+**Queda anotado, sin resolver:** en esa misma fila de índices, `suelo` (8.5) y
+`biodiversidad` (9.1) son también valores de índice sobre 10, pero se guardan
+bajo los nombres de métrica "crudos", mientras el aire ahora distingue los dos.
+Es una incoherencia del modelo, no de los datos, y se decide en F2.3/F2.4
+cuando haya una pantalla que los pinte y se vea qué necesita.
+
+### Tres pruebas que fallaban sin que nada estuviera roto
+
+`verify:f14` fallaba 2 comprobaciones y `verify:ui` 3. **Ninguna era una
+regresión del producto**: las cinco estaban ancladas a detalles que fases
+posteriores cambiaron.
+
+- **`"Tu feed aparecerá aquí"`** (en los dos scripts). Ese texto lo borró F1.5
+  al meter `EmptyFeed` con copy por modo. Además la comprobación ya no tenía
+  sentido: desde F1.5 "Para ti" enseña las publicaciones de todo el mundo, así
+  que una cuenta recién creada **no ve un feed vacío**. Ahora se comprueba que
+  Inicio ha montado, mirando su selector de feed por rol y nombre.
+- **`"Cerrar sesión"` en Perfil.** F0.2c lo metió dentro del menú "···", así que
+  el texto existe pero no se ve hasta abrirlo. `verify:ui` lo usaba de dos
+  formas: como marcador de que la pestaña Perfil había cargado (ahora es
+  "Editar perfil", que sí está a la vista) y para cerrar sesión en el paso 7
+  (ahora abre el menú antes). El tercer fallo era la cascada de este.
+- **`"#reforestación"` en el compositor.** La ficha **se veía en pantalla** —
+  está en la captura que dejó la propia ejecución que falló. El problema era el
+  localizador: `#{tag}` se pinta en dos nodos de texto ("#" y el nombre) y
+  buscarlo como cadena no es de fiar.
+
+Para el último, las fichas de etiqueta ahora **se anuncian como lista**: el
+contenedor con `role="list"` y cada ficha con `role="listitem"` y su nombre
+accesible. Se gana lo de poder apuntar a una etiqueta concreta por rol, y de
+paso un lector de pantalla deja de leerlas como texto suelto pegado al final
+del campo. Se usa `role` y no `accessibilityRole` porque `"listitem"` solo
+existe en el prop ARIA: el tipo `AccessibilityRole` de React Native tiene
+`"list"` pero no `"listitem"`.
+
+**La lección se repite.** F0.2c ya encontró una comprobación que pasaba siempre
+porque miraba un texto que aparecía en dos sitios, y anotó que "una comprobación
+que siempre pasa es peor que no tenerla". Esto es la otra cara: una comprobación
+anclada a un copy falla cuando el copy cambia, y entonces gasta atención sin
+encontrar nada. En los dos casos la salida es la misma — **mirar por rol, no por
+texto** — y es lo que se ha hecho aquí.
+
+### Un `rmSync` que se llevaba el trabajo de tres fases
+
+`verify-ui.mjs` empezaba borrando `docs/verificacion/f1/` entero. Pero ese
+directorio era **el mismo** donde escribían `verify-f13`, `verify-f14` y
+`verify-f15`, que solo hacían `mkdirSync`. Consecuencia: pasar la batería
+completa acabando por `verify:ui` dejaba borradas 18 capturas commiteadas. Se
+descubrió justo así, ejecutándolas todas seguidas.
+
+Ahora **cada script tiene su subdirectorio y solo limpia el suyo**:
+`f1/ui/`, `f1/f13/`, `f1/f14/`, `f1/f15/`, y `mvp/` como estaba. Los cinco
+limpian antes de escribir, así que una captura que un recorrido deja de generar
+no se queda ahí dando información vieja.
+
+Siguen bajo `f1/`, que es lo que citan plan.md y el README, así que no hubo que
+tocar ninguna referencia.
+
+`11-produccion-welcome.png` **se queda en el directorio padre**, suelta: es de
+la comprobación de producción de F1.2b y ningún script la genera ya. En el
+padre, que nadie limpia, sobrevive; dentro de `ui/` la borraría el próximo
+`verify:ui`. La regla que queda: los subdirectorios son de los scripts, el
+padre es para lo que se guarda a mano.
+
+### F2.1 se cierra, y una parte de su enunciado se queda fuera
+
+Aplicada la migración 003 y cargado el seed, `verify:f21` pasa entero: 14
+entidades (5 lugares, 5 empresas, 4 iniciativas), 25 métricas, coordenadas
+dentro de su país y RLS en los dos sentidos. Las dos correcciones del seed
+quedan comprobadas: Monte Alén tiene **exactamente** sus cuatro métricas y el
+Ntem sale con `aire` 42 AQI e `indice_aire` 8.9/10 conviviendo.
+
+**Lo que el enunciado de F2.1 pedía y no se ha hecho:** "su relación con
+`profiles` para saber quién administra cada una". No hay tal columna. La única
+referencia de `entities` a `profiles` es `entity_ratings.user_id`, que es quien
+**valora**, no quien administra.
+
+No es un olvido, pero tampoco estaba anotado, así que queda aquí. El contenido
+de `entities` es curado: lo escribe el seed con `service_role` y la tabla no
+tiene ninguna política de escritura. Una columna de administrador hoy no tendría
+a quién apuntar, y RLS no podría usarla para nada porque no hay escritura que
+permitir. Cobra sentido el día que una empresa pueda reclamar y gestionar su
+propia ficha — y ese día trae consigo más de una columna: cómo se verifica que
+quien reclama es quien dice ser, qué puede editar y qué no, y qué pasa con la
+valoración de la comunidad mientras tanto. Es una tarea propia, no un `alter
+table` de paso.
+
+Hasta entonces, `profiles` son personas y `entities` no tiene dueño.
+
+### Estado al cerrar la sesión
+
+En verde contra Supabase real: `verify:auth`, `verify:f13`, `verify:f14`,
+`verify:f15`, `verify:f21`, `verify:ui` y `verify:mvp`. Lint y typecheck
+limpios. La demo publicada responde y el bundle apunta al proyecto correcto.
+
+Documentación al día con la base: `03_MODELO_DATOS.md` lleva ya las
+instrucciones de aplicación y verificación de 003 —incluida la trampa del
+`--dry-run` del seed, que imprime las catorce entidades y no escribe ninguna—,
+los recuentos corregidos (siete tablas y una vista, 20 políticas) y el
+enumerado de métricas explicado. El README lista `verify:f21` y `seed:entities`.
+
+**Pendientes que salieron y no se tocan aquí:** la consola del navegador escupe
+un `React error #418` (mismatch de hidratación) y un 404 de recurso que no
+tumban nada pero conviene mirar; los dos mockups no coinciden en la valoración
+de Monte Alén (4.7 con 135 votos en el 1, 4.9 con 312 en el 2) y hay que elegir
+en F2.2; `docs/03_MODELO_DATOS.md` documenta las tablas de 003 pero sus
+instrucciones de aplicación y verificación siguen hablando solo de 001 y 002;
+el README no lista `verify:f21` ni `seed:entities`; y no existe
+`docs/07_CRECIMIENTO.md` ni una fase F3 en el plan.
+
+---
+
+## 2026-09-19 — F2.1: entidades ambientales
+
+### Las seis categorías, y por qué no eran cuatro ni cinco
+
+Los dos mockups no coincidían y F0.3 había dejado la decisión abierta. El
+mockup 1 muestra capas de **aire, agua, suelo y biodiversidad**; el 2 quita
+biodiversidad y añade **energía y residuos**. Ninguna lista contiene a la otra,
+así que quedarse con una habría dejado fuera contenido que el diseño enseña.
+
+El enumerado es la **unión**: `aire`, `agua`, `suelo`, `biodiversidad`,
+`energia`, `residuos`. Seis valores, en la base de datos y en el theme.
+
+Sobre los colores, dos conflictos que hubo que resolver:
+
+- **`suelo`: el mockup 2 se contradice a sí mismo.** Morado en la leyenda del
+  mapa, marrón anaranjado en el perfil ambiental. Se elige el **morado**
+  (`#8E24AA`, 7:1 con texto blanco) porque es el que usa justo en la vista donde
+  `suelo` y `energia` aparecen juntos: un marrón al lado del amarillo de
+  `energia` sería indistinguible en un punto de mapa de doce píxeles.
+- **`residuos`: el mockup lo pinta verde**, pero en esa leyenda no hay capa de
+  biodiversidad con la que chocar. Con las seis juntas el verde ya está ocupado
+  por biodiversidad, así que residuos se queda con el **gris de la paleta**.
+
+De los seis colores, cuatro salen de la paleta de AGENTS.md, uno es el azul
+profundo que ya se había decidido en F0.3 para `agua`, y solo el morado es
+nuevo. Los seis pasan AA con el color de texto indicado; las medidas están en
+`src/theme/categories.ts`.
+
+**Una guarda de tipos impide que deriven.** `src/lib/entities.ts` compara el
+enumerado de la base con el del theme y **rompe la compilación** si uno cambia
+sin el otro. Sin eso, una migración que añada una categoría se descubriría con
+un `undefined` en pantalla.
+
+### Decisiones del esquema
+
+- **`entities` no tiene políticas de escritura. Ninguna.** No es un olvido: es
+  contenido curado. RLS deniega por defecto, así que ni un anónimo ni una cuenta
+  con sesión pueden tocar la tabla; el seed escribe con `service_role`. Lo mismo
+  para `entity_metrics`. `entity_ratings` sí es de la gente, y ahí sí hay
+  políticas de propietario.
+- **Las métricas solo las llevan los lugares.** Medir la calidad del aire de un
+  parque o un río tiene sentido; de una ONG, no. Empresas e iniciativas se
+  juzgan por su valoración comunitaria, que es justo lo que enseñan los mockups
+  en Buscar (4.8, 4.7, 4.5…).
+- **`label` se guarda, no se calcula.** "Buena", "Alta", "Excelente" viajan con
+  el valor porque cada métrica tiene su escala: 42 es bueno en AQI y absurdo en
+  pH. Calcularlo en el cliente obligaría a meter esas escalas en la app.
+- **O están las dos coordenadas o ninguna.** Un `check` lo impone: media
+  posición no sirve para poner un punto en un mapa, y un nulo a medias se
+  arrastra hasta que alguien divide por él.
+- **`entity_rating_summary` es una vista con `security_invoker = on`.** La media
+  aparece en tres pantallas distintas y conviene que las tres la calculen igual.
+  El `security_invoker` hace que respete las políticas de quien consulta: aquí
+  da igual porque las valoraciones son públicas, pero una vista que ignora RLS
+  es una fuga esperando a que alguien la reutilice con una tabla que sí importe.
+
+### El seed es producto, no relleno
+
+Catorce entidades: cinco lugares reales de Guinea Ecuatorial con sus
+coordenadas verdaderas (Monte Alén, Río Ntem, Estuario del Muni, Pico Basilé,
+Corisco), cinco empresas y cuatro iniciativas tomadas de los mockups, con
+descripciones escritas para que se lean como contenido y no como "lorem ipsum".
+
+**Las métricas de Monte Alén y del Río Ntem son exactamente las de los
+mockups.** Se leyeron ampliando las infografías con el navegador, porque a
+tamaño original no se distinguía si el pH era 8.2 u 8.3 — y resultó ser 8.2 en
+Monte Alén y 8.2 también en el Ntem, con 8.7/10 y 8.7/10 de calidad general
+respectivamente. Adivinar un decimal en datos que se enseñan como reales no
+habría sido aceptable.
+
+> **Corregido el 2026-09-27:** este párrafo se equivoca. Monte Alén **no tiene
+> calidad general en el mockup 1**; el 8.7 de calidad general es solo del Ntem.
+> El valor que el seed le daba a Monte Alén (8.6) no tenía fuente y se ha
+> quitado. Ver la entrada del 2026-09-27.
+
+Es **idempotente por `slug`**: repetir el seed actualiza en vez de duplicar.
+
+### Pendiente anotado
+
+- **Imágenes propias de las entidades.** `cover_image_url` va nulo en todo el
+  seed: no se enlazan fotos de terceros y no hay assets propios. Hasta que los
+  haya, la UI usará un marcador por categoría. Es una tarea de diseño, no de
+  código.
+- **Colores de tipo de entidad.** La leyenda del mockup 2 pinta "Iniciativas" en
+  naranja y "Empresas" en morado, que son colores de **tipo**, no de categoría.
+  No se han fijado todavía porque no hay ninguna vista que los use; se decide en
+  F2.2, cuando las fichas de Buscar los necesiten.
+- **El seed no trae valoraciones.** Una valoración necesita una persona real
+  detrás (`entity_ratings` referencia a `profiles`), así que las fichas
+  aparecerán como "sin valoraciones" hasta que alguien valore desde la app.
+
+---
+
+## 2026-09-19 — F2.1a: tipografía Inter
+
+La única diferencia con los mockups que F0.2c dejó pendiente por falta de
+activo. Se resuelve con `@expo-google-fonts/inter` (Regular, Medium, SemiBold y
+Bold), que trae los archivos y la licencia.
+
+- **El peso no se elige con `fontWeight`.** Con una fuente propia, cada peso es
+  un archivo distinto y hay que nombrarlo: `Inter_600SemiBold`, no
+  `fontWeight: '600'`. Por eso las variantes siguen declarando su peso y el
+  componente `Text` lo traduce al archivo que toca. `fontWeight` se conserva
+  porque en web sigue valiendo y porque es lo que se aplica mientras carga.
+- **No se bloquea el primer pintado.** `FontsProvider` carga la fuente y expone
+  si ya está lista; hasta entonces se usa la del sistema. Dejar la pantalla en
+  blanco esperando a una fuente se nota mucho más que el cambio de forma al
+  cargar.
+- **Los títulos suben a Bold.** En los mockups los encabezados pesan más que un
+  semibold; `display` y `title` pasan de 600 a 700. `micro` baja a Medium, que
+  es como se ven las etiquetas de la barra.
+- Todo el texto de la app pasa por `Text` y por los dos campos de entrada, así
+  que la fuente se aplica en tres sitios y no hay ninguno que se quede fuera.
+
+---
+
+## 2026-09-19 — F0.2c: contraste con los mockups oficiales
+
+Llegaron las dos infografías a `docs/design/` y se contrastó con ellas todo lo
+construido. **La paleta era correcta**: los cinco colores que fija AGENTS.md son
+exactamente los del panel "Paleta de colores" del mockup 1. Lo que no coincidía
+era la forma.
+
+### Diferencias corregidas, de mayor a menor impacto
+
+1. **Crear no es un botón flotante.** Era la diferencia gorda. Estaba construido
+   como un disco de 56 px con aro blanco que asomaba 22 px por encima de la
+   barra, siguiendo la spec escrita de F1.2 —redactada antes de tener mockups—.
+   En las infografías, Crear **ocupa la misma celda que las demás pestañas**: un
+   disco verde del tamaño de un icono, con su etiqueta debajo como el resto.
+   Ahora es eso. De paso desaparece todo el andamiaje del contenedor
+   transparente que hacía falta para que el botón no quedara recortado.
+2. **La foto de una publicación iba a 4:3 y ocupaba media pantalla.** En los
+   mockups es apaisada, en torno a 16:10, y caben dos publicaciones por pantalla
+   en lugar de una. Cambiada la proporción y el radio de la imagen de 16 a 12 px,
+   que es el de los mockups (16 se reserva para la tarjeta que la contiene).
+3. **Las tarjetas llevan borde, no solo sombra.** En el mockup 2 se separan del
+   fondo con una línea fina. Añadido a la tarjeta del feed y a la `Card` del
+   design system; la sombra se queda, más discreta.
+4. **Los contadores del perfil no llevan separadores verticales.** Las tres
+   columnas van sueltas entre las líneas de arriba y abajo.
+5. **"Puntos OVENG" es amarillo, no verde.** En el mockup cada métrica tiene su
+   color: hoja verde para la huella, estrella amarilla para los puntos. Se le
+   añadió un `tone` a la tarjeta en vez de fijar el verde del producto para todo.
+6. **El tinte amarillo pesaba demasiado.** Al ponerlo junto al verde se vio que
+   `warningTint` estaba al 18 % y `accentTint` al 8 %: las dos tarjetas quedaban
+   descompensadas. Bajado al 10 %. El aviso de error sigue leyéndose porque
+   además lleva su franja lateral.
+7. **Las categorías de Buscar son fichas con icono**, no píldoras de texto.
+8. **"Verificado" se muestra como píldora en la cabecera del perfil**, como en el
+   mockup 2. En las tarjetas del feed se queda el check junto al nombre, que es
+   como aparece ahí.
+
+### Diferencias detectadas y NO aplicadas, con su motivo
+
+Ninguna es un descuido: son funcionalidad o dependen de un activo que no
+tenemos.
+
+| Diferencia | Por qué no se ha tocado |
+| ---------- | ----------------------- |
+| Fila de historias en Inicio | Es una funcionalidad nueva, no un ajuste de estilo. Aparece en los dos mockups; conviene meterla en el roadmap. |
+| Emblema del logo: globo con hoja | Hace falta el asset real. Lo que hay está dibujado con vistas; un globo hecho así saldría peor que la hoja actual. |
+| Tipografía | Los mockups usan una sans geométrica (tipo Inter o Poppins); la app usa la del sistema. Requiere el archivo de fuente y decidir licencia. Cuando llegue, se cambia en `typography.ts` y `global.css`. |
+| Menú "···" en cada publicación | Funcionalidad (editar, borrar, reportar), no estética. |
+| La meta de la tarjeta muestra ubicación | En el mockup pone "2 h · Guinea Ecuatorial"; nuestras publicaciones no tienen campo de ubicación. |
+| Perfil con 4 pestañas (Votos, Logros) | Dependen de las valoraciones y los logros de F2. |
+| Categorías del mapa | Los dos mockups no coinciden entre sí: el 2 añade Energía y Residuos y pinta el suelo de otro color. Se decide en F2.3, al construir el mapa, con el listado definitivo delante. |
+
+### De propina: una comprobación que no comprobaba nada
+
+Al pasar el recorrido completo después de los ajustes, "Siguiendo" falló. No era
+una regresión: era un fallo del propio test que llevaba ahí desde F1.6.
+
+La comprobación decía `expectVisible('Siguiendo')` para confirmar que el botón
+de seguir había cambiado de estado… pero **"Siguiendo" es también la etiqueta de
+una de las tres columnas de contadores**, que está en pantalla desde el
+principio. La comprobación pasaba al instante sin esperar a nada, el script
+navegaba a la pantalla siguiente y **abortaba la petición de seguir a medio
+vuelo**. En F1.6 coló porque la petición ganó la carrera por poco.
+
+Ahora se mira el botón por su rol —no por un texto que aparece en dos sitios— y
+además se espera a que la fila exista en la base de datos antes de continuar.
+Una comprobación que siempre pasa es peor que no tenerla: da confianza sin
+respaldarla.
+
+### Lo que enseñó el contraste
+
+Que una spec escrita con cuidado y unos mockups describen **casi** lo mismo, y
+que el "casi" está en la forma, no en el color. La paleta, los radios de tarjeta
+y los grises estaban bien desde F0.2 porque eran datos concretos en AGENTS.md.
+Lo que se desvió fue todo aquello que hubo que imaginar: cuánto ocupa un botón,
+qué proporción tiene una foto, si una tarjeta lleva borde. Construir tres fases
+sobre la spec escrita no fue tiempo perdido —el ajuste ha sido una tarde—, pero
+las diferencias estaban justo donde no había número al que agarrarse.
+
+---
+
+## 2026-09-18 — F1.6: cierre del MVP social
+
+### Repaso de calidad
+
+- **Lint configurado y limpio.** `expo lint` nunca se había ejecutado: no había
+  configuración de ESLint. Al activarlo salieron **6 errores, todos de la misma
+  regla**: `react-hooks/set-state-in-effect`. No eran fallos de comportamiento
+  —todo funcionaba y estaba verificado— pero con React Compiler activado, llamar
+  a `setState` de forma síncrona dentro de un efecto provoca renders en cascada.
+  Se arreglaron **derivando** en lugar de sincronizar: el estado cargado se
+  guarda junto a la clave a la que pertenece (id de usuario, `(lector, modo)`,
+  nombre de usuario, id de publicación) y lo visible se calcula comparando. Al
+  cambiar la clave, lo viejo deja de coincidir y desaparece solo, sin efecto de
+  limpieza. De propina, los cargadores pasaron a ser funciones puras que
+  devuelven datos, con el `setState` en el callback de la promesa.
+- **Bug real encontrado por el recorrido E2E: no se podía cerrar sesión.** El
+  menú del perfil se veía, pero el clic no llegaba: el elemento en esas
+  coordenadas era la fila de contadores, que quedaba por encima en el orden de
+  pintado pese al `zIndex`. Un usuario tampoco habría podido pulsarlo. Se
+  cambió por un `Modal`, que además evita el otro problema del mismo patrón: en
+  Android, un hijo posicionado fuera de los límites de su padre no recibe
+  toques. Lo encontró `elementFromPoint`, no la vista.
+- **El feed "Para ti" muestra todo el proyecto**, incluidas las cuentas reales.
+  El primer recorrido E2E falló porque la cuenta sembrada se llamaba igual que
+  una cuenta real del proyecto y el test acabó pulsando la equivocada. El script
+  se endureció: nombres distintivos, navegación por URL en vez de "el primero
+  que salga", y contenido con marca de ejecución. **Una prueba que asume una
+  base de datos vacía no vale para un proyecto que ya está en uso.**
+- **Las aserciones esperan.** El ayudante de comprobación miraba si algo estaba
+  visible en ese instante, lo que convertía cualquier consulta lenta en un falso
+  fallo. Ahora espera hasta 15 segundos. La comprobación instantánea se reservó
+  para afirmar que algo **no** está.
+
+### Stubs que quedan conscientemente para F2
+
+Nada huérfano: todo lo que no hace algo, avisa de que no lo hace.
+
+| Stub | Dónde | Llega en |
+| ---- | ----- | -------- |
+| Comentarios | detalle de publicación (sitio reservado) y contador a 0 en la tarjeta | Después de F2 |
+| Buscar | pestaña Buscar: barra y chips sin función, con aviso | F2.2 |
+| Mapa | pestaña Mapa: leyenda de categorías y aviso | F2.3 |
+| Toque en etiqueta | tarjeta del feed: avisa de que la búsqueda llega en F2 | F2.2 |
+| Puntos OVENG y huella | tarjetas del perfil, con valores por props | F2.4 |
+| Guardados | pestaña interna del perfil | Sin fecha |
+| Notificaciones | campana de la cabecera de Inicio | Sin fecha |
+| Nueva contraseña | el email de recuperación se envía; falta la pantalla que lo recoge | Sin fecha |
+
+### Herramienta de limpieza
+
+`scripts/cleanup-test-users.mjs` borra las cuentas `@ovengtest.dev` que dejan
+los scripts de verificación. Tres decisiones deliberadas:
+
+1. **La `service_role` se lee solo del shell.** Salta RLS: con ella se puede
+   borrar cualquier cosa del proyecto. No va en `.env` —el script se niega a
+   funcionar si la encuentra ahí— ni en variables de GitHub, y por eso este
+   script es el único que **no** se ejecuta con `--env-file`.
+2. **El dominio está fijo en el código.** Si fuera un parámetro, una errata
+   podría llevarse por delante cuentas reales. Y hay cuentas reales: durante el
+   cierre se comprobó que el proyecto ya tiene uso, con publicaciones de verdad.
+3. **Simulacro por defecto.** Enumera lo que borraría; hace falta `--confirm`
+   para que borre.
+
+### Resumen de la fase
+
+Lo que ha marcado F1, mirando hacia atrás:
+
+- **Verificar de verdad cambia lo que se entrega.** De los fallos encontrados,
+  los que importaban no los vio el typecheck: el modal que no se cerraba, el
+  campo que no crecía en web, la etiqueta desalineada de la barra, el anillo de
+  foco negro, el menú que no se podía pulsar. Todos salieron de mirar capturas o
+  de recorrer la app en un navegador.
+- **Medir en vez de opinar sobre color.** Tres veces se cambió una decisión
+  estética por un número de contraste: el azul del agua, el ámbar del contador y
+  el color de texto de cada categoría. La paleta original no daba para todo lo
+  que se le pedía, y decirlo con datos permitió cambiarla sin discusión.
+- **Las decisiones de esquema fueron restar, no sumar.** Ni `account_type` ni
+  `category`: los dos huecos que parecían faltar se resolvieron reconociendo que
+  lo que faltaba era otra tabla (F2.1) o que los hashtags ya lo cubrían.
+- **Lo que sigue pendiente y no es deuda técnica sino trabajo por hacer:** los
+  mockups nunca llegaron, así que toda la estética sale de la spec escrita. F0.2c
+  sigue abierta para contrastar el theme cuando estén.
+
+---
+
+## 2026-09-18 — F1.5: feed de Inicio
+
+### La consulta del feed: select anidado, ni vista ni RPC
+
+Cada tarjeta necesita cuatro cosas —la publicación, su autor, cuántos "me
+gusta" tiene y si yo le he dado— y todas salen en **un solo viaje** con un
+`select` anidado de PostgREST:
+
+- `author:profiles!posts_author_id_fkey(...)` incrusta el perfil;
+- `likes_count:likes(count)` devuelve el agregado, no las filas — importante:
+  traerse todos los "me gusta" para contarlos en el cliente funciona con tres y
+  es insostenible con tres mil;
+- `my_like:likes(user_id)` con `.eq('my_like.user_id', …)` devuelve un array
+  vacío o con una fila.
+
+La parte que no era obvia: **filtrar un recurso incrustado no descarta la fila
+padre**. Se comprobó contra la base real antes de construir nada encima —una
+publicación sin "me gusta" del lector sigue apareciendo, con `my_like: []`—
+porque de ese detalle dependía todo el diseño.
+
+Se descartó una vista o una función: exigirían una migración, y en este proyecto
+las migraciones las aplica el autor a mano. Añadir fricción de despliegue para
+ahorrar una anidación no compensa. Si el feed crece —ranking, mezcla de
+fuentes—, el sitio natural pasa a ser un RPC.
+
+### Paginación
+
+- **Cursor sobre `created_at`, no `offset`.** Con offset, publicar algo mientras
+  alguien baja por el feed le repite una tarjeta.
+- **Limitación conocida:** si dos publicaciones compartieran `created_at` exacto,
+  el cursor podría saltarse una. En la práctica no ocurre —`timestamptz` guarda
+  microsegundos y las publicaciones las escriben personas—, pero sembrando datos
+  por script sí pasa: por eso el script de verificación inserta marcas de tiempo
+  explícitas y distintas. Si alguna vez importa, la solución es un cursor
+  compuesto `(created_at, id)`.
+- **"Siguiendo" son dos consultas, no una.** PostgREST no admite subconsultas, así
+  que primero se pide a quién sigo y luego se filtra con `.in('author_id', …)`.
+  La lista se recuerda entre páginas para que la segunda filtre por lo mismo que
+  la primera.
+
+### Lo demás
+
+- **El "me gusta" es optimista y lo gestiona la tarjeta.** Cambia al instante y
+  se revierte si el servidor falla, con un aviso. Se guarda en la tarjeta y no
+  en la lista porque así el detalle de publicación y el feed comparten el mismo
+  componente sin duplicar la lógica; al refrescar, manda el servidor.
+- **No hay `pull-to-refresh` en web**, así que la barra lleva un botón de
+  refrescar que solo aparece ahí. En nativo, `RefreshControl`.
+- **Las imágenes no llevan `loading="lazy"`.** No hace falta: `FlatList` solo
+  monta lo que cabe en pantalla y un poco más, así que una imagen que está a
+  veinte tarjetas de distancia ni siquiera existe en el DOM.
+- **Las etiquetas del texto se pueden pulsar y avisan de que aún no llevan a
+  ningún sitio.** La búsqueda por etiqueta es F2. Avisar es mejor que un
+  elemento que parece pulsable y no hace nada.
+- **Toast global.** `showToast()` lo dispara cualquiera y lo pinta un único
+  `<ToastHost />` en el layout raíz: así no se superponen dos avisos ni cada
+  pantalla lleva el suyo. Lo usan compartir, las etiquetas y los errores de
+  "me gusta".
+- **Compartir se bifurca por plataforma.** En nativo, la hoja de compartir del
+  sistema; en web, copiar el enlace al portapapeles y avisar. La URL se compone
+  con el origen real en web —así compartir desde local copia un enlace local— y
+  con la URL desplegada en nativo.
+- **Esqueletos sin animación.** Un parpadeo a pantalla completa marea más de lo
+  que informa; lo que hace falta es que el hueco tenga la forma de lo que va a
+  llegar para que nada salte al aparecer.
+- **El enganche de F1.4 ya tiene a alguien escuchando:** al publicar, el
+  compositor llama a `refreshFeed()` y el feed recarga su primera página. La
+  publicación nueva aparece arriba, verificado.
+
+---
+
+## 2026-09-18 — F1.4: composición de publicaciones
+
+### Decisión de diseño: `posts` no lleva `category`
+
+**La clasificación temática de una publicación son sus hashtags.** Libres, en
+las palabras de quien escribe, ya en el esquema desde F0.3. Las **categorías
+ambientales** estructuradas (aire, agua, suelo, biodiversidad, residuos) no son
+un campo del contenido social: pertenecen a las **entidades** y a las **capas
+del mapa** de F2, donde una lista cerrada sí tiene sentido porque alimenta
+filtros y leyendas.
+
+Un `category` obligatorio en cada publicación habría obligado a encajar a la
+fuerza contenido que no va de eso —una convocatoria, una foto de una jornada— y
+a inventar un valor "otros" que no clasifica nada. Anotado también en
+@docs/03_MODELO_DATOS.md, donde esto era una limitación y ahora es una decisión.
+
+### Etiquetas
+
+- **`\p{L}` con la bandera `u`, no `[a-z]`.** La expresión regular acepta
+  letras de cualquier alfabeto más marcas diacríticas, así que `#Reforestación`
+  se captura entera; `[a-z]` la habría partido en "reforestaci". Verificado con
+  el caso del encargo: `#Reforestación #GuineaEcuatorial` →
+  `['reforestación', 'guineaecuatorial']`.
+- **Se conservan las tildes.** "reforestación" y "reforestacion" son palabras
+  distintas, y quitar los acentos sería decidir por quien escribe. Solo se pasa
+  a minúsculas, se quita la almohadilla y se eliminan repeticiones.
+- **Se extraen del texto, no de un campo aparte.** Así no hay forma de que el
+  texto y las etiquetas se contradigan.
+- **Sin resaltado en verde dentro del campo.** Pintar parte del texto de un
+  `TextInput` obliga a superponer una capa de texto falso detrás de un input
+  transparente, y eso se desalinea en cuanto cambian el tamaño de fuente, el
+  salto de línea o la plataforma. En su lugo se muestran las etiquetas
+  detectadas como chips verdes debajo del campo: la misma información, en
+  tiempo real, sin pelearse con el input.
+
+### Lo demás
+
+- **Bug real encontrado por el test: el modal no se cerraba.** Tras publicar,
+  `router.replace('/')` cambiaba la ruta por debajo y dejaba el compositor
+  abierto encima. Lo correcto para una pantalla presentada como modal es
+  `router.dismissTo('/')`. Sin la comprobación de la ruta en el script habría
+  pasado desapercibido, porque el resto del recorrido seguía funcionando.
+- **El campo no crecía en web.** `onContentSizeChange` no informa del alto real
+  en react-native-web: medido, se quedaba en 140 px con cinco líneas dentro. Se
+  añadió una rama para web que suelta el alto, lee `scrollHeight` y lo vuelve a
+  fijar. En nativo sigue valiendo el evento.
+- **El amarillo de la paleta no sirve como color de texto.** El encargo pedía el
+  contador en gris → amarillo → rojo, pero `#FFC107` sobre blanco da 1.6:1. Se
+  añadió `warningText` (#A16207, 4.9:1): sigue leyéndose como amarillo y se lee.
+- **Se añadió un rojo que no estaba en la paleta.** `danger` (#C62828, 5.6:1)
+  para el contador cuando ya se ha pasado del límite. Es la primera vez que se
+  añade un color fuera de AGENTS.md, y se usa solo para lo que **ya está mal**,
+  nunca para lo que está a punto de estarlo. Conviene contrastarlo con los
+  mockups en F0.2c.
+- **La imagen se sube antes de crear la fila.** Si falla, no queda una
+  publicación de texto que el usuario creía que llevaba foto: se le ofrece
+  reintentar o publicar sin imagen, y decide.
+- **Código de imagen compartido.** Selección, reducción a JPEG y subida vivían
+  duplicados en el avatar de F1.3; ahora están en `src/lib/images.ts` y el
+  avatar (512 px, cuadrado, bucket `avatars`) y la publicación (1600 px, bucket
+  `post-images`) solo aportan sus diferencias.
+- **Anillo de foco negro, arrastrado desde F1.1.** Las capturas lo enseñaron en
+  el campo "Ubicación" de editar perfil y en el compositor. `outlineWidth: 0` no
+  vale: Chrome pinta `outline-style: auto`, que ignora el ancho. Hacía falta
+  `outline-style: none`, que React Native no tipa porque en nativo no existe.
+  Corregido en `src/theme/focus.ts` y aplicado al `TextField` entero, así que se
+  arregla también en todas las pantallas de auth. **Solo se quita donde hay otro
+  indicador de foco**: el `TextField` cambia borde y fondo al enfocarse.
+- **`refreshFeed()` listo para F1.5.** `src/hooks/use-feed.ts` no lee nada
+  todavía; existe para que el compositor tenga a quién avisar al publicar, en
+  vez de que F1.5 tenga que buscar dónde meter esa llamada.
+
+---
+
+## 2026-09-18 — F1.3: perfiles completos y seguimiento
+
+### Decisión de diseño: `profiles` son personas
+
+**No se añade `account_type`.** Quedaba pendiente desde F0.3 como la forma
+"obvia" de distinguir persona, empresa e iniciativa, y se descarta: `profiles`
+modela **personas**, y empresas e iniciativas serán **entidades propias con su
+propia tabla** en F2, con datos de ejemplo.
+
+El razonamiento: un enumerado en una columna solo sirve mientras los tres tipos
+compartan exactamente los mismos campos, y no los comparten. Una empresa tiene
+CIF, sector, certificaciones y alguien que la administra; una iniciativa tiene
+convocatorias, fechas y voluntariado; una persona tiene huella ecológica. Meter
+todo eso en `profiles` lleva a una tabla llena de columnas nulas donde cada
+consulta tiene que acordarse de filtrar por tipo, y a políticas de RLS que
+mezclan "soy yo" con "administro esta organización". Separar las tablas cuesta
+un join y ahorra esa deuda.
+
+`verified` se queda: sirve igual para marcar una cuenta comprobada.
+Documentado también en @docs/03_MODELO_DATOS.md, donde esto era una limitación
+y ahora es una decisión.
+
+### Lo demás
+
+- **Contadores con `head: true` y `count: 'exact'`.** Las tres consultas solo
+  traen el número, no las filas, y van en paralelo. Contar trayéndose las filas
+  habría funcionado con tres seguidores y sido insostenible con tres mil.
+- **Seguir es optimista pero no crédulo.** El botón y el contador cambian al
+  instante; cuando responde el servidor se vuelven a pedir los contadores reales
+  y, si falló, se revierte. Esperar a la red para mover un botón se nota mucho;
+  dejar el número inventado sin confirmar es peor.
+- **Seguir y dejar de seguir son idempotentes.** Un duplicado choca contra la
+  clave primaria compuesta (`23505`) y se trata como éxito, porque el estado
+  final es el que se pedía. Borrar lo que no existe tampoco es un error. Así un
+  doble toque no deja la interfaz en un estado imposible.
+- **El avatar se reduce antes de tocar la red.** Una foto de móvil son varios
+  megas y el bucket admite 2 MB: se reduce a 512 px por el lado mayor y se
+  recodifica a JPEG con `expo-image-manipulator`. En la verificación, un JPEG de
+  800×800 acabó pesando 7 KB.
+- **Nombre de archivo con marca de tiempo, no fijo.** Con una ruta estable como
+  `{uid}/avatar.jpg`, el navegador seguiría sirviendo la foto anterior desde su
+  caché después de cambiarla. Se sube `avatar-<ts>.jpg` y se borra la anterior
+  después — y solo si estaba en la carpeta del propio usuario.
+- **Base64 decodificado a mano.** `atob` no está garantizado en el motor de
+  JavaScript de React Native, y la alternativa habitual es añadir
+  `base64-arraybuffer`. Son quince líneas: no compensa una dependencia.
+- **Actualizar un perfil ajeno no da error, da cero filas.** RLS filtra en vez
+  de rechazar, así que un `update` sobre el perfil de otro "funciona" y no
+  cambia nada. `updateProfile` pide `.select()` y trata la respuesta vacía como
+  error explícito: si no, un fallo de permisos se vería como un guardado con
+  éxito.
+- **La pantalla de perfil se relee al enfocarse.** La edición ocurre en otra
+  pantalla; sin `useFocusEffect`, al volver se seguirían viendo los datos de
+  antes.
+- **Defecto encontrado en las capturas, no en el código:** los títulos de las dos
+  tarjetas de impacto ocupaban distinto número de líneas y dejaban "Excelente" y
+  "0" a distinta altura. Corregido fijando dos líneas de título. Es la segunda
+  vez que la revisión visual encuentra algo que el typecheck no ve.
+
+### Hueco conocido
+
+**No hay forma de llegar al perfil de otra cuenta desde la interfaz.** `/user/
+[username]` funciona escribiendo la URL, pero nada enlaza ahí todavía: Buscar es
+un placeholder hasta F2 y el feed, que enlazará autor → perfil, es F1.5. No se
+ha añadido un buscador por no invadir el alcance de otra tarea, pero conviene
+saberlo al probar la demo.
+
+---
+
+## 2026-09-18 — F1.2b: despliegue en GitHub Pages
+
+- **Subpath con `experiments.baseUrl`.** La app se sirve desde
+  `https://expeavomo15.github.io/oveng-envhealth/`, un subdirectorio, así que
+  todas las rutas absolutas de assets tienen que llevar ese prefijo.
+  `expo.experiments.baseUrl = "/oveng-envhealth"` lo resuelve de una vez: el
+  JS, el CSS y la fuente de Ionicons salen ya con el prefijo. **Está atado al
+  nombre del repositorio**: si se renombra, hay que tocarlo en `app.json` y en
+  el workflow. Anotado también en el README.
+- **Enlaces profundos: Pages resuelve casi todo solo.** Pages ya sirve
+  `mapa.html` cuando se pide `/mapa`, así que la mayoría de rutas funcionan sin
+  hacer nada. `public/404.html` cubre el resto: guarda la ruta pedida en la
+  query, vuelve a la raíz de la app, y un script en el `<head>`
+  (`src/app/+html.tsx`) la restaura con `history.replaceState` antes de que el
+  router lea la URL. Es el patrón habitual de SPA en Pages, partido en dos
+  mitades que tienen que ir a juego: si se cambia una, hay que cambiar la otra.
+- **Variables, no Secrets.** `EXPO_PUBLIC_SUPABASE_URL` y
+  `EXPO_PUBLIC_SUPABASE_ANON_KEY` van como *Variables* del repositorio. Acaban
+  incrustadas en el bundle que descarga cualquier visitante: no son secretas y
+  tratarlas como tales solo dificultaría verlas y editarlas. Lo que protege los
+  datos sigue siendo RLS. Si faltan, el workflow falla en el primer paso con las
+  instrucciones, en lugar de publicar una app que no conecta con nada.
+- **El smoke test existe por una cicatriz.** El workflow comprueba que la URL de
+  Supabase aparece dentro del bundle antes de publicar. Es exactamente el fallo
+  que se coló en la verificación de F1.1: Metro cachea el valor incrustado de
+  las variables `EXPO_PUBLIC_*` y se llegó a verificar un bundle que apuntaba a
+  un proyecto de prueba. Por eso el export lleva `--clear` **y** además se
+  comprueba el resultado: lo primero previene, lo segundo detecta.
+- **`.nojekyll`.** El export tiene una carpeta `_expo/`, y Jekyll ignora todo lo
+  que empieza por guion bajo. El despliegue por artefacto no pasa por Jekyll,
+  pero el fichero cuesta una línea y elimina una clase entera de fallo difícil
+  de diagnosticar.
+- **`verify:ui` ahora sirve como Pages.** El servidor de verificación monta
+  `dist/` bajo el mismo subpath y cae en `404.html` cuando no encuentra fichero,
+  con estado 404 real. Así el recorrido en navegador prueba de verdad lo que se
+  va a publicar, incluido el fallback. Verificar en la raíz habría dado un verde
+  que no significaba nada.
+- **Comprobado en producción, no solo en local.** Tras el primer despliegue con
+  éxito se verificó contra la URL real: la demo carga y renderiza, `/mapa` sin
+  sesión acaba en `/welcome` (el guard funciona igual servido desde Pages), una
+  ruta inexistente arranca la app en vez de mostrar el 404 de GitHub (el
+  fallback hace su trabajo), y el navegador alcanza Supabase. El bundle
+  publicado contiene la URL correcta del proyecto.
+- **El primer intento falló a propósito.** Se empujó antes de que existieran las
+  variables del repositorio y el workflow murió en 14 segundos en el paso de
+  comprobación, con las instrucciones en el log. Es exactamente el
+  comportamiento buscado: sin variables no se publica una app que no conecta con
+  nada.
+- **Aviso de hidratación de React (#418) en consola.** Es el desajuste esperado
+  entre el splash que renderiza el servidor y la ruta que pinta el cliente —
+  consecuencia del guard, ya documentada. No rompe nada y **no se toca el
+  guard**, según lo decidido.
+
+---
+
+## 2026-09-18 — Verificación de F1.1 y F1.2 contra el entorno real
+
+Ambas tareas quedaron cerradas tras verificarlas de verdad: la de auth contra el
+proyecto Supabase real y la de navegación en Chromium. Lo que se aprendió por el
+camino:
+
+- **La Project URL traía `/rest/v1/` pegado.** El valor copiado del dashboard era
+  `https://<ref>.supabase.co/rest/v1/`, que es el endpoint REST, no la URL del
+  proyecto. supabase-js añade `/rest/v1` por su cuenta, así que todas las
+  peticiones habrían ido a `/rest/v1/rest/v1/…`. Se corrigió en el `.env`. Si
+  alguien vuelve a montar el entorno: la variable es la URL **base**.
+- **"Confirm email" estaba activado y agotó el límite de correos.** Cada alta
+  mandaba un email de confirmación y el SMTP integrado del plan gratuito permite
+  muy pocos por hora: al tercer intento, `email rate limit exceeded`. Se
+  desactivó en Authentication → Sign In / Providers → Email. Consecuencia para la
+  demo: el registro devuelve sesión al instante, que es lo que describe F1.1.
+  **Si algún día se reactiva**, hay que dar de alta un SMTP propio o el registro
+  será inusable, y la pantalla de "Revisa tu correo" de `register.tsx` vuelve a
+  ser el camino normal (ya está implementada).
+- **Supabase rechaza `@example.com`.** Devuelve "Email address is invalid": es un
+  dominio reservado y está en su lista negra. Los scripts de verificación prueban
+  varios dominios hasta dar con uno aceptado (`ovengtest.dev` funciona).
+- **Metro cachea el valor incrustado de las variables `EXPO_PUBLIC_*`.** El
+  primer recorrido en navegador falló con `ERR_NAME_NOT_RESOLVED` porque el
+  bundle seguía llevando dentro la URL de prueba (`example.supabase.co`) de una
+  build anterior, pese a que el `.env` ya era correcto. Por eso
+  `scripts/verify-ui.mjs` construye **siempre con `--clear`** y además comprueba
+  que la URL del `.env` aparece dentro del bundle antes de dar nada por bueno.
+  Sin esa comprobación se verifica un artefacto rancio y el resultado no vale
+  nada.
+- **Chromium sin permisos de root.** Faltaban `libnspr4`, `libnss3` y
+  `libasound2t64`, y `sudo` pide contraseña interactiva que el agente no puede
+  dar. Se resolvió con `apt-get download` (no necesita root), extrayendo los
+  `.deb` en `~/.local/chromium-deps` y añadiendo esa ruta al `LD_LIBRARY_PATH`
+  del proceso del navegador (`scripts/lib/browser.mjs`). En una máquina con las
+  librerías del sistema, esa carpeta no existe y el helper no hace nada.
+- **La etiqueta "Crear" estaba desalineada.** Se vio en las capturas, no en el
+  código: la fila de la barra alineaba al centro y el botón de crear es mucho más
+  alto que una pestaña, así que su etiqueta caía unos 25 px por debajo de las
+  otras cuatro. Ahora la fila alinea por la base (`alignItems: 'flex-end'`) y
+  todas las celdas comparten el mismo hueco inferior. Es exactamente el tipo de
+  fallo que no aparece en un typecheck.
+- **El export estático no renderiza contenido, y se deja así.** Todas las páginas
+  salen con el `<div id="root">` vacío y la app se pinta al hidratar, porque en
+  el render del servidor no hay `localStorage`, la sesión nunca está resuelta y
+  el layout raíz devuelve el splash. **Decisión: no se toca el guard.** Para una
+  demo tras login no aporta nada y el guard actual es el que garantiza que no se
+  vea ni un instante la pantalla equivocada. Los enlaces profundos funcionan
+  igual: cada ruta tiene su HTML y el router del cliente toma el control, cosa
+  que se comprobó recargando en `/mapa`. Solo habría que replantearlo si alguna
+  vez importa el SEO de las páginas públicas.
+- **Herramientas nuevas:** `npm run verify:auth` (ciclo de auth sin navegador) y
+  `npm run verify:ui` (recorrido en Chromium con capturas en
+  `docs/verificacion/f1/`). Playwright entra como dependencia de desarrollo.
+
+---
+
+## 2026-09-18 — F1.2: navegación principal con tabs
+
+- **Los mockups siguen sin estar.** `docs/design/` solo contiene el README de
+  F0.1. Es la tercera tarea seguida cuya estética sale de la spec escrita y de
+  los tokens, no de los mockups. Todo lo visual de F1.2 queda pendiente de
+  contraste cuando se suban.
+- **Iconos: `@expo/vector-icons` (Ionicons).** Hacía falta un juego con pareja
+  relleno/contorno para el estado activo e inactivo, y no había ninguna librería
+  de iconos ni `react-native-svg` en el proyecto. Ionicons trae exactamente esas
+  parejas (`home`/`home-outline`, `search`, `location`, `person`) y es el
+  paquete estándar de Expo. La alternativa —dibujar cinco iconos a mano con
+  vistas— habría dado una casa y un pin mediocres que además habría que tirar al
+  llegar los mockups. Coste: la fuente Ionicons se empaqueta en la build web.
+- **La barra no usa el estado de react-navigation.** En vez de leer `state`,
+  `descriptors` y emitir `tabPress`, la pestaña activa se deduce con
+  `usePathname()` y se navega con el router de expo-router. Es bastante menos
+  código, está tipado con las rutas tipadas y se comporta igual en web y nativo.
+  Lo único que se pierde es el gesto de "pulsar la pestaña activa para volver
+  arriba", que tendrá sentido cuando haya feed (F1.5).
+- **Crear es un modal a nivel de raíz, no una pestaña.** `src/app/crear.tsx`
+  cuelga del Stack raíz dentro del bloque protegido, con
+  `presentation: 'modal'`, así que se abre **sobre** las pestañas y la barra
+  sigue ahí debajo. Como pestaña habría sustituido la pantalla y habría que
+  inventar a dónde "vuelve" al cerrar.
+- **El botón que sobresale, sin recortes.** El contenedor de la barra es
+  transparente y 22 px más alto que la barra visible; la superficie blanca va
+  posicionada en absoluto ocupando solo la parte de abajo. Así el círculo asoma
+  dentro de los límites del propio componente y ningún ancestro con
+  `overflow: hidden` puede cortarlo. Lleva además un aro blanco de 4 px que lo
+  separa del borde de la barra.
+- **Barra con ancho máximo.** En pantalla ancha la fila de pestañas se limita a
+  los mismos 640 px que el contenido (`maxContentWidth`): estirada de lado a
+  lado en un monitor quedaban cinco iconos perdidos en la distancia.
+- **Token tipográfico nuevo: `micro` (11/14).** Las etiquetas de la barra no
+  caben en `label` (13). Se añadió al design system en vez de meter un
+  `fontSize` suelto en la barra.
+- **`Logo` gana la variante `inline`** (símbolo + nombre en horizontal) para la
+  cabecera de Inicio, junto a las que ya tenía.
+- **Hallazgo para F1.2b: el export estático ya no renderiza contenido.** Todas
+  las páginas salen con el `<div id="root">` vacío y el contenido aparece al
+  hidratar. No es un fallo de F1.2: lo causa el guard de F1.1, porque en el
+  render del servidor no hay `localStorage`, la sesión nunca está resuelta y el
+  layout raíz devuelve siempre el splash. Los enlaces profundos siguen
+  funcionando —cada ruta tiene su propio HTML que arranca la app—, pero no hay
+  nada indexable ni primer pintado con contenido. Antes de F1.1 sí se renderizaba
+  (la pantalla de design system salía completa en el HTML). Si el SEO importa
+  para la demo, lo que hay que hacer es que las rutas públicas de `(auth)` se
+  rendericen sin esperar a la sesión. Decisión para F1.2b.
+- **Verificación de la tarea:** `tsc --noEmit` limpio y `expo export --platform
+  web` genera las 12 rutas, con la fuente de Ionicons empaquetada. **No se ha
+  podido comprobar lo visual**: no hay navegador en este entorno y, aunque lo
+  hubiera, la barra solo aparece con sesión iniciada. La pasada visual —barra
+  idéntica a los mockups, navegación entre secciones, modal que abre y cierra,
+  logout, refresco manteniendo ruta— la tiene que hacer el autor con
+  `npm run web`.
+
+---
+
+## 2026-09-18 — F1.1: flujo de autenticación
+
+- **El trigger de 001 ya leía los metadatos: no hace falta migración 003.**
+  `handle_new_user` toma `username` y `display_name` de `raw_user_meta_data`,
+  que es exactamente donde `signUp({ options: { data } })` los deja. Comprobado
+  antes de escribir nada.
+- **Guard con `Stack.Protected`, no con redirecciones.** expo-router 57 permite
+  sacar del árbol el grupo que no toca (`guard={session === null}`), así que sin
+  sesión la zona privada literalmente no existe como ruta. Con el patrón clásico
+  de `useEffect` + `router.replace` siempre hay un instante en que se pinta la
+  pantalla equivocada antes de saltar. Además `(auth)/_layout.tsx` fija
+  `unstable_settings.anchor = 'welcome'` para que esa sea la puerta de entrada.
+- **Las pantallas no navegan tras iniciar o cerrar sesión.** Cambian el estado y
+  ya está: el guard reacciona solo. Navegar a mano además del guard es la receta
+  para las dobles navegaciones.
+- **Dos éxitos distintos en el registro.** Con "Confirm email" activado en
+  Supabase, `signUp` devuelve usuario pero **no** sesión, y el usuario no puede
+  entrar hasta abrir su correo. Por eso `signUp` devuelve
+  `'session' | 'confirm-email' | 'error'` en vez de un booleano: la pantalla
+  enseña una cosa u otra. Si no se distinguiera, el registro parecería colgado.
+- **Email ya registrado, con confirmación activada, no llega como error.** Para
+  no delatar qué direcciones existen, Supabase responde con un usuario cuya
+  lista de `identities` está vacía. Se detecta explícitamente y se traduce a
+  "ya existe una cuenta con ese email".
+- **"Database error saving new user" se traduce apuntando al username.** Es el
+  error genérico que devuelve Supabase cuando el trigger falla, y en este
+  esquema la causa casi segura es el `unique` de `username`. Dejarlo en crudo
+  sería incomprensible para quien se registra.
+- **Nada de `await` dentro de `onAuthStateChange`.** supabase-js advierte de que
+  llamar a sus funciones async dentro de ese callback puede bloquear el cliente.
+  El callback solo guarda la sesión; el perfil se carga en un efecto aparte
+  disparado por el id de usuario.
+- **Contador de petición en la comprobación de username.** Con debounce de
+  450 ms sigue siendo posible que la respuesta de un nombre anterior llegue
+  después que la del actual y lo pise. Un contador descarta las respuestas
+  viejas. La comprobación es optimista de todas formas: entre consultar y
+  registrarse alguien puede quedarse el nombre, y ahí manda el trigger.
+- **`startAutoRefresh`/`stopAutoRefresh` según el AppState (solo nativo).** Era
+  el cabo suelto que dejó F0.3. Sin esto, supabase-js intenta refrescar el token
+  con la app dormida.
+- **Botón píldora y pantallas en blanco.** La estética indicada para auth (fondo
+  blanco, botón primario píldora) obligó a tocar el design system: `Button` pasa
+  de `radius.md` a `radius.full` —para todas las variantes, por coherencia— y
+  `Screen` acepta `background="surface"`, `avoidKeyboard` y `center`.
+- **Componentes nuevos del design system:** `TextField` (con mostrar/ocultar
+  contraseña, estado de error y ayuda) y `Callout` (mensaje destacado). El
+  `Callout` de error usa el **amarillo** de aviso, no rojo: no hay rojo en la
+  paleta, y el mensaje siempre acompaña al campo que falla, así que no depende
+  del color para entenderse.
+- **La pantalla del design system se movió a `/design-system`** dentro de
+  `(tabs)`. Antes vivía en `/`, que ahora es la zona con sesión: dos rutas no
+  pueden ocupar `/`. Se conserva porque sigue siendo la referencia visual.
+- **Logo dibujado con vistas, sin SVG.** No hay assets de marca todavía y la
+  pantalla de bienvenida sin identidad no tiene sentido. Se sustituye cuando
+  lleguen los mockups.
+- **No hay pantalla de nueva contraseña.** F1.1 pedía "envío de email de reset
+  con feedback claro" y eso es lo que hay. Completar el cambio requiere una
+  pantalla que recoja el enlace y llame a `updateUser`, más dar de alta esa URL
+  en Supabase → Authentication → URL Configuration. Queda anotado para F1.6.
+- **Sin mockups otra vez.** `docs/design/` sigue teniendo solo el README: la
+  estética de estas pantallas sale de las indicaciones del encargo y de los
+  tokens de F0.2. Hay que contrastarlas cuando se suban los mockups.
+
+---
+
+## 2026-09-18 — F0.3: esquema de Supabase y cliente
+
+- **La sesión no cabe en SecureStore, así que se trocea.** `expo-secure-store`
+  limita cada valor a 2048 bytes y una sesión de Supabase (access token +
+  refresh token + usuario) ronda los 3–4 KB. La guía oficial de Supabase
+  resuelve esto cifrando la sesión con AES y guardándola en AsyncStorage,
+  dejando solo la clave en SecureStore. Se descartó: añade tres dependencias
+  (`aes-js`, `react-native-get-random-values`, `async-storage`) y saca el
+  contenido del almacén seguro. En su lugar, `src/lib/session-storage.ts`
+  reparte el valor en entradas de 600 unidades UTF-16 (1800 bytes en el peor
+  caso) y guarda una cabecera con el número de trozos. La cabecera se escribe
+  **la última**: si la escritura se corta, no hay cabecera, la sesión se
+  descarta y el usuario vuelve a entrar — nunca se recompone media sesión.
+- **Lectura pública de verdad, incluido el rol `anon`.** La web es visitable sin
+  cuenta, así que perfiles y publicaciones los lee cualquiera. Es decisión de
+  producto: en el MVP no hay contenido privado. Si algún día lo hay, la política
+  de SELECT es el sitio donde se nota.
+- **Sin política de UPDATE en `follows` ni en `likes`.** Esas filas no tienen
+  nada que actualizar: se crean o se borran. Al no haber política, RLS deniega,
+  que es justo el comportamiento correcto — es una omisión deliberada, no un
+  olvido.
+- **`(select auth.uid())` en vez de `auth.uid()`.** Envuelto en un select,
+  Postgres lo evalúa una vez por consulta en lugar de una por fila. Con
+  paginación de feed la diferencia se nota, y no cuesta nada escribirlo así
+  desde el principio.
+- **El registro falla entero si el username está cogido.** El trigger no inventa
+  un username alternativo: prefiere que el registro falle y que la app pida otro
+  a que la cuenta acabe con un nombre que nadie eligió. F1.1 tiene que tratar
+  ese error.
+- **Color de las categorías ambientales, medido.** El encargo era: aire azul,
+  agua "variante de azul", suelo amarillo, biodiversidad verde, residuos gris,
+  ajustando las variantes para que se distingan. Al medirlo salieron dos cosas:
+  1. La idea inicial de usar fondos suaves no sirve. El tinte claro de `aire`
+     (#E1F6F9) y el de `agua` (#E1EFF7) son prácticamente el mismo color: dos
+     categorías indistinguibles. Por eso los chips de categoría van con relleno
+     **sólido** y no se ofrece un token de tinte por categoría.
+  2. `agua` se fijó en **#0277BD** (azul oscuro de la misma familia Material que
+     el resto de la paleta). Frente al cian de `aire` no solo cambia el tono,
+     cambia la luminancia — se distinguen también en gris y con daltonismo, que
+     es lo que el tono por sí solo no garantiza.
+  El color del texto se eligió midiendo el contraste de cada combinación: sale
+  oscuro sobre aire (6.9:1) y suelo (10.1:1), y blanco sobre agua (4.8:1),
+  biodiversidad (5.1:1) y residuos (6.2:1). Los cinco pasan AA. Eso obligó a
+  generalizar la regla de F0.2: no es "azul y amarillo siempre llevan texto
+  oscuro", es "el color del texto se decide por la luminancia del relleno".
+- **La categoría nunca se indica solo con color.** Un punto del color de `aire`
+  sobre la superficie da 2.2:1, por debajo del 3:1 que pide WCAG para un gráfico
+  con significado. Siempre acompañado de su etiqueta de texto.
+- **Tipos escritos a mano, con instrucciones para regenerarlos.** F0.3 no
+  depende de tener el CLI configurado, pero la fuente de verdad es la base de
+  datos: `supabase gen types typescript` manda sobre lo escrito a mano y el
+  comando está documentado en el propio archivo y en 03_MODELO_DATOS.md.
+- **Migraciones con prefijo `001_`/`002_` y aplicación manual.** El nombre lo
+  fijó el encargo. Tiene una consecuencia real: `supabase db push` exige nombres
+  con marca de tiempo y **rechaza** estos prefijos, así que el camino con menos
+  fricción es el SQL Editor del dashboard — que además evita instalar el CLI y
+  enlazar el proyecto. Si algún día se quiere llevar con el CLI, hay que
+  renombrar los archivos. Anotado en 03_MODELO_DATOS.md.
+- **Cada migración va en `begin; … commit;`.** Aplicándolas a mano en un editor,
+  un fallo a media migración dejaría el esquema en un estado intermedio difícil
+  de diagnosticar. Así, o entra todo o no entra nada.
+- **`flowType: 'pkce'`.** Es el flujo recomendado para clientes públicos como una
+  app móvil; el valor por defecto de supabase-js no lo es.
+- **Verificación de la tarea:** `tsc --noEmit` limpio y `expo export --platform
+  web` correcto. Además se comprobó aparte que `src/lib/supabase.ts` **empaqueta
+  de verdad** en la build web (route temporal + `.env` de prueba, ambos
+  borrados): supabase-js y `react-native-url-polyfill` entran sin romper el
+  render estático. El bundle pasa de 1.2 MB a 1.5 MB, dato a tener en cuenta en
+  F1.2b. Las migraciones **no** se ejecutaron: las aplica el autor.
+- **Tres huecos del esquema, anotados y no rellenados.** El encargo fijaba las
+  columnas de cada tabla y no se añadieron otras por cuenta propia: falta
+  `account_type` en `profiles` (lo necesita F1.3), falta `category` en `posts`
+  (lo necesitan F1.4 y F2, y por eso el enumerado de categorías vive de momento
+  solo en el código) y `verified` hoy lo puede cambiar su propio dueño desde la
+  app. Están en las limitaciones de 03_MODELO_DATOS.md con la fase a la que
+  afectan.
+
+---
+
+## 2026-09-18 — F0.2: app Expo y design system
+
+- **Expo SDK 57** (React Native 0.86, React 19.2, TypeScript 6) desde la
+  plantilla `default` de `create-expo-app`, que ya trae expo-router, el layout
+  `src/` con alias `@/` y `web.output: "static"` — justo lo que necesita el
+  deploy de F1.2b. Se conservan los experimentos que trae activados:
+  `typedRoutes` y `reactCompiler`.
+- **Plantilla limpiada.** Se borraron las pantallas y componentes de ejemplo y,
+  con ellos, las dependencias que solo usaba la demo: `@expo/ui`,
+  `expo-glass-effect`, `expo-symbols`, `expo-device` y `expo-web-browser`. Se
+  mantienen `expo-image`, `expo-font`, `reanimated` y `gesture-handler` porque
+  los van a necesitar el feed y la navegación.
+- **Solo modo claro** (`userInterfaceStyle: "light"`). La paleta de AGENTS.md es
+  una paleta clara y no hay mockup oscuro: inventar un tema oscuro sería
+  inventar doce colores que nadie ha aprobado. Cuando haya mockup en oscuro, los
+  tokens ya están centralizados en `src/theme/colors.ts` y el cambio es local.
+- **Tokens semánticos, no hex sueltos.** `colors.accent`, no `#2E7D32`. Los
+  valores de la paleta viven en un objeto privado de `colors.ts` y la UI solo ve
+  nombres con significado; así un retoque de marca no obliga a buscar hex por
+  todo el código.
+- **Azul y amarillo no son colores de texto.** Medido: `#02B8D1` sobre blanco da
+  2.4:1 y blanco sobre `#02B8D1` también 2.4:1 — ambos fallan el mínimo AA de
+  4.5:1. El verde `#2E7D32` sobre blanco da 5.1:1 y sí sirve como texto. Por eso
+  azul y amarillo quedan como rellenos que siempre llevan texto oscuro encima, y
+  se añadieron tokens de tinte (`accentTint`, `infoTint`, `warningTint`) para
+  fondos de badge legibles. Está documentado en la cabecera de `colors.ts`.
+- **El mapeo categoría ambiental → tono se aplaza a F0.3.** Hay 4 colores de
+  acento en la paleta y al menos 5 categorías (aire, agua, suelo,
+  biodiversidad, residuos), así que el mapeo no es uno a uno y hace falta
+  decidirlo con los mockups y con el enumerado real del modelo de datos.
+  `Badge` solo conoce tonos (`accent`, `info`, `warning`, `neutral`), no
+  dominio.
+- **Tipografía del sistema.** Sin fuente de marca en los mockups todavía, se usa
+  la del sistema en cada plataforma: legible y sin coste de carga. El cambio
+  futuro es un archivo (`typography.ts`) más `global.css`.
+- **`src/types/globals.d.ts` commiteado.** Expo genera `expo-env.d.ts` en la
+  raíz al arrancar el bundler, pero ese archivo está en `.gitignore`; sin una
+  referencia propia a `expo/types`, `npm run typecheck` falla en un clon limpio
+  y en CI. El archivo solo contiene esa referencia.
+- **`src/app/+html.tsx`.** El export estático no generaba ni `<title>` ni
+  `lang`, y el fondo salía blanco antes de montar la app. El documento raíz fija
+  idioma, viewport, descripción, título y el color de fondo del design system.
+  Es trabajo que F1.2b habría necesitado igualmente.
+- **Verificación de la tarea:** `npx tsc --noEmit` limpio y
+  `npx expo export --platform web` completo, con las 3 rutas renderizadas en
+  estático. No hay navegador headless en el entorno, así que la revisión visual
+  la hace el autor con `npm run web`.
+- **Iconos y splash siguen siendo los placeholder de Expo.** Se sustituyen
+  cuando haya assets de marca; el `app.json` ya usa la paleta para los fondos.
+- **Aviso pendiente:** este design system deriva de la paleta de AGENTS.md, no
+  de los mockups, porque `docs/design/` seguía vacío al ejecutar la tarea. Al
+  subirlos hay que contrastar tipografía, densidad y sombras antes de construir
+  pantallas sobre él.
+
+---
+
+## 2026-09-18 — F0.1: fundación del repositorio
+
+- **AGENTS.md como fuente única de verdad.** `CLAUDE.md` contiene únicamente
+  `@AGENTS.md`, de modo que cualquier agente (Claude Code u otro) lee las mismas
+  reglas y no hay dos documentos que se desincronicen.
+- **Docs vivos en `docs/`.** `plan.md` es el estado real del proyecto y
+  `notas.md` la memoria de decisiones; se actualizan en el mismo commit que el
+  trabajo que documentan.
+- **Idioma mixto deliberado.** Dominio y documentación en español (publicación,
+  iniciativa, huella, valoración) porque el producto y sus usuarios son
+  hispanohablantes; código, nombres de tablas y plumbing en inglés para no
+  pelearse con el ecosistema.
+- **Trunk-based en `main`.** El proyecto es de un solo desarrollador con
+  agentes: ramas y PRs añadirían ceremonia sin revisión real. Un commit por
+  tarea del plan y push inmediato mantienen el historial legible y el respaldo
+  al día.
+- **Deploy web sobre GitHub Pages.** El export estático de Expo se sirve como
+  sitio estático sin coste ni servidor propio; suficiente para una demo y sin
+  bloquear un despliegue nativo posterior.
+- **`docs/design/` vacío por ahora.** Los dos mockups oficiales los sube el
+  autor del proyecto; hasta entonces ninguna pantalla debe inventar estética
+  fuera de la paleta fijada en AGENTS.md.
+- **Repositorio privado.** Decisión del autor. Implicación para **F1.2b**:
+  GitHub Pages solo publica desde repositorios privados con plan GitHub Pro o
+  superior; si la cuenta está en el plan gratuito, al llegar a esa tarea hay
+  que elegir entre hacer el repo público, contratar Pro o desplegar la web en
+  otro sitio estático. Queda decidido en F1.2b, no antes.
+- **Sin dependencias en F0.1.** Esta fase es solo estructura y documentación;
+  el scaffold de Expo entra en F0.2 para que el primer commit sea revisable de
+  un vistazo.
