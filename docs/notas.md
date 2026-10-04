@@ -12,7 +12,7 @@ importa con `@`**.
 
 ## Decisiones vigentes
 
-Una línea cada una; el porqué, enlazado.
+El porqué de cada una, enlazado.
 
 ### Modelo de datos
 
