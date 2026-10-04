@@ -21,7 +21,15 @@ import { withRatingsOf } from './entities';
  * no está en la zona, que es lo que la palabra promete.
  */
 
-export type ZoneId = 'guinea-ecuatorial' | 'malaga';
+export type ZoneId = 'guinea-ecuatorial' | 'malaga' | 'mi-ubicacion';
+
+/**
+ * "Usar mi ubicación" (F4.2). No es un recuadro fijo: su punto lo da el
+ * navegador, solo con permiso, y **no se guarda** —se guarda la elección, no
+ * las coordenadas—. Ver src/lib/geolocation.ts.
+ */
+export const MY_LOCATION: ZoneId = 'mi-ubicacion';
+export const MY_LOCATION_NAME = 'Tu ubicación';
 
 export type Zone = {
   id: ZoneId;
@@ -55,8 +63,14 @@ export const zones: Zone[] = [
 
 export const DEFAULT_ZONE: ZoneId = 'guinea-ecuatorial';
 
+/** Zona por identificador; lo desconocido —y "mi ubicación"— cae en la de por defecto. */
 export function zoneById(id: string | null | undefined): Zone {
   return zones.find((zone) => zone.id === id) ?? zones[0]!;
+}
+
+/** Un identificador guardado que se puede restaurar tal cual. */
+export function isZoneId(id: string | null | undefined): id is ZoneId {
+  return id === MY_LOCATION || zones.some((zone) => zone.id === id);
 }
 
 export type ZoneData = {
@@ -102,7 +116,30 @@ export type ZoneData = {
  * (`agua`) y el destacado sale "Río limpio, vida sana", que es una limpieza de
  * ese río.
  */
-export async function loadZoneData(zoneId: ZoneId): Promise<ZoneData> {
+export async function loadZoneData(zoneId: ZoneId, here?: { lat: number; lng: number }): Promise<ZoneData> {
+  /*
+   * Mi ubicación: solo el aire en vivo de ese punto. No hay lugar de
+   * referencia ni destacado que buscar —las catorce entidades están en dos
+   * regiones— y la tarjeta no finge tenerlos.
+   */
+  if (zoneId === MY_LOCATION) {
+    if (!here) throw new Error('Mi ubicación sin coordenadas');
+    return {
+      zone: {
+        id: MY_LOCATION,
+        name: MY_LOCATION_NAME,
+        bbox: { lat: [here.lat, here.lat], lng: [here.lng, here.lng] },
+        center: here,
+      },
+      reference: null,
+      air: null,
+      airCoords: here,
+      airPlace: MY_LOCATION_NAME,
+      secondary: [],
+      featured: null,
+    };
+  }
+
   const zone = zoneById(zoneId);
 
   const { data: entities, error } = await supabase

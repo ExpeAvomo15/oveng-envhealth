@@ -135,7 +135,8 @@ necesita proveedor propio. El razonamiento completo y los límites están en el
 ### Aire en vivo: una API externa llamada desde el cliente
 
 Desde F4.1 la app habla con un segundo servicio además de Supabase:
-**Open-Meteo Air Quality** (modelo CAMS de Copernicus). Sin clave y con CORS
+**Open-Meteo**, para el aire (modelo CAMS de Copernicus) y, desde F4.2, para
+buscar lugares del mundo por nombre. Sin clave y con CORS
 abierto, así que el navegador lo llama directamente, sin servidor propio
 —coherente con el resto de la arquitectura—. Una caché en memoria por celda de
 0,1° evita repetir llamadas al navegar, y si el servicio no responde la app cae
@@ -143,7 +144,7 @@ al dato curado de Supabase con su etiqueta: un servicio externo caído no rompe
 ninguna pantalla.
 
 Cuando entren fuentes con clave (OpenAQ, FIRMS), esa clave no puede ir en el
-bundle: llegan con el cron de F4.3. Ver @docs/08_DATOS_EN_VIVO.md.
+bundle: llegan con el cron de F4.5. Ver @docs/08_DATOS_EN_VIVO.md.
 
 ### Rutas públicas y privadas
 

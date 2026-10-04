@@ -24,7 +24,7 @@ export type LiveAirPanelProps = {
  * peor que enseñarlas juntas y nombradas.
  *
  * Aquí, que es el detalle, sí entran los µg/m³. El resto de métricas del perfil
- * no se tocan: siguen curadas y lo dicen (F4.2 ampliará fuentes).
+ * no se tocan: siguen curadas y lo dicen (F4.3 ampliará fuentes).
  */
 export function LiveAirPanel({ coords, reference }: LiveAirPanelProps) {
   const live = useLiveAir(coords);

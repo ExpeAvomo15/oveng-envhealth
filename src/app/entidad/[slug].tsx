@@ -386,7 +386,7 @@ export default function EntityScreen() {
             */}
             <Text variant="subtitle">Estado por capa</Text>
             <CategoryReadings readings={grouped.categories} />
-            {/* Curado: no es dato vivo y lo dice (F4.2 ampliará fuentes). */}
+            {/* Curado: no es dato vivo y lo dice (F4.3 ampliará fuentes). */}
             <ProvenanceLine kind="reference" />
           </View>
         ) : null}

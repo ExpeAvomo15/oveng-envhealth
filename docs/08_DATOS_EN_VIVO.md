@@ -60,7 +60,7 @@ europeo 16 y PM2.5 de 3 µg/m³.
 
 **A cerrar antes de usarlo en serio:** el uso gratuito es **no comercial** y con
 límite de llamadas diarias, y los datos piden atribución. Hay que revisar las
-condiciones vigentes antes de cualquier uso comercial, y el cron de F4.3 sirve
+condiciones vigentes antes de cualquier uso comercial, y el cron de F4.5 sirve
 también para no gastar una llamada por visita.
 
 ### OpenAQ: estaciones de verdad
@@ -68,11 +68,11 @@ también para no gastar una llamada por visita.
 Una estación mide; un modelo estima. Donde haya una estación cerca, su dato
 gana. La API v3 **exige clave** (sin ella responde 401, comprobado), y la clave
 **no puede ir en el bundle** —sería pública—, así que OpenAQ entra con el
-servidor de F4.3, no antes.
+servidor de F4.5, no antes.
 
 **Cobertura en Guinea Ecuatorial: por medir.** Lo probable es que no haya
 ninguna estación y que allí todo sea Open-Meteo; en Málaga y Andalucía sí hay
-red oficial. Se mide al empezar F4.2, no se supone.
+red oficial. Se mide al empezar F4.4, no se supone.
 
 ### GBIF: biodiversidad, a evaluar
 
@@ -81,7 +81,7 @@ Comprobado: **162.964 observaciones** con país Guinea Ecuatorial, 28.545 desde
 honesto sale de ahí: un recuento de observaciones mide cuánta gente ha mirado,
 no cuánta vida hay, y convertirlo en un "8,7 de biodiversidad" sería inventar
 una escala. Cada conjunto de datos lleva su propia licencia, así que la
-atribución va por conjunto. Se evalúa en F4.2; puede acabar siendo "especies
+atribución va por conjunto. Se evalúa en F4.3; puede acabar siendo "especies
 observadas cerca" sin nota.
 
 ---
@@ -99,7 +99,7 @@ graph LR
     subgraph curado["Curado"]
         seed["seed de entidades<br/>entity_metrics"]
     end
-    cron["cron F4.3<br/>Railway"]
+    cron["cron F4.5<br/>Railway"]
     db[("Supabase<br/>lecturas + procedencia")]
     app["App"]
 
@@ -113,7 +113,7 @@ graph LR
 
 - **F4.1, sin servidor.** El cliente pide a Open-Meteo la coordenada que toca.
   Sin clave, sin migración, sin despliegue nuevo: por eso cabe en una sesión.
-- **F4.3, con servidor.** Un cron en **Railway** consulta las fuentes por
+- **F4.5, con servidor.** Un cron en **Railway** consulta las fuentes por
   horas, guarda cada lectura en Supabase con su procedencia y deja la app
   leyendo de su propia base. Tres cosas que el cliente solo no puede:
   esconder la clave de OpenAQ, **acumular histórico** —que es lo que desbloquea
@@ -133,7 +133,7 @@ Toda lectura guarda, además del valor, **de dónde sale y cómo se obtuvo**:
 | instante de la medición | no el de la consulta |
 | distancia | de la estación o del punto de rejilla al lugar pedido |
 
-Es una migración y la aplica una persona a mano; se diseña en F4.2, no en F4.1.
+Es una migración y la aplica una persona a mano; se diseña en F4.4.
 
 ---
 
@@ -167,7 +167,7 @@ F2.4 no dibujó una gráfica sin histórico. Esta etapa le pone nombre.
   ninguna parte se lee como decoración.
 - **Tu zona frente a la media, como mecánica compartible.** "El aire en tu zona
   está mejor que el 80 % de la región hoy" es una frase que se reenvía; un
-  "AQI 22" no. Es la materia de las tarjetas de F4.5.
+  "AQI 22" no. Es la materia de las tarjetas de F4.6.
 - **Una escala de índice, y la misma en todas partes.** Open-Meteo da US AQI y
   europeo, con tramos distintos. **Decidido en F4.1: el AQI europeo**, y la
   pantalla lo dice ("15 AQI europeo"). El 42 "Bueno" de los mockups es de otra
@@ -194,10 +194,11 @@ pareciendo una medición.
 | Fase | Qué | Tamaño |
 | ---- | --- | ------ |
 | **F4.1** pieza mínima ✅ | Open-Meteo en la tarjeta de zona del feed, en el mapa (centro del encuadre) y en el perfil de cada lugar, con la línea de procedencia. Sin servidor ni migración. Escala: AQI europeo. **Hecha el 2026-10-04.** | 1 sesión |
-| **F4.2** procedencia completa + OpenAQ | Modelo de lecturas con procedencia (migración), OpenAQ donde haya estación cerca, etiqueta del dato curado y evaluación de GBIF. | Fase |
-| **F4.3** cron en Railway | Lecturas horarias guardadas en Supabase: histórico, clave de OpenAQ fuera del cliente y sin depender del límite por visita. Desbloquea la gráfica de evolución. | Fase |
-| **F4.4** geolocalización opcional | "Tu zona" detectada si se concede el permiso, elegida si no. Trae el caso "me han dicho que no" y la imprecisión en escritorio. | Fase |
-| **F4.5** compartir con marca | Tarjetas, marca de agua y OG tags, con el dato y su procedencia dentro. Descrita en @docs/07_CRECIMIENTO.md. | Fase |
+| **F4.2** mapa mundial ✅ | Búsqueda de lugares del mundo (Open-Meteo Geocoding) junto a las entidades, y "Mi ubicación" solo con permiso, en el mapa y en el feed. **Hecha el 2026-10-04.** | 1 sesión |
+| **F4.3** dato vivo por categoría | Suelo y biodiversidad en vivo en la tarjeta del mapa, agua honestamente ausente, cada término explicado en lenguaje llano (más recuperar contraseña). | Siguiente |
+| **F4.4** procedencia completa + OpenAQ | Modelo de lecturas con procedencia (migración), OpenAQ donde haya estación cerca, etiqueta del dato curado. | Fase |
+| **F4.5** cron en Railway | Lecturas horarias guardadas en Supabase: histórico, clave de OpenAQ fuera del cliente y sin depender del límite por visita. Desbloquea la gráfica de evolución. | Fase |
+| **F4.6** compartir con marca | Tarjetas, marca de agua y OG tags, con el dato y su procedencia dentro. Descrita en @docs/07_CRECIMIENTO.md. | Fase |
 
 ### F4.1, cómo quedó
 
@@ -227,6 +228,27 @@ pareciendo una medición.
 - **Verificación:** `npm run verify:f41`, incluido el caso de la API bloqueada.
   Capturas en `docs/verificacion/f41/`.
 
+### F4.2, cómo quedó
+
+- **El mapa busca el mundo.** El mismo campo busca entidades de OVENG —que
+  siguen filtrando los marcadores— y lugares de **Open-Meteo Geocoding**
+  (GeoNames, sin clave, nombres en español: "Douala" sale "Duala"). Elegir un
+  lugar vuela el mapa y la tarjeta enseña su aire con su nombre: "Duala ·
+  Región del Litoral, Camerún". Es lo que hace real *cualquier punto del
+  mundo* sin tener que arrastrar el mapa hasta él.
+- **"Mi ubicación", nunca sin permiso.** El diálogo del navegador solo sale al
+  pulsar el botón (o "Usar mi ubicación" en el feed), y antes se dice qué se
+  hace con ella. La primera carga solo centra en tu zona si el permiso **ya**
+  estaba concedido, consultándolo sin abrir el diálogo.
+- **Privacidad.** La posición vive en memoria. No se guarda en la base ni en el
+  dispositivo —del feed se recuerda la elección, no las coordenadas— y hacia
+  Open-Meteo sale **redondeada a dos decimales**, que con su rejilla de 0,1° no
+  cambia el dato.
+- **Sin nombre para tu punto.** Open-Meteo no tiene geocodificación inversa, y
+  añadir otro proveedor solo para poner un nombre no compensa: es "Tu
+  ubicación".
+- **Solo web.** En iOS y Android haría falta `expo-location`.
+
 ---
 
 ## Fuentes por tema, para las fases siguientes
@@ -237,7 +259,8 @@ su documentación y se confirma al integrarlo.
 | Tema | Fuente | Qué da | Acceso | Papel |
 | ---- | ------ | ------ | ------ | ----- |
 | Aire | **Open-Meteo Air Quality** (CAMS) | Estimación de modelo en cualquier coordenada | Sin clave · *comprobado* | **En uso desde F4.1** |
-| Aire | **OpenAQ** | Mediciones de estaciones reales | Clave gratuita · *sin clave da 401, comprobado* | F4.2, preferente donde haya estación cerca |
+| Lugares | **Open-Meteo Geocoding** | Ciudades, regiones y países por nombre, en español | Sin clave · *comprobado* | **En uso desde F4.2** (búsqueda del mapa) |
+| Aire | **OpenAQ** | Mediciones de estaciones reales | Clave gratuita · *sin clave da 401, comprobado* | F4.4, preferente donde haya estación cerca |
 | Bosque | **Global Forest Watch** | Pérdida de cobertura arbórea anual y alertas de deforestación por satélite | El listado de datos es público; las consultas, a confirmar si piden clave | **Candidata fuerte para los parques**: Monte Alén, Pico Basilé |
 | Fuego | **NASA FIRMS** | Incendios activos de MODIS y VIIRS, casi en tiempo real | `MAP_KEY` gratuita · *sin ella responde "Invalid MAP_KEY", comprobado* | Candidata para una **capa del mapa** |
 | Ríos | **Open-Meteo Flood** (GloFAS) | Caudal diario de ríos, con previsión | Sin clave · *comprobado* | Caudal, **no calidad**. Rejilla de unos 5 km: en la desembocadura del Ntem devolvió 2 m³/s, que no es el caudal del río principal (probablemente otra celda de la cuenca). Hay que apuntar la celda al cauce. |

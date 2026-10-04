@@ -145,9 +145,12 @@ type OpenMeteoResponse = {
 };
 
 async function fetchAirQuality(lat: number, lng: number): Promise<AirQuality | null> {
+  // Dos decimales (algo más de un kilómetro). La rejilla del modelo es de 0,1°,
+  // así que no cambia el dato, y la ubicación de quien mira (F4.2) no sale con
+  // más precisión de la necesaria.
   const params = new URLSearchParams({
-    latitude: lat.toFixed(4),
-    longitude: lng.toFixed(4),
+    latitude: lat.toFixed(2),
+    longitude: lng.toFixed(2),
     current: 'european_aqi,pm2_5,pm10',
     timezone: 'GMT',
   });

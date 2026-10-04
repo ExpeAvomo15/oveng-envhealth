@@ -53,7 +53,7 @@ export default function HomeScreen() {
    * Los datos de la zona son independientes del feed: viven en su propio hook y
    * no entran en la paginación. Si tardan o fallan, el feed se pinta igual.
    */
-  const { data: zone, change: changeZone } = useZone();
+  const { data: zone, change: changeZone, locating: locatingZone } = useZone();
 
   const rows = useMemo(
     () =>
@@ -115,6 +115,7 @@ export default function HomeScreen() {
                 <ZoneDataCard
                   data={zone}
                   onChangeZone={changeZone}
+                  locating={locatingZone}
                   onOpenReference={(slug) => router.push(`/entidad/${slug}`)}
                 />
               );

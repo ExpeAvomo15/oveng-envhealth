@@ -279,7 +279,7 @@ mismo y no un dato de ejemplo.
       antes de cualquier lanzamiento.
 - [ ] **F3.2 lanzamiento concentrado** — con la comunidad *beachhead*.
 - [ ] **F3.3 motor de contenido y tarjetas compartibles**. Las tarjetas se
-      construyen en **F4.5**; aquí va el ritmo de publicación que las usa.
+      construyen en **F4.6**; aquí va el ritmo de publicación que las usa.
 
 El orden no es negociable: F3.1 sirve para confirmar o tumbar la tesis de
 producto mientras cambiarla es barato, y adelantar F3.2 la convierte en una
@@ -294,7 +294,13 @@ arquitectura híbrida y principios en **@docs/08_DATOS_EN_VIVO.md**.
 
 **Va después de F3**, porque la validación puede cambiar su tamaño.
 **Excepción: F4.1** puede adelantarse a F3: enseñar el aire real de la casa de
-quien escucha, y no un dato de ejemplo, cambia las conversaciones.
+quien escucha, y no un dato de ejemplo, cambia las conversaciones. Por la misma
+razón el autor adelantó también F4.2 y F4.3.
+
+**Renumerado el 2026-10-04:** la búsqueda mundial y "Mi ubicación" pasan a
+F4.2 (absorbiendo la geolocalización, que era F4.4), los datos por categoría a
+F4.3, y procedencia + OpenAQ, cron y compartir con marca se desplazan a F4.4,
+F4.5 y F4.6.
 
 - [x] **F4.1 pieza mínima** — aire en vivo de Open-Meteo (modelo CAMS de
       Copernicus) en la tarjeta de zona del feed, en el mapa —el **centro del
@@ -314,15 +320,41 @@ quien escucha, y no un dato de ejemplo, cambia las conversaciones.
       **De paso, un fallo de F2.3:** los pines del mapa no se movían al
       arrastrar ni al hacer zoom —React Compiler memorizaba su proyección sin el
       contador de movimiento—. Arreglado y vigilado por `verify:f41`.
-- [ ] **F4.2 procedencia completa + OpenAQ** — lecturas con fuente, método,
+- [x] **F4.2 mapa mundial: búsqueda de lugares y "Mi ubicación"** — el
+      buscador del mapa busca a la vez **entidades de OVENG** y **lugares del
+      mundo** (Open-Meteo Geocoding, sin clave, en español, con región y país),
+      con debounce de 400 ms y estados de carga, vacío y error. Elegir un lugar
+      vuela el mapa a un zoom según su tipo y la tarjeta enseña su aire en vivo
+      **con su nombre**. Botón **"Mi ubicación"**: pide permiso solo al
+      pulsarlo, marca "Estás aquí" y enseña tu aire; si se deniega, un aviso y
+      el mapa no se mueve. La primera carga centra en tu zona **solo si ya diste
+      permiso antes** (consulta sin abrir el diálogo). En el feed, **"Usar mi
+      ubicación"** en el selector de zona. La ubicación no se guarda en la base
+      ni en el dispositivo —se recuerda la elección, no las coordenadas— y sale
+      hacia Open-Meteo **redondeada a dos decimales**; se dice antes de pedir el
+      permiso. Sin geocodificación inversa en Open-Meteo: es "Tu ubicación".
+      Solo web: en nativo haría falta `expo-location`.
+      Verificado con `npm run verify:f42`, con la ubicación simulada: Duala
+      encontrada en una sola petición y con su aire coincidiendo con la API,
+      "monte" en los dos grupos, "No encontramos ese lugar", primera carga sin
+      permiso en Guinea Ecuatorial y con permiso en Málaga, la coordenada
+      redondeada, "Mi ubicación" concedida y denegada, y el feed con su
+      ubicación persistiendo sin coordenadas. Capturas en
+      `docs/verificacion/f42/`. Las catorce verificaciones del repositorio en
+      verde.
+- [ ] **F4.3 dato vivo por categoría, lenguaje llano y recuperar contraseña**
+      — la tarjeta flotante del mapa enseña el dato de la categoría elegida
+      (suelo y biodiversidad en vivo, agua honestamente ausente), cada término
+      técnico se explica tocándolo, y el flujo de nueva contraseña se cierra de
+      punta a punta. Encargo recibido; va a continuación.
+- [ ] **F4.4 procedencia completa + OpenAQ** — lecturas con fuente, método,
       origen e instante (migración); OpenAQ donde haya estación; etiqueta del
-      dato curado; evaluar GBIF para biodiversidad.
-- [ ] **F4.3 cron en Railway** — lecturas horarias en Supabase: histórico, la
+      dato curado. OpenAQ pide clave: depende del criterio de fuentes de F4.3
+      y del servidor de F4.5.
+- [ ] **F4.5 cron en Railway** — lecturas horarias en Supabase: histórico, la
       clave de OpenAQ fuera del cliente y sin gastar una llamada por visita.
       Desbloquea la gráfica de evolución.
-- [ ] **F4.4 geolocalización opcional** — "tu zona" detectada si hay permiso,
-      elegida si no.
-- [ ] **F4.5 compartir con marca** — todo lo que sale de la plataforma lleva
+- [ ] **F4.6 compartir con marca** — todo lo que sale de la plataforma lleva
       marca y camino de vuelta; dentro, el contenido queda limpio. Tarjetas 9:16
       para estados de WhatsApp (contenido, logo, dato y URL), marca de agua con
       la tortuga-O blanca **solo** al descargar o compartir una imagen como
@@ -345,7 +377,7 @@ es un olvido: cada línea dice por qué está aquí y no en el producto.
   no tiene. Probablemente PostGIS: `location` de `posts` es hoy texto libre.
 - **Series temporales y la gráfica de "Evolución de la calidad ambiental"**
   (mockup 1). `entity_metrics` guarda un valor por métrica con su `updated_at`,
-  no un histórico. Llega con el cron de **F4.3**, que acumula lecturas reales;
+  no un histórico. Llega con el cron de **F4.5**, que acumula lecturas reales;
   dibujar cinco puntos inventados sería lo contrario de la trazabilidad que
   costó conseguir en F2.1.
 - **Proveedor de teselas propio.** Las de openstreetmap.org son un servicio
@@ -382,9 +414,9 @@ es un olvido: cada línea dice por qué está aquí y no en el producto.
 - **Mapa en nativo.** MapLibre GL JS es de navegador. En iOS y Android hay un
   marcador de posición; hace falta `@maplibre/maplibre-react-native` o
   `react-native-maps`.
-- **Geolocalización.** Es **F4.4**. Convertiría "tu zona" en algo detectado en
-  vez de elegido y desbloquea la distancia en las tarjetas del mapa. Trae
-  consigo el permiso, su denegación y la imprecisión en escritorio.
+- ~~**Geolocalización.**~~ **Hecha en F4.2** en web: "Mi ubicación" en el mapa
+  y en el feed, solo con permiso. Queda la distancia en las tarjetas del mapa y
+  el nativo, que necesita `expo-location`.
 - **Búsqueda sin acentos.** `ilike` resuelve las mayúsculas y no los acentos:
   "malaga" y "alen" devuelven **cero** resultados contra el seed actual. En una
   app en español es lo primero que arreglaría de Buscar, y pide la extensión

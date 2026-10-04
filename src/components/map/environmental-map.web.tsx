@@ -1,9 +1,10 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Map as MapLibreMap, type StyleSpecification } from 'maplibre-gl';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 
 import { EntityAvatar } from '@/components/search';
+import { Text } from '@/components/ui';
 import type { EntityResult } from '@/lib/entities';
 import { colors, radius, shadows, spacing } from '@/theme';
 
@@ -60,6 +61,10 @@ export function EnvironmentalMap({
   selectedId,
   onSelect,
   onCenterChange,
+  flyTo,
+  userLocation,
+  onLocate,
+  locating = false,
 }: EnvironmentalMapProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
@@ -147,6 +152,25 @@ export function EnvironmentalMap({
    */
   const pins = useMemo(() => projectPins(map, entities, tick), [map, entities, tick]);
 
+  /** "Estás aquí", proyectado igual que los pines y por la misma razón. */
+  const here = useMemo(
+    () => projectPoint(map, userLocation ?? null, tick),
+    [map, userLocation, tick],
+  );
+
+  /**
+   * Vuela cuando llega una petición nueva. Depende de `map` también: si la
+   * petición llega antes de que el mapa cargue —la primera carga con permiso
+   * ya concedido—, se cumple en cuanto lo haga.
+   */
+  const flyId = flyTo?.id;
+  useEffect(() => {
+    if (!map || !flyTo) return;
+    map.flyTo({ center: [flyTo.lng, flyTo.lat], zoom: flyTo.zoom, duration: 1600, essential: true });
+    // Solo el `id` decide: el resto viaja con él.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [map, flyId]);
+
   function zoomBy(delta: number) {
     const current = mapRef.current;
     current?.zoomTo(current.getZoom() + delta, { duration: 300 });
@@ -190,7 +214,29 @@ export function EnvironmentalMap({
         })}
       </View>
 
+      {here ? (
+        <View
+          style={[styles.here, { left: here.x, top: here.y }]}
+          pointerEvents="none"
+          accessible
+          accessibilityRole="image"
+          accessibilityLabel="Estás aquí">
+          <View style={styles.hereDot} />
+          <View style={styles.hereLabel}>
+            <Text variant="micro">Estás aquí</Text>
+          </View>
+        </View>
+      ) : null}
+
       <View style={styles.controls} pointerEvents="box-none">
+        {onLocate ? (
+          <MapButton
+            label="Mi ubicación"
+            icon="navigate"
+            onPress={onLocate}
+            busy={locating}
+          />
+        ) : null}
         <MapButton label="Acercar" icon="add" onPress={() => zoomBy(1)} />
         <MapButton label="Alejar" icon="remove" onPress={() => zoomBy(-1)} />
         <MapButton label="Centrar en Guinea Ecuatorial" icon="locate" onPress={recenter} />
@@ -214,22 +260,35 @@ function projectPins(map: MapLibreMap | null, entities: EntityResult[], _tick: n
     });
 }
 
+function projectPoint(map: MapLibreMap | null, point: { lat: number; lng: number } | null, _tick: number) {
+  if (!map || !point) return null;
+  return map.project([point.lng, point.lat]);
+}
+
 function MapButton({
   label,
   icon,
   onPress,
+  busy = false,
 }: {
   label: string;
-  icon: 'add' | 'remove' | 'locate';
+  icon: 'add' | 'remove' | 'locate' | 'navigate';
   onPress: () => void;
+  busy?: boolean;
 }) {
   return (
     <Pressable
       onPress={onPress}
+      disabled={busy}
       accessibilityRole="button"
       accessibilityLabel={label}
+      accessibilityState={{ busy }}
       style={({ pressed }) => [styles.controlButton, pressed && styles.pressed]}>
-      <Ionicons name={icon} size={20} color={colors.text} />
+      {busy ? (
+        <ActivityIndicator size="small" color={colors.accent} />
+      ) : (
+        <Ionicons name={icon} size={20} color={icon === 'navigate' ? colors.accent : colors.text} />
+      )}
     </Pressable>
   );
 }
@@ -256,6 +315,29 @@ const styles = StyleSheet.create({
     borderRadius: radius.full,
     backgroundColor: colors.surface,
     ...shadows.card,
+  },
+  here: {
+    position: 'absolute',
+    alignItems: 'center',
+    // El punto se ancla por su centro; la etiqueta cuelga debajo.
+    marginLeft: -40,
+    marginTop: -8,
+    width: 80,
+    gap: 2,
+  },
+  hereDot: {
+    width: 16,
+    height: 16,
+    borderRadius: radius.full,
+    backgroundColor: colors.info,
+    borderWidth: 3,
+    borderColor: colors.surface,
+    ...shadows.card,
+  },
+  hereLabel: {
+    paddingHorizontal: spacing.xs,
+    borderRadius: radius.sm,
+    backgroundColor: colors.surface,
   },
   pinSelected: {
     borderWidth: 2,

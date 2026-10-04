@@ -63,7 +63,8 @@ El porqué de cada una, enlazado.
 
 - **Procedencia siempre visible**: 🛰️ estimación, 📡 estación, 📋 curado. Nunca un dato sin su origen. @docs/08_DATOS_EN_VIVO.md
 - Aire en **AQI europeo**, seis tramos oficiales; el curado de los mockups es otra escala y no se mezcla.
-- Una API externa caída **no rompe** nada: se cae al dato curado con su etiqueta. Claves de API, nunca en el bundle (F4.3).
+- **Ubicación solo con permiso, pedido por un gesto**; vive en memoria, nunca en base ni dispositivo, y sale a dos decimales.
+- Una API externa caída **no rompe** nada: se cae al dato curado con su etiqueta. Claves de API, nunca en el bundle (F4.5).
 
 ### Producto
 
@@ -80,6 +81,40 @@ La lista mantenida es el **backlog de @docs/plan.md**. Fuera de ella, sueltos:
 - El perfil enseña el contador de publicaciones y no la lista (backlog del plan).
 - Marca: falta el **SVG vectorial** (hoy son PNG), los PNG no van cuantizados y
   el icono y el splash nativos siguen siendo los de Expo.
+
+---
+
+## 2026-10-04 — F4.2: el mapa busca el mundo, y "Mi ubicación"
+
+Adelantada como F4.1. El plan se renumeró: esta es F4.2 (absorbe la
+geolocalización), los datos por categoría F4.3, y procedencia + OpenAQ, cron y
+compartir con marca pasan a F4.4, F4.5 y F4.6.
+
+**El contrato de Open-Meteo Geocoding**, comprobado antes de construir:
+
+```json
+{ "results": [{ "id": 2232593, "name": "Duala", "latitude": 4.04827,
+  "longitude": 9.70428, "feature_code": "PPLA", "country": "Camerún",
+  "country_code": "CM", "admin1": "Región del Litoral", "admin2": null,
+  "population": 1338082, "timezone": "Africa/Douala" }] }
+```
+
+Nombres **en español** ("Douala" → "Duala"), sin coincidencias **no hay clave
+`results`**, un carácter vuelve vacío, CORS abierto y **sin geocodificación
+inversa**: tu punto se llama "Tu ubicación". El zoom sale del `feature_code`
+(país 5, región 6,5, ciudad 10–11).
+
+**Privacidad.** La ubicación vive en memoria. Ni base ni dispositivo: del feed
+se guarda `mi-ubicacion`, no las coordenadas, y al volver se re-pide solo si el
+permiso sigue concedido. Hacia Open-Meteo sale redondeada a dos decimales
+—también el aire de cualquier punto—: la rejilla es de 0,1° y no cambia nada.
+El aviso va **antes** del diálogo del navegador. `verify:f42` lo comprueba.
+
+**Nunca sin permiso.** `permissions.query` decide la primera carga sin abrir
+el diálogo; el diálogo solo sale al pulsar. Denegado: un aviso y nada se mueve.
+
+**Un fallo del script, no del producto:** el paso de "permiso denegado"
+empezaba con la tarjeta de Monte Alén abierta del paso anterior.
 
 ---
 
@@ -126,7 +161,7 @@ en el bundle y en un build de F2.6 —ya pasaba ahí—. Ahora `tick` es argumen
 de la función que proyecta, y `verify:f41` mide que un pin viaje con el
 arrastre. Ninguna verificación arrastraba el mapa.
 
-**Fuentes por tema** para F4.2 en adelante, probadas donde se pudo, en
+**Fuentes por tema** para lo que sigue, probadas donde se pudo, en
 @docs/08_DATOS_EN_VIVO.md. La calidad del agua no tiene fuente mundial en vivo.
 
 ---
@@ -161,7 +196,7 @@ pestaña Inicio llevaba a la bienvenida. `verify:demo` lo recorre todo sin cuent
 **Estado:** lint, typecheck y las doce verificaciones en verde.
 
 **F4 documentada** en @docs/08_DATOS_EN_VIVO.md, con las APIs probadas: la
-marca fuera de la app (F4.5) y el dato vivo con procedencia.
+marca fuera de la app (F4.6) y el dato vivo con procedencia.
 
 **Marca.** Los logos oficiales (lockup y tortuga-O, verde y blanco, con
 transparencia real) están en `docs/design/brand/`, que es la fuente de verdad y

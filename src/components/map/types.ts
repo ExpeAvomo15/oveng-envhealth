@@ -16,4 +16,18 @@ export type EnvironmentalMapProps = {
   onSelect: (id: string | null) => void;
   /** El centro del encuadre, para saber qué medición queda más cerca. */
   onCenterChange?: (center: MapCenter) => void;
+  /**
+   * Petición de vuelo (F4.2): al buscar un lugar o pulsar "Mi ubicación". El
+   * `id` cambia en cada petición, así que pedir dos veces el mismo sitio vuela
+   * dos veces.
+   */
+  flyTo?: FlyTarget | null;
+  /** Dónde está quien mira, si lo ha pedido. Se pinta como "Estás aquí". */
+  userLocation?: MapCenter | null;
+  /** Botón "Mi ubicación". Sin él, el botón no se pinta. */
+  onLocate?: () => void;
+  /** Mientras se espera la posición, el botón lo enseña. */
+  locating?: boolean;
 };
+
+export type FlyTarget = MapCenter & { zoom: number; id: number };

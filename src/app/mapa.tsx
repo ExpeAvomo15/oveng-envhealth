@@ -10,19 +10,43 @@ import {
   EntitySheet,
   EnvironmentalMap,
   INITIAL_VIEW,
+  MapSearchResults,
+  type FlyTarget,
   type MapCenter,
 } from '@/components/map';
 import { TabBar } from '@/components/navigation/tab-bar';
 import { Button, Callout, Text } from '@/components/ui';
+import { showToast } from '@/components/ui/toast';
 import { useAuth } from '@/hooks/use-auth';
 import { useFontFamily } from '@/hooks/use-fonts';
 import { useLiveAir } from '@/hooks/use-live-air';
+import { usePlaceSearch } from '@/hooks/use-place-search';
+import type { Place } from '@/lib/geocoding';
+import {
+  locate,
+  locateFailureMessage,
+  LOCATION_PRIVACY_NOTE,
+  permissionState,
+  type Coords,
+} from '@/lib/geolocation';
 import type { EntityMetric, EnvironmentalCategoryName } from '@/lib/database.types';
 import { getMetricByEntity, searchEntities, type EntityResult } from '@/lib/entities';
 import { colors, environmentalCategoryOrder, noWebFocusRing, radius, spacing, typography } from '@/theme';
 
 /** Lo que el mapa tiene que estar quieto antes de pedir el aire de su centro. */
 const SETTLE_MS = 600;
+
+/** Zoom al volar a una entidad o a la propia ubicación. */
+const ENTITY_ZOOM = 10;
+const USER_ZOOM = 11;
+
+/** Precisión a partir de la cual se avisa de que la ubicación es aproximada. */
+const ROUGH_ACCURACY_M = 5000;
+
+/** Si el centro está en un punto elegido: tras volar, coincide casi exacto. */
+function isAt(center: MapCenter, point: Coords | null): boolean {
+  return point !== null && Math.abs(center.lat - point.lat) < 0.02 && Math.abs(center.lng - point.lng) < 0.02;
+}
 
 type Loaded = {
   entities: EntityResult[];
@@ -80,6 +104,88 @@ export default function MapScreen() {
   }, [center]);
 
   const liveAir = useLiveAir(settled);
+
+  /**
+   * Búsqueda mundial (F4.2). El mismo texto busca entidades —que además siguen
+   * filtrando los marcadores, como desde F2.3— y lugares del mundo.
+   */
+  const places = usePlaceSearch(term);
+  const [place, setPlace] = useState<(Place & Coords) | null>(null);
+  const [fly, setFly] = useState<FlyTarget | null>(null);
+  const flyTo = (target: Coords & { zoom: number }) =>
+    setFly((previous) => ({ ...target, id: (previous?.id ?? 0) + 1 }));
+
+  /** Dónde está quien mira. Solo en memoria: ver src/lib/geolocation.ts. */
+  const [userLocation, setUserLocation] = useState<Coords | null>(null);
+  const [locating, setLocating] = useState(false);
+
+  /**
+   * Primera carga: centra en la zona de quien mira **solo si ya dio permiso
+   * antes**. `permissionState` no abre el diálogo; sin permiso previo el mapa
+   * arranca en Guinea Ecuatorial como siempre. El diálogo solo sale al pulsar
+   * "Mi ubicación".
+   */
+  useEffect(() => {
+    let active = true;
+    permissionState().then((state) => {
+      if (!active || state !== 'granted') return;
+      locate().then((result) => {
+        if (!active || !result.ok) return;
+        setUserLocation(result.coords);
+        setFly({ ...result.coords, zoom: USER_ZOOM - 2, id: 1 });
+      });
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  async function locateMe() {
+    if (locating) return;
+    setLocating(true);
+    // Se dice antes de que salga el diálogo del navegador, no después.
+    if ((await permissionState()) === 'prompt') showToast(LOCATION_PRIVACY_NOTE);
+
+    const result = await locate();
+    setLocating(false);
+
+    if (!result.ok) {
+      // Amable y una vez: el mapa se queda donde está y no se insiste.
+      showToast(locateFailureMessage(result.reason));
+      return;
+    }
+
+    setUserLocation(result.coords);
+    setPlace(null);
+    setSelectedId(null);
+    flyTo({ ...result.coords, zoom: USER_ZOOM });
+    if (result.accuracy > ROUGH_ACCURACY_M) {
+      showToast(`Ubicación aproximada: unos ${Math.round(result.accuracy / 1000)} km a la redonda.`);
+    }
+  }
+
+  function pickPlace(picked: Place) {
+    setPlace(picked);
+    setSelectedId(null);
+    setTerm('');
+    flyTo({ lat: picked.lat, lng: picked.lng, zoom: picked.zoom });
+  }
+
+  function pickEntity(entity: EntityResult) {
+    setTerm('');
+    setPlace(null);
+    setSelectedId(entity.id);
+    if (entity.lat !== null && entity.lng !== null) {
+      flyTo({ lat: entity.lat, lng: entity.lng, zoom: ENTITY_ZOOM });
+    }
+  }
+
+  /** El nombre del punto de la tarjeta, si es uno elegido y el mapa sigue ahí. */
+  const placeName = isAt(settled, place)
+    ? `${place!.name}${place!.detail ? ` · ${place!.detail}` : ''}`
+    : isAt(settled, userLocation)
+      ? 'Tu ubicación'
+      : null;
 
   useEffect(() => {
     let live = true;
@@ -174,6 +280,10 @@ export default function MapScreen() {
             selectedId={selectedId}
             onSelect={setSelectedId}
             onCenterChange={setCenter}
+            flyTo={fly}
+            userLocation={userLocation}
+            onLocate={locateMe}
+            locating={locating}
           />
         ) : (
           <View style={styles.centered} />
@@ -203,6 +313,15 @@ export default function MapScreen() {
               />
             ) : null}
           </View>
+
+          {term.trim().length > 0 ? (
+            <MapSearchResults
+              entities={visible}
+              places={places}
+              onPickEntity={pickEntity}
+              onPickPlace={pickPlace}
+            />
+          ) : null}
 
           <View style={styles.legendRow} pointerEvents="box-none">
             {/*
@@ -244,6 +363,7 @@ export default function MapScreen() {
             <AirQualityCard
               live={liveAir}
               center={settled}
+              placeName={placeName}
               fallback={nearestAir}
               onOpenFallback={(entity) => router.push(`/entidad/${entity.slug}`)}
             />

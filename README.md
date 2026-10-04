@@ -56,8 +56,9 @@ En **https://expeavomo15.github.io/oveng-envhealth/** y **sin crear cuenta**:
 3. **Toca el nombre de la zona** y cambia a Málaga y Andalucía. OVENG no tiene
    ningún lugar medido allí, pero el aire de Málaga existe y se ve en vivo.
 4. **Ve al Mapa.** Las catorce entidades sobre el territorio, con el color de su
-   categoría, y abajo el aire del **centro del encuadre**: muévelo a Douala o a
-   Sevilla y el dato cambia.
+   categoría, y abajo el aire del **centro del encuadre**. Busca cualquier
+   ciudad del mundo —"Douala", "Sevilla"— y el mapa vuela allí con su aire, o
+   pulsa **Mi ubicación** para ver el tuyo.
 5. **Apaga una capa** en la leyenda de la derecha: los marcadores de esa
    categoría desaparecen.
 6. **Toca el marcador de Monte Alén** y abre su tarjeta.
@@ -147,6 +148,7 @@ npm run verify:mvp     # recorrido completo en Chromium, con capturas
 | `verify:f24` | Perfil de entidad: métricas fieles al seed, valoraciones y su RLS. |
 | `verify:f25` | Datos de zona en el feed: posición, paginación, cambio de zona y persistencia. |
 | `verify:f41` | Aire en vivo de Open-Meteo: la API, el feed, el mapa al moverlo, el perfil y la API caída. Sin cuenta y sin escribir nada. |
+| `verify:f42` | Mapa mundial: buscar lugares, "Mi ubicación" concedida y denegada, y la ubicación en el feed. Sin cuenta, con la ubicación simulada. |
 | `verify:mvp` | El recorrido social de punta a punta (F1). |
 | `verify:demo` | **La demo completa**: el recorrido de un visitante, sin cuenta y con ella, incluido abrir una publicación, un perfil ajeno y Buscar sin cuenta. |
 

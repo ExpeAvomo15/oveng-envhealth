@@ -6,13 +6,16 @@ import { AirLevelDot, AirSkeleton, liveAirText, ProvenanceLine } from '@/compone
 import { Text } from '@/components/ui';
 import { useLiveAir } from '@/hooks/use-live-air';
 import { formatReading, metricLabel } from '@/lib/metrics';
-import { zones, type ZoneData, type ZoneId } from '@/lib/zones';
+import { LOCATION_PRIVACY_NOTE } from '@/lib/geolocation';
+import { MY_LOCATION, zones, type ZoneData, type ZoneId } from '@/lib/zones';
 import { colors, radius, shadows, spacing } from '@/theme';
 
 export type ZoneDataCardProps = {
   data: ZoneData;
   onChangeZone: (zone: ZoneId) => void;
   onOpenReference: (slug: string) => void;
+  /** Mientras se espera la posición tras elegir "Usar mi ubicación". */
+  locating?: boolean;
 };
 
 /**
@@ -34,7 +37,12 @@ export type ZoneDataCardProps = {
  * si se fuera, se iría con ella el selector y no habría forma de volver a
  * cambiar de zona desde el feed.
  */
-export function ZoneDataCard({ data, onChangeZone, onOpenReference }: ZoneDataCardProps) {
+export function ZoneDataCard({
+  data,
+  onChangeZone,
+  onOpenReference,
+  locating = false,
+}: ZoneDataCardProps) {
   const [picking, setPicking] = useState(false);
   const { zone, reference, secondary } = data;
 
@@ -58,8 +66,11 @@ export function ZoneDataCard({ data, onChangeZone, onOpenReference }: ZoneDataCa
             Datos ambientales de
           </Text>
           <View style={styles.zoneRow}>
+            {zone.id === MY_LOCATION ? (
+              <Ionicons name="navigate" size={13} color={colors.accent} />
+            ) : null}
             <Text variant="bodyStrong" numberOfLines={1}>
-              {zone.name}
+              {locating ? 'Buscando tu ubicación…' : zone.name}
             </Text>
             <Ionicons name="chevron-down" size={14} color={colors.textSecondary} />
           </View>
@@ -103,7 +114,7 @@ export function ZoneDataCard({ data, onChangeZone, onOpenReference }: ZoneDataCa
           <View style={styles.sheet}>
             <Text variant="subtitle">Elige tu zona</Text>
             <Text variant="caption" color="textSecondary">
-              La demo no usa tu ubicación: la zona se elige y se recuerda en este dispositivo.
+              La zona se recuerda en este dispositivo.
             </Text>
 
             {zones.map((option) => {
@@ -128,6 +139,30 @@ export function ZoneDataCard({ data, onChangeZone, onOpenReference }: ZoneDataCa
                 </Pressable>
               );
             })}
+
+            {/*
+              Mi ubicación (F4.2): pide permiso solo al elegirla, y lo dice
+              antes. Se recuerda la elección, nunca las coordenadas.
+            */}
+            <Pressable
+              onPress={() => {
+                setPicking(false);
+                onChangeZone(MY_LOCATION);
+              }}
+              accessibilityRole="radio"
+              accessibilityState={{ selected: zone.id === MY_LOCATION }}
+              accessibilityLabel="Usar mi ubicación"
+              style={({ pressed }) => [styles.option, pressed && styles.pressed]}>
+              <Ionicons
+                name={zone.id === MY_LOCATION ? 'radio-button-on' : 'navigate-outline'}
+                size={20}
+                color={zone.id === MY_LOCATION ? colors.accent : colors.textMuted}
+              />
+              <Text variant="body">Usar mi ubicación</Text>
+            </Pressable>
+            <Text variant="micro" color="textMuted">
+              {LOCATION_PRIVACY_NOTE}
+            </Text>
           </View>
         </Pressable>
       </Modal>
@@ -215,12 +250,20 @@ function AirReading({
     return (
       <View style={styles.reading}>
         <View style={styles.readingMain}>
-          <Text variant="body" color="textSecondary">
-            Todavía no hay mediciones en {zone.name}.
-          </Text>
-          <Text variant="micro" color="textMuted">
-            Las mediciones las llevan los lugares, y esta zona aún no tiene ninguno medido.
-          </Text>
+          {zone.id === MY_LOCATION ? (
+            <Text variant="body" color="textSecondary">
+              No hemos podido cargar el aire de tu ubicación ahora. Prueba en un rato.
+            </Text>
+          ) : (
+            <>
+              <Text variant="body" color="textSecondary">
+                Todavía no hay mediciones en {zone.name}.
+              </Text>
+              <Text variant="micro" color="textMuted">
+                Las mediciones las llevan los lugares, y esta zona aún no tiene ninguno medido.
+              </Text>
+            </>
+          )}
         </View>
       </View>
     );

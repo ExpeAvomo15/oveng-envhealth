@@ -17,6 +17,12 @@ export type AirQualityCardProps = {
   /** El punto del que se pidió: el centro del mapa al soltarlo. */
   center: MapCenter;
   /**
+   * Nombre del punto si es uno elegido (F4.2): un lugar buscado ("Duala ·
+   * Región del Litoral, Camerún") o "Tu ubicación". Sin él, "Centro del mapa"
+   * y las coordenadas.
+   */
+  placeName?: string | null;
+  /**
    * La medición curada más cercana al centro, para cuando la API no responde.
    * `null` si no hay ninguna visible.
    */
@@ -37,13 +43,20 @@ export type AirQualityCardProps = {
  * de la entidad más cercana, nombrándola y llevando a ella, con la etiqueta
  * "📋 Dato de referencia".
  */
-export function AirQualityCard({ live, center, fallback, onOpenFallback }: AirQualityCardProps) {
+export function AirQualityCard({
+  live,
+  center,
+  placeName = null,
+  fallback,
+  onOpenFallback,
+}: AirQualityCardProps) {
   if (live.status === 'live') {
-    const place = `Centro del mapa · ${formatCoords(center)}`;
+    const place = placeName ?? `Centro del mapa · ${formatCoords(center)}`;
+    const where = placeName ?? `el centro del mapa (${formatCoords(center)})`;
     return (
       <View
         style={styles.card}
-        accessibilityLabel={`Calidad del aire en el centro del mapa (${formatCoords(center)}): ${liveAirText(live.air)}. Estimación satelital Copernicus`}>
+        accessibilityLabel={`Calidad del aire en ${where}: ${liveAirText(live.air)}. Estimación satelital Copernicus`}>
         <Icon />
         <View style={styles.texts}>
           <Text variant="label" color="textSecondary">

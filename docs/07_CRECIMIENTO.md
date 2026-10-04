@@ -141,7 +141,7 @@ cómo llegar, el uso no genera distribución. Es el principio *cada uso genera
 distribución* aplicado al objeto que viaja.
 
 Tres piezas, de la más deliberada a la más automática. **Documentadas, no
-construidas**: son la tarea F4.5 de @docs/plan.md.
+construidas**: son la tarea F4.6 de @docs/plan.md.
 
 1. **Tarjetas compartibles generadas.** Una imagen compuesta a propósito para
    compartir: el contenido (una medición, una publicación, una entidad), el
@@ -241,7 +241,7 @@ salió a ser una ruta pública de primer nivel, y el orden en que se declaran la
 rutas decide cuál es la puerta de entrada. El detalle está en el
 [archivo de notas, F2.3](notas-archivo-f0-f2.md#2026-09-27--f23-el-mapa-ambiental-y-las-rutas-públicas).
 
-**Tarjetas compartibles, marca de agua y OG tags:** son la tarea **F4.5
+**Tarjetas compartibles, marca de agua y OG tags:** son la tarea **F4.6
 "Compartir con marca"**, descrita en *Marca en todo lo que sale*. Las páginas
 públicas que necesitaban ya existen —toda vista de lectura lo es—; falta que lo
 que sale de ellas lleve la marca y el camino de vuelta.
