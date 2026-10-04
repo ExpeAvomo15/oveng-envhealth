@@ -188,16 +188,24 @@ try {
     ok('la publicación más antigua no está en la primera página');
   }
 
-  await scrollFeed(12);
-
-  if (await visible('Publicación 1 de prueba B')) {
-    ok('al bajar se carga la segunda página');
-  } else {
-    bad('la segunda página no llegó a cargarse');
+  // El pie "No hay más publicaciones" solo se pinta cuando el feed ha agotado
+  // el cursor, y con 28 sembradas la primera página (20) nunca es la última:
+  // verlo prueba que se pidió al menos una página más. No se busca una
+  // publicación concreta porque, con la base llena de filas de otras pruebas,
+  // al llegar al fondo ya ha salido de pantalla — y cuántas páginas hay depende
+  // del estado de la base, así que se baja hasta ver el pie, sin un número fijo.
+  let reachedEnd = false;
+  for (let i = 0; i < 40 && !reachedEnd; i += 1) {
+    await scrollFeed(1);
+    reachedEnd = await visible('No hay más publicaciones');
   }
 
-  if (await visible('No hay más publicaciones')) ok('el pie avisa de que no queda más');
-  else info('el pie de "no hay más" no era visible en ese punto del scroll');
+  if (reachedEnd) {
+    ok('al bajar se cargan más páginas hasta el final del feed');
+    ok('el pie avisa de que no queda más');
+  } else {
+    bad('el feed no llegó al final: la paginación no cargó más páginas');
+  }
 
   await shot('21-feed-pagina-2');
 
