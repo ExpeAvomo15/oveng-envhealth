@@ -316,8 +316,16 @@ try {
   await page.waitForTimeout(1200);
 
   try {
-    await page.getByRole('link', { name: /^Calidad del aire en / }).first().waitFor({ timeout: 8000 });
-    ok('sin marcador seleccionado se ve la calidad del aire de la entidad más cercana');
+    // Desde F4.1 es el aire en vivo del centro del mapa (no un enlace), o la
+    // medición curada más cercana si la API no responde. verify:f41 lo cubre.
+    // Solo los visibles: la tarjeta de zona del feed, que queda oculta debajo
+    // en la pila, también se llama "Calidad del aire en …".
+    await page
+      .getByLabel(/^Calidad del aire en /)
+      .filter({ visible: true })
+      .first()
+      .waitFor({ timeout: 8000 });
+    ok('sin marcador seleccionado se ve la calidad del aire');
   } catch {
     bad('no aparece la tarjeta de calidad del aire');
   }

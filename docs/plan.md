@@ -271,6 +271,10 @@ anti-patrones, está en **@docs/07_CRECIMIENTO.md**; aquí solo van las tareas.
 **Desbloqueada:** F2 está cerrada, así que ya hay producto que enseñar. Era la
 condición — sin mapa, las conversaciones de validación no miden nada.
 
+**Estado: en curso, en paralelo con F4.1.** F3 no es código y la lleva el autor;
+F4.1 se adelantó para que las conversaciones enseñen el aire real de ahora
+mismo y no un dato de ejemplo.
+
 - [ ] **F3.1 conversaciones de validación** — 20-30 con la comunidad primaria,
       antes de cualquier lanzamiento.
 - [ ] **F3.2 lanzamiento concentrado** — con la comunidad *beachhead*.
@@ -292,9 +296,21 @@ arquitectura híbrida y principios en **@docs/08_DATOS_EN_VIVO.md**.
 **Excepción: F4.1** puede adelantarse a F3: enseñar el aire real de la casa de
 quien escucha, y no un dato de ejemplo, cambia las conversaciones.
 
-- [ ] **F4.1 pieza mínima** — Open-Meteo en la tarjeta de zona y en el mapa,
-      con su línea de procedencia; sin servidor ni migración. Decide la escala
-      de AQI. ~1 sesión.
+- [x] **F4.1 pieza mínima** — aire en vivo de Open-Meteo (modelo CAMS de
+      Copernicus) en la tarjeta de zona del feed, en el mapa —el **centro del
+      encuadre**, así que moverlo a Douala o a Sevilla cambia el dato— y en el
+      perfil de cada lugar, con el curado debajo como referencia. Cada dato dice
+      de dónde sale: "🛰️ Estimación satelital Copernicus · hace X min" o
+      "📋 Dato de referencia". Escala: **AQI europeo**, con sus seis tramos
+      oficiales. Caché por celda de 0,1° durante 30 min; si la API falla, el
+      dato curado con su etiqueta. Málaga, sin lugar medido, gana aire en vivo.
+      Sin servidor ni migración, y todo se ve sin cuenta.
+      Verificado con `npm run verify:f41`: la API para Bata y Málaga, la tarjeta
+      del feed coincidiendo con la API, el mapa cambiando al moverlo con **una**
+      petición por arrastre y la caché al volver, el perfil de Monte Alén con
+      aire vivo y referencia, y la API **bloqueada** cayendo al curado sin
+      errores. Capturas en `docs/verificacion/f41/`. Las trece verificaciones
+      del repositorio en verde.
 - [ ] **F4.2 procedencia completa + OpenAQ** — lecturas con fuente, método,
       origen e instante (migración); OpenAQ donde haya estación; etiqueta del
       dato curado; evaluar GBIF para biodiversidad.

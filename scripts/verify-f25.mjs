@@ -319,11 +319,21 @@ try {
     else bad(`la zona es «${label}»`);
   }
 
+  /*
+   * Desde F4.1 Málaga, sin ningún lugar medido, enseña el aire en vivo del
+   * centro de la zona. Solo si Open-Meteo no respondiera volvería a decir que
+   * no hay mediciones; las dos cosas son correctas y ninguna es desaparecer.
+   * El aire en vivo lo comprueba a fondo verify:f41.
+   */
   try {
-    await page.getByText('Todavía no hay mediciones', { exact: false }).first().waitFor({ timeout: 10000 });
-    ok('dice que la zona no tiene mediciones, en vez de desaparecer');
+    await page
+      .getByLabel(/^Calidad del aire en Málaga y Andalucía: |Todavía no hay mediciones en Málaga/)
+      .or(page.getByText('Todavía no hay mediciones en Málaga', { exact: false }))
+      .first()
+      .waitFor({ timeout: 10000 });
+    ok('la tarjeta se queda en Málaga: aire en vivo, o el aviso de que no hay mediciones');
   } catch {
-    bad('no avisa de que Málaga no tiene mediciones');
+    bad('la tarjeta de Málaga no enseña ni el aire en vivo ni el aviso');
   }
 
   {

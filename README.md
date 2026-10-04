@@ -51,17 +51,21 @@ En **https://expeavomo15.github.io/oveng-envhealth/** y **sin crear cuenta**:
 
 1. **Abre la demo.** Entras directamente al feed: no hay muro de registro.
 2. **Baja un poco.** Entre las publicaciones aparece *"Datos ambientales de
-   Guinea Ecuatorial"*, con la calidad del aire y **el lugar que la mide**.
-3. **Toca el nombre de la zona** y cambia a Málaga y Andalucía. La tarjeta dice
-   que ahí todavía no hay mediciones — los datos son reales y escasos.
+   Guinea Ecuatorial"*, con la calidad del aire **de ahora mismo** en el Río
+   Ntem y de dónde sale: *"🛰️ Estimación satelital Copernicus · hace X min"*.
+3. **Toca el nombre de la zona** y cambia a Málaga y Andalucía. OVENG no tiene
+   ningún lugar medido allí, pero el aire de Málaga existe y se ve en vivo.
 4. **Ve al Mapa.** Las catorce entidades sobre el territorio, con el color de su
-   categoría.
+   categoría, y abajo el aire del **centro del encuadre**: muévelo a Douala o a
+   Sevilla y el dato cambia.
 5. **Apaga una capa** en la leyenda de la derecha: los marcadores de esa
    categoría desaparecen.
 6. **Toca el marcador de Monte Alén** y abre su tarjeta.
-7. **Entra en su perfil ambiental**: aire 42 AQI, agua 8,2 pH, biodiversidad
-   8,7/10 y cobertura forestal 78 %, que son exactamente los del mockup. No
-   tiene círculo de calidad general porque el mockup no se lo da.
+7. **Entra en su perfil ambiental**: el aire en vivo de sus coordenadas y,
+   debajo, los datos de referencia del perfil —aire 42 AQI, agua 8,2 pH,
+   biodiversidad 8,7/10 y cobertura forestal 78 %, exactamente los del
+   mockup—, cada uno diciendo de dónde sale. No tiene círculo de calidad
+   general porque el mockup no se lo da.
 8. **Intenta valorar.** Ahí sí se pide cuenta, y el botón lo dice.
 
 Con cuenta se cierra el ciclo: publicar con etiquetas, "me gusta", buscar y
@@ -142,6 +146,7 @@ npm run verify:mvp     # recorrido completo en Chromium, con capturas
 | `verify:f23` | Mapa: marcadores, filtro por capa, tarjetas, acceso sin cuenta y limpieza del mapa. |
 | `verify:f24` | Perfil de entidad: métricas fieles al seed, valoraciones y su RLS. |
 | `verify:f25` | Datos de zona en el feed: posición, paginación, cambio de zona y persistencia. |
+| `verify:f41` | Aire en vivo de Open-Meteo: la API, el feed, el mapa al moverlo, el perfil y la API caída. Sin cuenta y sin escribir nada. |
 | `verify:mvp` | El recorrido social de punta a punta (F1). |
 | `verify:demo` | **La demo completa**: el recorrido de un visitante, sin cuenta y con ella, incluido abrir una publicación, un perfil ajeno y Buscar sin cuenta. |
 

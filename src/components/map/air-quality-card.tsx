@@ -1,43 +1,109 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Pressable, StyleSheet, View } from 'react-native';
 
+import { AirLevelDot, AirSkeleton, liveAirText, ProvenanceLine } from '@/components/air';
 import { Text } from '@/components/ui';
+import type { LiveAir } from '@/hooks/use-live-air';
 import type { EntityMetric } from '@/lib/database.types';
 import type { EntityResult } from '@/lib/entities';
-import { relativeTime } from '@/lib/time';
+import { formatReading } from '@/lib/metrics';
 import { colors, radius, shadows, spacing } from '@/theme';
 
+import type { MapCenter } from './types';
+
 export type AirQualityCardProps = {
-  entity: EntityResult;
-  metric: EntityMetric;
-  onPress: () => void;
+  /** Aire en vivo del centro del encuadre. */
+  live: LiveAir;
+  /** El punto del que se pidió: el centro del mapa al soltarlo. */
+  center: MapCenter;
+  /**
+   * La medición curada más cercana al centro, para cuando la API no responde.
+   * `null` si no hay ninguna visible.
+   */
+  fallback: { entity: EntityResult; metric: EntityMetric } | null;
+  onOpenFallback: (entity: EntityResult) => void;
 };
 
 /**
- * "Datos ambientales de tu zona" del mockup 1, con la medición de aire de la
- * entidad más cercana al centro del encuadre.
+ * "Calidad del aire" sobre el mapa: el aire **en vivo** del centro del
+ * encuadre (F4.1).
  *
- * Dice **de dónde** sale el dato. El mockup lo titula "de tu zona" y lo deja
- * ahí; sin geolocalización eso sería una promesa que el producto no cumple, y
- * un índice de calidad del aire sin lugar no significa nada. Aquí se nombra la
- * entidad que lo mide, y tocando la tarjeta se llega a ella.
+ * Es lo que hace real "cualquier zona del mundo": llevar el mapa a Douala o a
+ * Sevilla cambia el dato, porque Open-Meteo responde en cualquier coordenada.
+ * Se recalcula al soltar el mapa, no en cada fotograma, y la celda se reutiliza
+ * de la caché.
+ *
+ * Si la API no responde, vuelve a ser lo que era en F2.3: la medición curada
+ * de la entidad más cercana, nombrándola y llevando a ella, con la etiqueta
+ * "📋 Dato de referencia".
  */
-export function AirQualityCard({ entity, metric, onPress }: AirQualityCardProps) {
-  const value = Number(metric.value);
-  const reading = `${Number.isInteger(value) ? value : String(value).replace('.', ',')}${
-    metric.unit ? ` ${metric.unit}` : ''
-  }`;
+export function AirQualityCard({ live, center, fallback, onOpenFallback }: AirQualityCardProps) {
+  if (live.status === 'live') {
+    const place = `Centro del mapa · ${formatCoords(center)}`;
+    return (
+      <View
+        style={styles.card}
+        accessibilityLabel={`Calidad del aire en el centro del mapa (${formatCoords(center)}): ${liveAirText(live.air)}. Estimación satelital Copernicus`}>
+        <Icon />
+        <View style={styles.texts}>
+          <Text variant="label" color="textSecondary">
+            Calidad del aire
+          </Text>
+          <View style={styles.liveRow}>
+            <AirLevelDot level={live.air.level} />
+            <Text variant="bodyStrong" numberOfLines={1} style={styles.shrink}>
+              {liveAirText(live.air)}
+            </Text>
+          </View>
+          <Text variant="micro" color="textMuted" numberOfLines={1}>
+            {place}
+          </Text>
+          <ProvenanceLine kind="satellite" updatedAt={live.air.updatedAt} />
+        </View>
+      </View>
+    );
+  }
+
+  if (live.status === 'loading') {
+    return (
+      <View style={styles.card}>
+        <Icon />
+        <View style={styles.texts}>
+          <Text variant="label" color="textSecondary">
+            Calidad del aire
+          </Text>
+          <AirSkeleton />
+        </View>
+      </View>
+    );
+  }
+
+  if (!fallback) {
+    return (
+      <View style={styles.card}>
+        <Icon />
+        <View style={styles.texts}>
+          <Text variant="label" color="textSecondary">
+            Calidad del aire
+          </Text>
+          <Text variant="caption" color="textSecondary">
+            No se ha podido cargar el dato de esta zona. Mueve el mapa para volver a intentarlo.
+          </Text>
+        </View>
+      </View>
+    );
+  }
+
+  const { entity, metric } = fallback;
+  const reading = formatReading(metric);
 
   return (
     <Pressable
-      onPress={onPress}
+      onPress={() => onOpenFallback(entity)}
       accessibilityRole="link"
-      accessibilityLabel={`Calidad del aire en ${entity.name}: ${metric.label ?? reading}`}
+      accessibilityLabel={`Calidad del aire en ${entity.name}: ${metric.label ?? reading}. Dato de referencia`}
       style={({ pressed }) => [styles.card, pressed && styles.pressed]}>
-      <View style={styles.icon}>
-        <Ionicons name="leaf-outline" size={20} color={colors.accent} />
-      </View>
-
+      <Icon />
       <View style={styles.texts}>
         <Text variant="label" color="textSecondary">
           Calidad del aire
@@ -46,13 +112,29 @@ export function AirQualityCard({ entity, metric, onPress }: AirQualityCardProps)
           {metric.label ? `${metric.label} · ${reading}` : reading}
         </Text>
         <Text variant="micro" color="textMuted" numberOfLines={1}>
-          {entity.name} · actualizado hace {relativeTime(metric.updated_at)}
+          medido en {entity.name}
         </Text>
+        <ProvenanceLine kind="reference" />
       </View>
 
       <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
     </Pressable>
   );
+}
+
+function Icon() {
+  return (
+    <View style={styles.icon}>
+      <Ionicons name="leaf-outline" size={20} color={colors.accent} />
+    </View>
+  );
+}
+
+/** "1,90 N · 9,80 E": dos decimales, que es más de lo que resuelve el modelo. */
+function formatCoords({ lat, lng }: MapCenter): string {
+  const part = (value: number, positive: string, negative: string) =>
+    `${Math.abs(value).toFixed(2).replace('.', ',')} ${value >= 0 ? positive : negative}`;
+  return `${part(lat, 'N', 'S')} · ${part(lng, 'E', 'O')}`;
 }
 
 const styles = StyleSheet.create({
@@ -78,6 +160,14 @@ const styles = StyleSheet.create({
   texts: {
     flex: 1,
     gap: 2,
+  },
+  liveRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  shrink: {
+    flexShrink: 1,
   },
   pressed: {
     opacity: 0.6,

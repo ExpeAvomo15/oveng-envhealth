@@ -28,6 +28,12 @@ export type Zone = {
   /** Nombre en la tarjeta: "Datos ambientales de …". */
   name: string;
   bbox: { lat: [number, number]; lng: [number, number] };
+  /**
+   * Punto de la zona para el aire en vivo cuando no hay un lugar de referencia
+   * (F4.1). Málaga no tiene ningún lugar medido, pero el aire de Málaga existe:
+   * se pide aquí, en el centro de la ciudad.
+   */
+  center: { lat: number; lng: number };
 };
 
 /** Incluye Annobón (−1,43 S) y Bioko (3,8 N). */
@@ -36,11 +42,14 @@ export const zones: Zone[] = [
     id: 'guinea-ecuatorial',
     name: 'Guinea Ecuatorial',
     bbox: { lat: [-1.6, 4.0], lng: [5.0, 11.5] },
+    // Bata. Solo se usa si la zona se quedara sin lugar de referencia.
+    center: { lat: 1.8639, lng: 9.7658 },
   },
   {
     id: 'malaga',
     name: 'Málaga y Andalucía',
     bbox: { lat: [36.0, 38.8], lng: [-7.6, -1.6] },
+    center: { lat: 36.7213, lng: -4.4214 },
   },
 ];
 
@@ -54,8 +63,18 @@ export type ZoneData = {
   zone: Zone;
   /** El lugar del que sale la medición que se enseña. `null` si la zona no tiene. */
   reference: EntityResult | null;
-  /** Calidad del aire de la referencia: la métrica estrella de la tarjeta. */
+  /**
+   * Calidad del aire **curada** de la referencia. Desde F4.1 es el respaldo: la
+   * tarjeta enseña el aire en vivo de `airCoords` y cae aquí si la API falla.
+   */
   air: EntityMetric | null;
+  /**
+   * Dónde se pide el aire en vivo: las coordenadas de la referencia, o el
+   * centro de la zona si no la hay.
+   */
+  airCoords: { lat: number; lng: number };
+  /** Cómo se nombra ese punto en la tarjeta: "Río Ntem", "Málaga y Andalucía". */
+  airPlace: string;
   /** Hasta dos mediciones más de la misma referencia. */
   secondary: EntityMetric[];
   /** Iniciativa destacada de la zona. `null` si no hay ninguna. */
@@ -99,7 +118,15 @@ export async function loadZoneData(zoneId: ZoneId): Promise<ZoneData> {
 
   const inZone = entities ?? [];
   if (inZone.length === 0) {
-    return { zone, reference: null, air: null, secondary: [], featured: null };
+    return {
+      zone,
+      reference: null,
+      air: null,
+      airCoords: zone.center,
+      airPlace: zone.name,
+      secondary: [],
+      featured: null,
+    };
   }
 
   const { data: metrics, error: metricsError } = await supabase
@@ -156,5 +183,18 @@ export async function loadZoneData(zoneId: ZoneId): Promise<ZoneData> {
     featuredRow ? withRatingsOf([featuredRow]).then((rows) => rows[0] ?? null) : Promise.resolve(null),
   ]);
 
-  return { zone, reference, air, secondary, featured };
+  const airCoords =
+    referenceRow && referenceRow.lat !== null && referenceRow.lng !== null
+      ? { lat: referenceRow.lat, lng: referenceRow.lng }
+      : zone.center;
+
+  return {
+    zone,
+    reference,
+    air,
+    airCoords,
+    airPlace: referenceRow?.name ?? zone.name,
+    secondary,
+    featured,
+  };
 }

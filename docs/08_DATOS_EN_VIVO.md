@@ -169,9 +169,10 @@ F2.4 no dibujó una gráfica sin histórico. Esta etapa le pone nombre.
   está mejor que el 80 % de la región hoy" es una frase que se reenvía; un
   "AQI 22" no. Es la materia de las tarjetas de F4.5.
 - **Una escala de índice, y la misma en todas partes.** Open-Meteo da US AQI y
-  europeo, con tramos distintos. El 42 "Bueno" de los mockups encaja con la
-  escala estadounidense (0–50 es "bueno"). **Decisión pendiente para F4.1**:
-  elegir una y no mezclarlas nunca en la misma pantalla.
+  europeo, con tramos distintos. **Decidido en F4.1: el AQI europeo**, y la
+  pantalla lo dice ("15 AQI europeo"). El 42 "Bueno" de los mockups es de otra
+  escala —encaja con la estadounidense—, así que donde conviven se enseñan por
+  separado y nombrados, nunca como una sola cifra.
 
 ---
 
@@ -192,11 +193,65 @@ pareciendo una medición.
 
 | Fase | Qué | Tamaño |
 | ---- | --- | ------ |
-| **F4.1** pieza mínima | Open-Meteo en la tarjeta de zona del feed y en el mapa, para el centro de la zona y para cada lugar, con la línea de procedencia. Sin servidor ni migración. Decide la escala de AQI. | ~1 sesión |
+| **F4.1** pieza mínima ✅ | Open-Meteo en la tarjeta de zona del feed, en el mapa (centro del encuadre) y en el perfil de cada lugar, con la línea de procedencia. Sin servidor ni migración. Escala: AQI europeo. **Hecha el 2026-10-04.** | 1 sesión |
 | **F4.2** procedencia completa + OpenAQ | Modelo de lecturas con procedencia (migración), OpenAQ donde haya estación cerca, etiqueta del dato curado y evaluación de GBIF. | Fase |
 | **F4.3** cron en Railway | Lecturas horarias guardadas en Supabase: histórico, clave de OpenAQ fuera del cliente y sin depender del límite por visita. Desbloquea la gráfica de evolución. | Fase |
 | **F4.4** geolocalización opcional | "Tu zona" detectada si se concede el permiso, elegida si no. Trae el caso "me han dicho que no" y la imprecisión en escritorio. | Fase |
 | **F4.5** compartir con marca | Tarjetas, marca de agua y OG tags, con el dato y su procedencia dentro. Descrita en @docs/07_CRECIMIENTO.md. | Fase |
+
+### F4.1, cómo quedó
+
+- **Capa de datos** en `src/lib/air-quality.ts` y el hook `useLiveAir`:
+  `getAirQuality(lat, lng)` nunca lanza —devuelve `null` y la pantalla cae al
+  curado—, con caché en memoria por celda de 0,1° (la rejilla de Open-Meteo)
+  durante 30 minutos y las peticiones en vuelo compartidas.
+- **Tramos del AQI europeo**, los oficiales de la Agencia Europea de Medio
+  Ambiente: 0–20 Excelente, 20–40 Buena, 40–60 Moderada, 60–80 Mala, 80–100
+  Muy mala y más de 100 **Extremadamente mala**. Son seis y no cinco: un
+  episodio extremo tiene que poder decirse. El semáforo usa la paleta (verde,
+  verde claro, amarillo, ámbar, rojo) y siempre va con la palabra.
+- **Tarjeta de zona del feed:** aire en vivo en las coordenadas del lugar de
+  referencia. Málaga, que no tiene ningún lugar medido, lo pide en el centro de
+  la ciudad: **deja de decir "todavía no hay mediciones"**, porque su aire
+  existe aunque OVENG no tenga un lugar allí.
+- **Mapa:** el aire del **centro del encuadre**, recalculado 600 ms después de
+  soltar el mapa —un arrastre hace una petición, no una por fotograma— y con
+  las coordenadas a la vista. Si la API falla, vuelve la medición curada más
+  cercana.
+- **Perfil de un lugar:** "Aire ahora" en vivo con PM2.5 y PM10 —aquí, en el
+  detalle, sí entran los µg/m³—, y el aire curado debajo como "Referencia del
+  perfil". Las demás métricas siguen curadas y llevan "📋 Dato de referencia".
+- **Atribución:** la línea de procedencia nombra a Copernicus; su nombre
+  accesible y la atribución del mapa nombran a CAMS y a Open-Meteo, como piden
+  sus condiciones.
+- **Verificación:** `npm run verify:f41`, incluido el caso de la API bloqueada.
+  Capturas en `docs/verificacion/f41/`.
+
+---
+
+## Fuentes por tema, para las fases siguientes
+
+Lo comprobado contra las APIs el 2026-10-04 va marcado; lo demás es lo que dice
+su documentación y se confirma al integrarlo.
+
+| Tema | Fuente | Qué da | Acceso | Papel |
+| ---- | ------ | ------ | ------ | ----- |
+| Aire | **Open-Meteo Air Quality** (CAMS) | Estimación de modelo en cualquier coordenada | Sin clave · *comprobado* | **En uso desde F4.1** |
+| Aire | **OpenAQ** | Mediciones de estaciones reales | Clave gratuita · *sin clave da 401, comprobado* | F4.2, preferente donde haya estación cerca |
+| Bosque | **Global Forest Watch** | Pérdida de cobertura arbórea anual y alertas de deforestación por satélite | El listado de datos es público; las consultas, a confirmar si piden clave | **Candidata fuerte para los parques**: Monte Alén, Pico Basilé |
+| Fuego | **NASA FIRMS** | Incendios activos de MODIS y VIIRS, casi en tiempo real | `MAP_KEY` gratuita · *sin ella responde "Invalid MAP_KEY", comprobado* | Candidata para una **capa del mapa** |
+| Ríos | **Open-Meteo Flood** (GloFAS) | Caudal diario de ríos, con previsión | Sin clave · *comprobado* | Caudal, **no calidad**. Rejilla de unos 5 km: en la desembocadura del Ntem devolvió 2 m³/s, que no es el caudal del río principal (probablemente otra celda de la cuenca). Hay que apuntar la celda al cauce. |
+| Agua | **GEMStat** (PNUMA) | Calidad del agua dulce, histórica | Portal y solicitud de datos | A evaluar; poca cobertura en África central y **no es en vivo** |
+| Biodiversidad | **GBIF** | Observaciones de especies | Sin clave · *162.964 registros en Guinea Ecuatorial, comprobado* | A evaluar: un recuento no es un índice |
+
+**La calidad del agua no tiene fuente mundial en vivo.** Ni Open-Meteo, ni
+GloFAS, ni ninguna API abierta da pH, oxígeno disuelto o turbidez de un río
+cualquiera ahora mismo. El dato curado del perfil sigue siendo la fuente, y
+lleva su etiqueta. Fingir lo contrario —por ejemplo, pintar el caudal como si
+fuera calidad— rompería justo la honestidad de procedencia que esta etapa
+convierte en rasgo de marca.
+
+---
 
 Lo que queda abierto en @docs/01_ARQUITECTURA.md —capas de datos sobre el
 territorio y fuente de los datos ambientales— se resuelve aquí: la fuente es

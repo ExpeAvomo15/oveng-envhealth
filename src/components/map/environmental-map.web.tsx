@@ -94,7 +94,13 @@ export function EnvironmentalMap({
       style: OSM_STYLE,
       center: [INITIAL_VIEW.lng, INITIAL_VIEW.lat],
       zoom: INITIAL_VIEW.zoom,
-      attributionControl: { compact: true },
+      attributionControl: {
+        compact: true,
+        // El aire de la tarjeta flotante (F4.1): las condiciones de Open-Meteo
+        // piden atribuir a CAMS y a Open-Meteo de forma visible.
+        customAttribution:
+          'Aire: <a href="https://atmosphere.copernicus.eu/">CAMS de Copernicus</a> vía <a href="https://open-meteo.com/">Open-Meteo</a>',
+      },
       // Sin rotación: un mapa de datos girado desorienta y no aporta nada.
       dragRotate: false,
       pitchWithRotate: false,

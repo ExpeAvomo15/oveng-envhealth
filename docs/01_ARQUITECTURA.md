@@ -132,6 +132,19 @@ con una política de uso que prohíbe el uso intenso, así que un lanzamiento
 necesita proveedor propio. El razonamiento completo y los límites están en el
 [archivo de notas, F2.3](notas-archivo-f0-f2.md#2026-09-27--f23-el-mapa-ambiental-y-las-rutas-públicas).
 
+### Aire en vivo: una API externa llamada desde el cliente
+
+Desde F4.1 la app habla con un segundo servicio además de Supabase:
+**Open-Meteo Air Quality** (modelo CAMS de Copernicus). Sin clave y con CORS
+abierto, así que el navegador lo llama directamente, sin servidor propio
+—coherente con el resto de la arquitectura—. Una caché en memoria por celda de
+0,1° evita repetir llamadas al navegar, y si el servicio no responde la app cae
+al dato curado de Supabase con su etiqueta: un servicio externo caído no rompe
+ninguna pantalla.
+
+Cuando entren fuentes con clave (OpenAQ, FIRMS), esa clave no puede ir en el
+bundle: llegan con el cron de F4.3. Ver @docs/08_DATOS_EN_VIVO.md.
+
 ### Rutas públicas y privadas
 
 **Toda vista de lectura es pública** (*lectura libre, cuenta para participar*,

@@ -56,6 +56,14 @@ El porqué de cada una, enlazado.
 - Supabase: URL base sin `/rest/v1`; "Confirm email" desactivado (reactivarlo exige SMTP propio); rechaza `@example.com`. [verif-f11]
 - Chromium usa librerías de `~/.local/chromium-deps`; un `git push` con `HTTP 408` se arregla con `http.postBuffer` y HTTP/1.1. [verif-f11] [F2.4]
 
+- Chromium sin interfaz necesita Noto Color Emoji en `~/.local/share/fonts` para pintar 🛰️ y 📋.
+
+### Datos en vivo
+
+- **Procedencia siempre visible**: 🛰️ estimación, 📡 estación, 📋 curado. Nunca un dato sin su origen. @docs/08_DATOS_EN_VIVO.md
+- Aire en **AQI europeo**, seis tramos oficiales; el curado de los mockups es otra escala y no se mezcla.
+- Una API externa caída **no rompe** nada: se cae al dato curado con su etiqueta. Claves de API, nunca en el bundle (F4.3).
+
 ### Producto
 
 - La tesis de @docs/07_CRECIMIENTO.md (mapa y directorio primero) **contradice** a la visión; manda la visión hasta F3.1. [crecimiento]
@@ -71,6 +79,46 @@ La lista mantenida es el **backlog de @docs/plan.md**. Fuera de ella, sueltos:
 - El perfil enseña el contador de publicaciones y no la lista (backlog del plan).
 - Marca: falta el **SVG vectorial** (hoy son PNG), los PNG no van cuantizados y
   el icono y el splash nativos siguen siendo los de Expo.
+
+---
+
+## 2026-10-04 — F4.1: aire en vivo de Open-Meteo
+
+Adelantada a F3 —que sigue en curso, en paralelo— para que las conversaciones
+enseñen el aire real de ahora mismo.
+
+**El contrato, comprobado antes de construir** (Bata, 1,8639 · 9,7658):
+
+```json
+{ "latitude": 1.9000015, "longitude": 9.800003, "timezone": "GMT",
+  "current_units": { "time": "iso8601", "interval": "seconds",
+    "european_aqi": "EAQI", "pm2_5": "μg/m³", "pm10": "μg/m³" },
+  "current": { "time": "2026-10-04T12:00", "interval": 3600,
+    "european_aqi": 16, "pm2_5": 3.0, "pm10": 5.0 } }
+```
+
+Ajusta la coordenada a la rejilla (0,1°), `time` llega **sin zona** aunque se
+pida GMT, el error es `{ "error": true, "reason": … }` y el CORS está abierto
+(`access-control-allow-origin: *`). Málaga dio 28 y Douala 21 a la misma hora.
+
+**Seis tramos, no cinco.** El AQI europeo oficial tiene seis; el sexto,
+"Extremadamente mala" (más de 100), no se funde con "Muy mala".
+
+**Málaga gana aire.** No tiene lugar medido, pero su aire existe: se pide en el
+centro de la ciudad y la tarjeta deja de decir "todavía no hay mediciones".
+`verify:f25` acepta ahora las dos cosas.
+
+**Lo curado dice que es curado.** "📋 Dato de referencia" bajo cada bloque de
+métricas del perfil, y el aire curado como "Referencia del perfil", aparte del
+vivo: ni están en la misma escala.
+
+**Dos tropiezos de verificación.** `.first()` volvió a coger un nodo oculto (la
+tarjeta del feed bajo el mapa): los scripts de aire filtran por visibles. Y el
+Chromium de aquí no tenía fuente de emojis —🛰️ salía como un recuadro en las
+capturas—; se instaló Noto Color Emoji en `~/.local/share/fonts`.
+
+**Fuentes por tema** para F4.2 en adelante, probadas donde se pudo, en
+@docs/08_DATOS_EN_VIVO.md. La calidad del agua no tiene fuente mundial en vivo.
 
 ---
 
@@ -115,148 +163,6 @@ de negro lo transparente. El export pasa de 5,4 a 5,9 MB.
 
 ---
 
-## 2026-09-27 — F2.6: cierre de la demo
-
-Lo que faltaba para poder enseñarla, y el inventario honesto de lo que no está.
-
-### El feed pasa a ser público
-
-Era la decisión que quedó pendiente en F2.5 y se ha tomado: quien llega ve el
-producto antes de que se le pida nada. Encaja con el principio de utilidad
-individual de @docs/07_CRECIMIENTO.md, y sin ello el recorrido de un visitante
-empezaba en un muro de registro.
-
-Se hizo como el mapa en F2.3: `index` sale del grupo `(tabs)`, porque la guarda
-de ese grupo es de todo el grupo. Lo que quedó dentro de `(tabs)` son
-**las pestañas que exigen cuenta**, que ahora es lo que el grupo significa.
-
-Tres cosas que hubo que arreglar y que no se veían desde fuera:
-
-- **El feed no sabía leer sin lector.** `fetchFeed` filtraba
-  `my_like.user_id` por el id de quien mira, y sin id el filtro no es válido.
-  Ahora hay dos `select`: con lector se pide `my_like`, y sin lector **no se
-  pide**. Sin filtrar habría devuelto *todos* los "me gusta" de cada
-  publicación, así que pesaría más y además pintaría el corazón relleno para
-  cualquiera.
-- **Entrar aterrizaba en Buscar.** Al salir `index` del grupo, la ruta de
-  referencia de `(tabs)` pasó a ser otra pestaña, y registrarse o entrar caía
-  ahí. Login y registro llevan ahora **explícitamente** al feed. Es la tercera
-  vez que esto aparece —logout en F2.3, la ruta inicial en F2.3, y ahora— y la
-  lección ya está clara: **no confiar en qué ruta queda disponible; decir a
-  dónde se va.**
-- **Lo que exige cuenta lo dice.** "Entrar" en la cabecera, el "me gusta" y
-  Crear llevando a la bienvenida, y el selector "Siguiendo" que no se ofrece sin
-  sesión porque no hay a quién seguir.
-
-### El único control muerto que quedaba
-
-La campana de notificaciones era un `Pressable` con rol de botón y **sin
-`onPress`**. Se veía pulsable y no respondía, que es justo el patrón que el
-resto de la app evita: los comentarios avisan, los filtros de Buscar avisan, las
-etiquetas navegan. Ahora avisa también.
-
-Buscado a conciencia: cero `TODO`, `FIXME`, `XXX` o `HACK` en `src/` y
-`scripts/`, y ningún otro control sin acción.
-
-### Lo que queda fuera, y no es un olvido
-
-Consolidado en el **backlog post-demo** de @docs/plan.md, agrupado y sin
-duplicados — la lista anterior repetía la geolocalización y seguía pidiendo
-cosas que F2.4 ya había hecho. Resumen de lo que un visitante podría echar en
-falta y por qué no está:
-
-| Falta | Por qué |
-| ----- | ------- |
-| Gráfica de evolución | No hay series temporales en el modelo |
-| Capas ambientales sobre el mapa | Hay que decidir de dónde salen los datos |
-| Huella y puntos OVENG de personas | Hay que decidir de qué se calculan |
-| Comentarios | El detalle les reserva el sitio; el icono avisa |
-| Buscar publicaciones por etiqueta | Buscar consulta el directorio, no `posts` |
-| Historias, notificaciones, filtros avanzados | Funcionalidad, no estética |
-| Mapa nativo | MapLibre GL JS es de navegador |
-| Geolocalización | Permiso, denegación e imprecisión en escritorio |
-| Búsqueda sin acentos | Pide `unaccent`, o sea una migración |
-
-De paso se corrigió un texto que había caducado: la tarjeta de impacto del
-perfil decía *"Se calculará con tu actividad en F2"*, y F2 cierra **sin** la
-huella personal. Prometer una fase ya cerrada es peor que no prometer nada.
-
-### El recorrido, en un script
-
-`verify:demo` hace lo que haría un visitante, en dos mitades y en el orden real:
-sin cuenta primero —feed, zona, cambio de zona, mapa, filtro, marcador, perfil
-ambiental, CTA— y con cuenta después —registro, publicar con etiqueta, "me
-gusta", buscar y seguir EcoGuinea, valorar el Ntem, perfil propio, cerrar
-sesión—. Las dieciséis capturas van numeradas por orden: son el guion para
-enseñar la demo, no un archivo de pruebas.
-
-### Rendimiento: un quick win que valía 4,6 MB
-
-El export llevaba **dieciocho** variantes de Inter —los nueve pesos y sus
-cursivas, 6,3 MB— cuando el theme usa cuatro y ninguna cursiva. La causa:
-importar desde el índice del paquete, que las referencia todas, y un asset no
-se elimina por no usarse. Con subrutas por peso (`@expo-google-fonts/inter/400Regular`)
-entran solo los cuatro: el artefacto **baja de 10 MB a 5,4 MB**.
-
-El navegador nunca descargó las otras catorce —`useFonts` solo declara las que
-carga—, así que esto no acelera la primera visita: adelgaza cada despliegue y
-el repositorio. La siguiente palanca sí sería de carga, y **no se toca**:
-partir el bundle de JavaScript por rutas, del que MapLibre es un tercio largo.
-Eso es trabajo, no un quick win, y optimizar antes de tener a quién enseñárselo
-es el anti-patrón que el propio documento de crecimiento señala.
-
-### Cinco veces ya: `getByText`
-
-`verify:mvp` falló dos veces con la pantalla correcta delante, por buscar texto
-partido en nodos o repetido. Se comprueba por nombre accesible; y abrir el feed
-obligó a que cuatro comprobaciones dejaran de suponer que la raíz sin sesión es
-la bienvenida. Detalle en el archivo.
-
-### `verify:f25` era el más frágil de los trece, y se arregló de raíz
-
-Falló al pasar la batería completa, y por dos motivos que conviene separar:
-
-- **Contaba solo sus propias publicaciones** para saber si había entrado la
-  segunda página. Con la base llena de publicaciones de otras pruebas, el feed
-  las mezcla por fecha y las veintidós sembradas no caben necesariamente en las
-  dos primeras páginas. Ahora cuenta **cualquiera**: lo que se comprueba es que
-  el feed pasó de una página, no de quién son las filas.
-- **Sembraba antes de construir.** Una ejecución que muriera en el build —pasó,
-  con dos scripts pisándose el `dist`— dejaba veintidós publicaciones y su
-  cuenta en la base **para siempre**, porque la limpieza está al final. Ahora se
-  siembra después del build: lo que se crea, se crea lo más tarde posible.
-
-La regla que sale de aquí, y que vale para los trece: **una comprobación no debe
-suponer en qué estado está la base**, y lo que cree tiene que poder limpiarlo
-aunque falle en medio.
-
-### Higiene
-
-Quedaban 22 perfiles y 70 publicaciones de prueba; se borraron el 2026-10-04
-con `npm run cleanup:test-users`. Detalle en el archivo.
-
-### Comprobado en la demo desplegada
-
-Los ocho pasos del recorrido sin cuenta, contra
-https://expeavomo15.github.io/oveng-envhealth/: abre en el feed en **6,4 s**
-(TTFB de 0,19 s; lo que tarda es el bundle), los datos de la zona con el lugar
-que los mide, el cambio a Málaga diciendo que no tiene mediciones, el mapa con
-las catorce, el filtro por capa, del marcador al perfil ambiental con sus cuatro
-métricas exactas y **sin** círculo de calidad general, y valorar llevando a la
-bienvenida. Capturas en `docs/verificacion/produccion/`.
-
-Confirmado también que el adelgazamiento llegó: el bundle publicado referencia
-**cinco** ficheros de fuente —los cuatro pesos de Inter y los iconos— y no
-diecinueve.
-
-### Estado
-
-Las **doce** verificaciones en verde contra Supabase real. Lint y typecheck
-limpios. La demo está cerrada y publicada; lo siguiente es F3, que no es código
-sino conversaciones.
-
----
-
 <!-- Enlaces al archivo. Son enlaces, no imports: no llevan @. -->
 
 [F0.2]: notas-archivo-f0-f2.md#2026-09-18--f02-app-expo-y-design-system
@@ -274,4 +180,4 @@ sino conversaciones.
 [F2.3]: notas-archivo-f0-f2.md#2026-09-27--f23-el-mapa-ambiental-y-las-rutas-públicas
 [F2.4]: notas-archivo-f0-f2.md#2026-09-27--f24-el-perfil-ambiental-y-una-regla-en-vez-de-dos-pantallas
 [F2.5]: notas-archivo-f0-f2.md#2026-09-27--f25-el-dato-ambiental-dentro-del-feed
-[F2.6]: #2026-09-27--f26-cierre-de-la-demo
+[F2.6]: notas-archivo-f0-f2.md#2026-09-27--f26-cierre-de-la-demo

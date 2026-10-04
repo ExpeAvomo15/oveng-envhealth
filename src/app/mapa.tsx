@@ -16,9 +16,13 @@ import { TabBar } from '@/components/navigation/tab-bar';
 import { Button, Callout, Text } from '@/components/ui';
 import { useAuth } from '@/hooks/use-auth';
 import { useFontFamily } from '@/hooks/use-fonts';
+import { useLiveAir } from '@/hooks/use-live-air';
 import type { EntityMetric, EnvironmentalCategoryName } from '@/lib/database.types';
 import { getMetricByEntity, searchEntities, type EntityResult } from '@/lib/entities';
 import { colors, environmentalCategoryOrder, noWebFocusRing, radius, spacing, typography } from '@/theme';
+
+/** Lo que el mapa tiene que estar quieto antes de pedir el aire de su centro. */
+const SETTLE_MS = 600;
 
 type Loaded = {
   entities: EntityResult[];
@@ -62,6 +66,20 @@ export default function MapScreen() {
   const [hidden, setHidden] = useState<Set<EnvironmentalCategoryName>>(new Set());
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [center, setCenter] = useState<MapCenter>({ lat: INITIAL_VIEW.lat, lng: INITIAL_VIEW.lng });
+
+  /**
+   * El centro **al soltar el mapa**. `center` cambia en cada fotograma mientras
+   * se arrastra; pedir el aire con cada uno serían decenas de llamadas por
+   * gesto. Se espera a que el mapa lleve un rato quieto, y la caché por celda
+   * de 0,1° hace el resto: volver a un sitio ya visto no llama a nadie.
+   */
+  const [settled, setSettled] = useState<MapCenter>(center);
+  useEffect(() => {
+    const timer = setTimeout(() => setSettled(center), SETTLE_MS);
+    return () => clearTimeout(timer);
+  }, [center]);
+
+  const liveAir = useLiveAir(settled);
 
   useEffect(() => {
     let live = true;
@@ -111,7 +129,11 @@ export default function MapScreen() {
    */
   const selected = visible.find((entity) => entity.id === selectedId) ?? null;
 
-  /** La medición de aire más cercana al centro del encuadre. */
+  /**
+   * La medición curada de aire más cercana al centro del encuadre. Desde F4.1
+   * es el respaldo de la tarjeta, para cuando la API del aire en vivo no
+   * responde.
+   */
   const nearestAir = useMemo(() => {
     if (!loaded || selected) return null;
 
@@ -211,12 +233,6 @@ export default function MapScreen() {
               onClose={() => setSelectedId(null)}
               onOpen={() => router.push(`/entidad/${selected.slug}`)}
             />
-          ) : nearestAir ? (
-            <AirQualityCard
-              entity={nearestAir.entity}
-              metric={nearestAir.metric}
-              onPress={() => router.push(`/entidad/${nearestAir.entity.slug}`)}
-            />
           ) : loaded !== null && visible.length === 0 ? (
             <View style={styles.empty}>
               <Text variant="caption" color="textSecondary">
@@ -224,7 +240,14 @@ export default function MapScreen() {
                 búsqueda.
               </Text>
             </View>
-          ) : null}
+          ) : (
+            <AirQualityCard
+              live={liveAir}
+              center={settled}
+              fallback={nearestAir}
+              onOpenFallback={(entity) => router.push(`/entidad/${entity.slug}`)}
+            />
+          )}
         </View>
       </View>
 

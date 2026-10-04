@@ -5,12 +5,14 @@ import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
 import {
   CategoryReadings,
+  LiveAirPanel,
   EntityCover,
   MetricCards,
   QualityCircle,
   RatingList,
   RatingSheet,
 } from '@/components/entity';
+import { ProvenanceLine } from '@/components/air';
 import { Badge, Button, Callout, Screen, Text } from '@/components/ui';
 import { showToast } from '@/components/ui/toast';
 import { useAuth } from '@/hooks/use-auth';
@@ -356,9 +358,21 @@ export default function EntityScreen() {
 
         {entity.description ? <Text variant="body">{entity.description}</Text> : null}
 
+        {/*
+          El aire en vivo de sus coordenadas (F4.1), solo en los lugares: son
+          los que se miden. Debajo, el aire curado del perfil como referencia.
+        */}
+        {entity.type === 'lugar' && entity.lat !== null && entity.lng !== null ? (
+          <LiveAirPanel
+            coords={{ lat: entity.lat, lng: entity.lng }}
+            reference={current?.metrics.find((metric) => metric.metric === 'aire') ?? null}
+          />
+        ) : null}
+
         {grouped.general ? (
           <View style={styles.section}>
             <QualityCircle metric={grouped.general} />
+            <ProvenanceLine kind="reference" />
           </View>
         ) : null}
 
@@ -372,6 +386,8 @@ export default function EntityScreen() {
             */}
             <Text variant="subtitle">Estado por capa</Text>
             <CategoryReadings readings={grouped.categories} />
+            {/* Curado: no es dato vivo y lo dice (F4.2 ampliará fuentes). */}
+            <ProvenanceLine kind="reference" />
           </View>
         ) : null}
 
@@ -379,6 +395,7 @@ export default function EntityScreen() {
           <View style={styles.section}>
             <Text variant="subtitle">Datos clave</Text>
             <MetricCards metrics={grouped.key} />
+            <ProvenanceLine kind="reference" />
           </View>
         ) : null}
 

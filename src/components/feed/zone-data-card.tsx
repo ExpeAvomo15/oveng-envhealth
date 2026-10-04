@@ -1,8 +1,10 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Modal, Pressable, StyleSheet, View } from 'react-native';
 
+import { AirLevelDot, AirSkeleton, liveAirText, ProvenanceLine } from '@/components/air';
 import { Text } from '@/components/ui';
+import { useLiveAir } from '@/hooks/use-live-air';
 import { formatReading, metricLabel } from '@/lib/metrics';
 import { zones, type ZoneData, type ZoneId } from '@/lib/zones';
 import { colors, radius, shadows, spacing } from '@/theme';
@@ -34,7 +36,7 @@ export type ZoneDataCardProps = {
  */
 export function ZoneDataCard({ data, onChangeZone, onOpenReference }: ZoneDataCardProps) {
   const [picking, setPicking] = useState(false);
-  const { zone, reference, air, secondary } = data;
+  const { zone, reference, secondary } = data;
 
   const openReference = () => {
     if (reference) onOpenReference(reference.slug);
@@ -72,41 +74,7 @@ export function ZoneDataCard({ data, onChangeZone, onOpenReference }: ZoneDataCa
         </Pressable>
       </View>
 
-      {air && reference ? (
-        <Pressable
-          onPress={openReference}
-          accessibilityRole="link"
-          accessibilityLabel={`Calidad del aire en ${reference.name}: ${
-            air.label ?? ''
-          } ${formatReading(air)}. Ver su perfil ambiental`}
-          style={({ pressed }) => [styles.reading, pressed && styles.pressed]}>
-          <View style={styles.readingMain}>
-            <Text variant="caption" color="textSecondary">
-              Calidad del aire
-            </Text>
-            <Text variant="title">
-              {air.label ? `${air.label} · ` : ''}
-              {formatReading(air)}
-            </Text>
-            <Text variant="micro" color="textMuted" numberOfLines={1}>
-              medido en {reference.name}
-            </Text>
-          </View>
-
-          <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
-        </Pressable>
-      ) : (
-        <View style={styles.reading}>
-          <View style={styles.readingMain}>
-            <Text variant="body" color="textSecondary">
-              Todavía no hay mediciones en {zone.name}.
-            </Text>
-            <Text variant="micro" color="textMuted">
-              Las mediciones las llevan los lugares, y esta zona aún no tiene ninguno medido.
-            </Text>
-          </View>
-        </View>
-      )}
+      <AirReading data={data} onOpenReference={openReference} />
 
       {secondary.length > 0 ? (
         <View style={styles.secondary}>
@@ -167,6 +135,117 @@ export function ZoneDataCard({ data, onChangeZone, onOpenReference }: ZoneDataCa
   );
 }
 
+/**
+ * La calidad del aire de la tarjeta: **en vivo** desde F4.1.
+ *
+ * Se pide para las coordenadas de la referencia —o del centro de la zona, si no
+ * la hay— y entra cuando llega, sin bloquear el feed. Tres casos:
+ *
+ * - **En vivo:** semáforo y palabra, el índice europeo detrás, y la línea de
+ *   procedencia "🛰️ Estimación satelital Copernicus".
+ * - **La API no responde:** el dato curado de la referencia con su propia
+ *   etiqueta, "📋 Dato de referencia". Si tampoco lo hay, se dice.
+ * - **Llegando:** un hueco con la forma del dato.
+ *
+ * Con la referencia, el bloque lleva a su perfil ambiental; sin ella (Málaga),
+ * no hay a dónde ir y no se finge un enlace.
+ */
+function AirReading({
+  data,
+  onOpenReference,
+}: {
+  data: ZoneData;
+  onOpenReference: () => void;
+}) {
+  const live = useLiveAir(data.airCoords);
+  const { reference, air, airPlace, zone } = data;
+
+  let body: ReactNode;
+  let label: string;
+
+  if (live.status === 'live') {
+    label = `Calidad del aire en ${airPlace}: ${liveAirText(live.air)}. Estimación satelital Copernicus`;
+    body = (
+      <>
+        <Text variant="caption" color="textSecondary">
+          Calidad del aire
+        </Text>
+        {/* Semáforo y palabra primero; el índice, detrás y más pequeño. */}
+        <View style={styles.liveRow}>
+          <AirLevelDot level={live.air.level} size={12} />
+          <Text variant="title">{live.air.label}</Text>
+          <Text variant="body" color="textSecondary" style={styles.liveText}>
+            · {live.air.aqi} AQI europeo
+          </Text>
+        </View>
+        <Text variant="micro" color="textMuted" numberOfLines={1}>
+          en {airPlace}
+        </Text>
+        <ProvenanceLine kind="satellite" updatedAt={live.air.updatedAt} />
+      </>
+    );
+  } else if (live.status === 'loading') {
+    label = 'Cargando la calidad del aire';
+    body = (
+      <>
+        <Text variant="caption" color="textSecondary">
+          Calidad del aire
+        </Text>
+        <AirSkeleton />
+      </>
+    );
+  } else if (air && reference) {
+    label = `Calidad del aire en ${reference.name}: ${air.label ?? ''} ${formatReading(air)}. Dato de referencia`;
+    body = (
+      <>
+        <Text variant="caption" color="textSecondary">
+          Calidad del aire
+        </Text>
+        <Text variant="title">
+          {air.label ? `${air.label} · ` : ''}
+          {formatReading(air)}
+        </Text>
+        <Text variant="micro" color="textMuted" numberOfLines={1}>
+          medido en {reference.name}
+        </Text>
+        <ProvenanceLine kind="reference" />
+      </>
+    );
+  } else {
+    return (
+      <View style={styles.reading}>
+        <View style={styles.readingMain}>
+          <Text variant="body" color="textSecondary">
+            Todavía no hay mediciones en {zone.name}.
+          </Text>
+          <Text variant="micro" color="textMuted">
+            Las mediciones las llevan los lugares, y esta zona aún no tiene ninguno medido.
+          </Text>
+        </View>
+      </View>
+    );
+  }
+
+  if (!reference) {
+    return (
+      <View style={styles.reading} accessibilityLabel={label}>
+        <View style={styles.readingMain}>{body}</View>
+      </View>
+    );
+  }
+
+  return (
+    <Pressable
+      onPress={onOpenReference}
+      accessibilityRole="link"
+      accessibilityLabel={`${label}. Ver el perfil ambiental de ${reference.name}`}
+      style={({ pressed }) => [styles.reading, pressed && styles.pressed]}>
+      <View style={styles.readingMain}>{body}</View>
+      <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
+    </Pressable>
+  );
+}
+
 const styles = StyleSheet.create({
   card: {
     gap: spacing.md,
@@ -213,6 +292,15 @@ const styles = StyleSheet.create({
   readingMain: {
     flex: 1,
     gap: 2,
+  },
+  liveRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    flexWrap: 'wrap',
+    columnGap: spacing.sm,
+  },
+  liveText: {
+    flexShrink: 1,
   },
   secondary: {
     flexDirection: 'row',
