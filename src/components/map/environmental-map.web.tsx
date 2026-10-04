@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { EntityAvatar } from '@/components/search';
+import type { EntityResult } from '@/lib/entities';
 import { colors, radius, shadows, spacing } from '@/theme';
 
 import { INITIAL_VIEW, type EnvironmentalMapProps } from './types';
@@ -132,20 +133,19 @@ export function EnvironmentalMap({
     };
   }, []);
 
-  /** Posición en píxeles de cada entidad con coordenadas. */
-  const pins = useMemo(() => {
-    if (!map) return [];
-
-    // `tick` es la dependencia real: cambia con cada movimiento del mapa.
-    void tick;
-
-    return entities
-      .filter((entity) => entity.lat !== null && entity.lng !== null)
-      .map((entity) => {
-        const point = map.project([entity.lng as number, entity.lat as number]);
-        return { entity, x: point.x, y: point.y };
-      });
-  }, [entities, map, tick]);
+  /**
+   * Posición en píxeles de cada entidad con coordenadas.
+   *
+   * **`tick` se pasa como argumento, y no es un adorno.** Antes se "leía" con
+   * un `void tick` dentro de un `useMemo`, y React Compiler —activado en
+   * app.json— lo descartaba: memorizaba la proyección solo por `entities` y
+   * `map`, así que los pines se calculaban al cargar y no se movían nunca, ni
+   * al arrastrar ni al hacer zoom. Pasó inadvertido desde F2.3 porque ninguna
+   * verificación arrastraba el mapa; lo destapó F4.1, que consiste justo en
+   * moverlo. Un argumento de una función sí cuenta como dependencia para el
+   * compilador.
+   */
+  const pins = useMemo(() => projectPins(map, entities, tick), [map, entities, tick]);
 
   function zoomBy(delta: number) {
     const current = mapRef.current;
@@ -197,6 +197,21 @@ export function EnvironmentalMap({
       </View>
     </View>
   );
+}
+
+/**
+ * Proyecta las entidades al encuadre actual. `_tick` no se usa dentro: está en
+ * la firma para que quien la llame dependa de él (ver `pins`).
+ */
+function projectPins(map: MapLibreMap | null, entities: EntityResult[], _tick: number) {
+  if (!map) return [];
+
+  return entities
+    .filter((entity) => entity.lat !== null && entity.lng !== null)
+    .map((entity) => {
+      const point = map.project([entity.lng as number, entity.lat as number]);
+      return { entity, x: point.x, y: point.y };
+    });
 }
 
 function MapButton({

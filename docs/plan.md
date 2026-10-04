@@ -311,6 +311,9 @@ quien escucha, y no un dato de ejemplo, cambia las conversaciones.
       aire vivo y referencia, y la API **bloqueada** cayendo al curado sin
       errores. Capturas en `docs/verificacion/f41/`. Las trece verificaciones
       del repositorio en verde.
+      **De paso, un fallo de F2.3:** los pines del mapa no se movían al
+      arrastrar ni al hacer zoom —React Compiler memorizaba su proyección sin el
+      contador de movimiento—. Arreglado y vigilado por `verify:f41`.
 - [ ] **F4.2 procedencia completa + OpenAQ** — lecturas con fuente, método,
       origen e instante (migración); OpenAQ donde haya estación; etiqueta del
       dato curado; evaluar GBIF para biodiversidad.

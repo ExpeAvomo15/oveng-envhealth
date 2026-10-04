@@ -41,6 +41,7 @@ El porqué de cada una, enlazado.
 - **Toda vista de lectura nace pública**; solo las acciones piden cuenta (AGENTS.md, @docs/07_CRECIMIENTO.md).
 - Las rutas públicas viven fuera de `(tabs)` y se declaran **al final**; entrar y salir de sesión dicen a dónde van. [F2.3] [F2.6]
 - El mapa se monta y desmonta con el foco. [F2.3]
+- Con React Compiler, **un valor que fuerza un recálculo va como argumento**, nunca como `void x` en un `useMemo`: lo descarta.
 - `experiments.baseUrl` está atado al nombre del repo; `404.html` y `+html.tsx` van a juego. Credenciales como *Variables*. [F1.2b]
 - Export siempre con `--clear` y comprobando la URL de Supabase dentro del bundle. [verif-f11]
 - El export estático no pinta contenido (guard de sesión): aceptado mientras el SEO no importe. [F1.2b]
@@ -116,6 +117,14 @@ vivo: ni están en la misma escala.
 tarjeta del feed bajo el mapa): los scripts de aire filtran por visibles. Y el
 Chromium de aquí no tenía fuente de emojis —🛰️ salía como un recuadro en las
 capturas—; se instaló Noto Color Emoji en `~/.local/share/fonts`.
+
+**Los pines del mapa no se movían, desde F2.3.** Comprobando el cierre en
+producción, los marcadores seguían sobre Douala con el mapa ya movido. React
+Compiler descartaba el `void tick` de su `useMemo` y memorizaba la proyección
+solo por `entities` y `map`: se calculaban al cargar y nunca más. Comprobado
+en el bundle y en un build de F2.6 —ya pasaba ahí—. Ahora `tick` es argumento
+de la función que proyecta, y `verify:f41` mide que un pin viaje con el
+arrastre. Ninguna verificación arrastraba el mapa.
 
 **Fuentes por tema** para F4.2 en adelante, probadas donde se pudo, en
 @docs/08_DATOS_EN_VIVO.md. La calidad del agua no tiene fuente mundial en vivo.

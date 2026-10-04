@@ -248,6 +248,8 @@ try {
     // Arrastrar unos 200 px hacia abajo a zoom 7,2 lleva el centro unos dos
     // grados al norte: de Bata a la altura de Douala. Por una zona sin pines.
     const requestsBefore = airRequests.length;
+    const pin = page.getByRole('button', { name: 'Río Ntem, en el mapa' });
+    const pinBefore = await pin.boundingBox();
     await page.mouse.move(80, 300);
     await page.mouse.down();
     for (let i = 1; i <= 20; i += 1) {
@@ -255,6 +257,22 @@ try {
     }
     await page.mouse.up();
     await page.waitForTimeout(3500);
+
+    /*
+     * Los pines tienen que viajar con el mapa. Hasta F4.1 no lo hacían: React
+     * Compiler memorizaba su proyección sin el contador de movimiento y se
+     * quedaban congelados en el primer encuadre. Ninguna verificación
+     * arrastraba el mapa, así que nadie lo vio.
+     */
+    {
+      const pinAfter = await pin.boundingBox();
+      const moved = pinBefore && pinAfter ? pinAfter.y - pinBefore.y : null;
+      if (moved !== null && Math.abs(moved - 220) <= 15) {
+        ok(`los pines viajan con el mapa (el del Ntem bajó ${Math.round(moved)} px con un arrastre de 220)`);
+      } else {
+        bad(`los pines no siguen al mapa: el del Ntem se movió ${moved} px con un arrastre de 220`);
+      }
+    }
 
     const during = airRequests.length - requestsBefore;
     if (during >= 1 && during <= 2) ok(`un arrastre de 20 pasos hace ${during} petición(es), no una por fotograma`);
