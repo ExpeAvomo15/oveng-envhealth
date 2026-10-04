@@ -97,12 +97,12 @@ el número iba uno por encima desde F2.4. Corregido en el plan.
 límite de 150k. Se archiva y la regla queda en AGENTS.md.
 
 **Lectura libre, cuenta para participar.** Buscar, el perfil ajeno y el
-detalle de una publicación pasan a ser públicos, como el feed y el mapa: son lo
-que se comparte por enlace. Seguir y "me gusta" piden cuenta y lo dicen. Buscar
-sale de `(tabs)`, que se queda solo con el perfil propio. Y aparece un fallo de
-F2.6: la pestaña Inicio no estaba en las rutas públicas de la barra, así que sin
-sesión llevaba a la bienvenida. `verify:demo` recorre ahora las tres vistas sin
-cuenta.
+detalle de una publicación pasan a públicos: son lo que se comparte por enlace.
+`(tabs)` queda solo con el perfil propio. Fallo de F2.6 de paso: sin sesión, la
+pestaña Inicio llevaba a la bienvenida. `verify:demo` lo recorre todo sin cuenta.
+
+**Marca fuera de la app** (tarjetas, marca de agua, OG tags): documentada en
+@docs/07_CRECIMIENTO.md como F4.5, sin construir.
 
 **Marca.** Los logos oficiales (lockup y tortuga-O, verde y blanco, con
 transparencia real) están en `docs/design/brand/`, que es la fuente de verdad y

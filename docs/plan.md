@@ -324,6 +324,17 @@ es un olvido: cada línea dice por qué está aquí y no en el producto.
 - **Pantalla para elegir contraseña nueva** tras el email de recuperación.
 - **Verificación real de cuentas:** hoy `verified` lo puede cambiar su dueño.
 
+### Distribución
+
+- **F4.5 Compartir con marca.** Todo lo que sale de la plataforma lleva marca
+  y camino de vuelta; dentro, el contenido queda limpio. Tres piezas:
+  tarjetas compartibles 9:16 para estados de WhatsApp (contenido, logo, dato y
+  URL), marca de agua con la tortuga-O blanca **solo** al descargar o compartir
+  una imagen como fichero, y OG tags por ruta. Las OG tags chocan con el SPA en
+  Pages —los rastreadores no ejecutan JS y las rutas dinámicas entran por un
+  404—: entidades pre-renderizadas primero, función en el borde con dominio
+  propio después. Detalle en @docs/07_CRECIMIENTO.md.
+
 ### Plataforma
 
 - **Mapa en nativo.** MapLibre GL JS es de navegador. En iOS y Android hay un

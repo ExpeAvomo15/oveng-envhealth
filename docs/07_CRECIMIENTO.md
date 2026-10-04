@@ -131,6 +131,59 @@ comunidad que ya se conoce entre sí. Que se conozcan es el requisito: cien
 personas sueltas de cien sitios distintos no forman una red, y cincuenta que se
 conocen sí.
 
+### Marca en todo lo que sale
+
+**Todo artefacto que abandona la plataforma lleva marca y camino de vuelta; el
+contenido dentro de la app queda limpio.** Dentro, la publicación es de quien la
+escribe y no se le pega un logo encima. Fuera —en un estado de WhatsApp, en un
+grupo, en una descarga— la imagen viaja sola, y si no dice de dónde viene ni
+cómo llegar, el uso no genera distribución. Es el principio *cada uso genera
+distribución* aplicado al objeto que viaja.
+
+Tres piezas, de la más deliberada a la más automática. **Documentadas, no
+construidas**: son la tarea F4.5 de @docs/plan.md.
+
+1. **Tarjetas compartibles generadas.** Una imagen compuesta a propósito para
+   compartir: el contenido (una medición, una publicación, una entidad), el
+   logo, el dato con su procedencia y la URL de vuelta. Formato vertical 9:16
+   (1080 × 1920) para **estados de WhatsApp**, con el texto grande y el dato
+   arriba, porque un estado se ve unos segundos a tamaño de móvil. El logo
+   sale de `docs/design/brand/`: el lockup sobre fondo claro y la versión blanca
+   sobre el color de la categoría.
+2. **Marca de agua al sacar una imagen como fichero.** Solo cuando alguien
+   **descarga o comparte** la foto de una publicación como archivo: la tortuga-O
+   **blanca** en una esquina, pequeña y semitransparente, más la URL corta. Se
+   compone en el cliente con un `canvas` en el momento de compartir; el
+   original en Storage y la imagen en el feed no se tocan. Si quien la recibe la
+   reenvía, la marca va con ella.
+3. **OG tags por ruta.** Los metadatos que leen WhatsApp, Telegram o X para
+   pintar la vista previa de un enlace: título, descripción e imagen de la
+   publicación, la entidad o la zona. Es lo más barato y lo que más multiplica,
+   porque cada enlace pegado en un grupo se convierte en una tarjeta.
+
+**La limitación de las OG tags hoy, y su salida.** Los rastreadores de vista
+previa **no ejecutan JavaScript**: leen el HTML que devuelve el servidor y nada
+más. En GitHub Pages eso falla por tres lados:
+
+- El export estático no pinta contenido: el *guard* de sesión devuelve la
+  pantalla de carga al renderizar en el servidor, así que un `<Head>` por ruta
+  no llega al HTML. Solo sirven las etiquetas globales de `+html.tsx`.
+- Las rutas dinámicas (`/post/…`, `/entidad/…`, `/user/…`) no tienen HTML
+  propio: entran por el *fallback* de `404.html`, con estado **404**, y un
+  rastreador ve una página de error genérica.
+- Pages no ejecuta nada en el servidor, así que no hay dónde componer las
+  etiquetas de una publicación que se escribió ayer.
+
+La salida tiene dos escalones. **Primero**, lo que se puede pre-renderizar: las
+catorce entidades son contenido curado, así que se generan en el export con
+`generateStaticParams`, cada una con su HTML y sus etiquetas, a condición de
+que la ruta pública renderice sin esperar a la sesión. **Después**, lo que
+escribe la gente: una función en el borde (Supabase Edge Functions o un
+Cloudflare Worker delante del dominio) que, para los agentes de vista previa,
+devuelva un HTML mínimo con las etiquetas de esa publicación y una imagen
+generada (la propia tarjeta de la pieza 1), y para las personas, la app. Eso
+exige dominio propio y es el mismo paso que mover el hosting fuera de Pages.
+
 ---
 
 ## Secuencia
@@ -188,10 +241,7 @@ salió a ser una ruta pública de primer nivel, y el orden en que se declaran la
 rutas decide cuál es la puerta de entrada. El detalle está en el
 [archivo de notas, F2.3](notas-archivo-f0-f2.md#2026-09-27--f23-el-mapa-ambiental-y-las-rutas-públicas).
 
-**Tarjetas compartibles de datos ambientales:** post-F2, después del mapa. No
-hay tarjeta que compartir hasta que haya dato que enseñar.
-
-**Metadatos para compartir en web (*OG tags*)** para que un enlace de OVENG se
-vea bien al pegarlo en WhatsApp: post-F2. Es barato y multiplica el efecto de
-todo lo anterior, pero no sirve de nada sin páginas públicas que enlazar — o
-sea, depende de lo primero de esta lista.
+**Tarjetas compartibles, marca de agua y OG tags:** son la tarea **F4.5
+"Compartir con marca"**, descrita en *Marca en todo lo que sale*. Las páginas
+públicas que necesitaban ya existen —toda vista de lectura lo es—; falta que lo
+que sale de ellas lleve la marca y el camino de vuelta.
