@@ -113,6 +113,38 @@ anónima es pública por diseño — lo que la hace segura es RLS, no el secreto
 La `service_role` no está ni en `.env` ni en GitHub: se pasa en el shell solo al
 ejecutar el seed o la limpieza de cuentas de prueba.
 
+### Correo de autenticación: recuperar contraseña
+
+El flujo de la app (F4.3) es PKCE: `resetPasswordForEmail` manda un enlace que
+vuelve a **`/restablecer`** —con el subpath de Pages—, el cliente canjea el
+`code` al arrancar y emite `PASSWORD_RECOVERY`, y la pantalla pide la
+contraseña nueva. Dos condiciones fuera del código:
+
+- **El enlace se abre en el mismo navegador donde se pidió.** El verificador de
+  PKCE vive ahí; en otro navegador o dispositivo el canje falla y la pantalla lo
+  dice. Para que funcione entre dispositivos habría que cambiar la plantilla del
+  email a `token_hash` y canjear con `verifyOtp` (anotado, no hecho).
+- **El servidor de correo integrado de Supabase solo entrega a direcciones del
+  equipo del proyecto, y dos correos por hora para todo el proyecto.** Es lo que
+  hacía que el email "no llegara" a nadie más. Hace falta SMTP propio, y los
+  proveedores (Resend, Brevo, SES…) piden **un dominio verificado** para
+  enviar a cualquiera: con la demo en `github.io` no lo hay.
+
+**Configuración en el dashboard** (Authentication):
+
+1. *URL Configuration* → **Site URL**:
+   `https://expeavomo15.github.io/oveng-envhealth/`
+2. *URL Configuration* → **Redirect URLs**, añadir:
+   `https://expeavomo15.github.io/oveng-envhealth/**` y, para desarrollo,
+   `http://localhost:8081/**`. Sin esto, Supabase ignora el `redirectTo` y manda
+   a la Site URL.
+3. *(Opcional)* SMTP propio con Resend, 100 correos al día gratis: dominio
+   propio verificado en Resend (registros DNS que indica), una API key, y en
+   Supabase *Emails → SMTP Settings*: host `smtp.resend.com`, puerto `465`,
+   usuario `resend`, contraseña la API key, remitente `no-reply@<tu dominio>`.
+   Con SMTP propio el límite inicial es de 30 correos por hora y se ajusta en
+   *Rate Limits*.
+
 ### Trunk-based en `main`
 
 Un commit por tarea del plan, push inmediato, tag anotado al cerrar fase. Sin

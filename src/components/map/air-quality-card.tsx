@@ -1,7 +1,8 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Pressable, StyleSheet, View } from 'react-native';
 
-import { AirLevelDot, AirSkeleton, liveAirText, ProvenanceLine } from '@/components/air';
+import { AirSkeleton, AirValue, liveAirText, ProvenanceLine } from '@/components/air';
+import { InfoButton } from '@/components/explain';
 import { Text } from '@/components/ui';
 import type { LiveAir } from '@/hooks/use-live-air';
 import type { EntityMetric } from '@/lib/database.types';
@@ -62,12 +63,7 @@ export function AirQualityCard({
           <Text variant="label" color="textSecondary">
             Calidad del aire
           </Text>
-          <View style={styles.liveRow}>
-            <AirLevelDot level={live.air.level} />
-            <Text variant="bodyStrong" numberOfLines={1} style={styles.shrink}>
-              {liveAirText(live.air)}
-            </Text>
-          </View>
+          <AirValue air={live.air} size="bodyStrong" />
           <Text variant="micro" color="textMuted" numberOfLines={1}>
             {place}
           </Text>
@@ -110,28 +106,37 @@ export function AirQualityCard({
   const { entity, metric } = fallback;
   const reading = formatReading(metric);
 
+  // No es un único pulsable: lleva ⓘ dentro, y en web el toque burbujearía.
   return (
-    <Pressable
-      onPress={() => onOpenFallback(entity)}
-      accessibilityRole="link"
-      accessibilityLabel={`Calidad del aire en ${entity.name}: ${metric.label ?? reading}. Dato de referencia`}
-      style={({ pressed }) => [styles.card, pressed && styles.pressed]}>
+    <View
+      style={styles.card}
+      accessibilityLabel={`Calidad del aire en ${entity.name}: ${metric.label ?? reading}. Dato de referencia`}>
       <Icon />
       <View style={styles.texts}>
         <Text variant="label" color="textSecondary">
           Calidad del aire
         </Text>
         <Text variant="bodyStrong" numberOfLines={1}>
-          {metric.label ? `${metric.label} · ${reading}` : reading}
+          {metric.label ?? reading}
         </Text>
-        <Text variant="micro" color="textMuted" numberOfLines={1}>
-          medido en {entity.name}
-        </Text>
-        <ProvenanceLine kind="reference" />
+        <View style={styles.liveRow}>
+          <Text variant="caption" color="textSecondary" style={styles.shrink}>
+            Índice de la ficha: {reading}
+          </Text>
+          <InfoButton topic="aqi-reference" about="índice de aire de la ficha" size={14} />
+        </View>
+        <ProvenanceLine kind="reference" of={entity.name} />
       </View>
 
-      <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
-    </Pressable>
+      <Pressable
+        onPress={() => onOpenFallback(entity)}
+        accessibilityRole="link"
+        accessibilityLabel={`Ver la ficha de ${entity.name}`}
+        hitSlop={8}
+        style={({ pressed }) => pressed && styles.pressed}>
+        <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
+      </Pressable>
+    </View>
   );
 }
 

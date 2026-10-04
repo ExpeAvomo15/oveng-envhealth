@@ -1,14 +1,32 @@
-import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { usePathname, useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { Button, Callout, Screen, Text, TextField } from '@/components/ui';
 import { useAuth } from '@/hooks/use-auth';
 import { spacing } from '@/theme';
 
+/**
+ * Segundos de espera antes de poder reenviar. Supabase rechaza un segundo envío
+ * a la misma dirección antes de un minuto, y el servidor de correo del plan
+ * gratuito solo manda unos pocos por hora: reenviar sin pausa solo gasta ese
+ * cupo.
+ */
+const RESEND_COOLDOWN_S = 60;
+
 export default function ForgotPasswordScreen() {
   const router = useRouter();
+  const pathname = usePathname();
   const { requestPasswordReset } = useAuth();
+  const [cooldown, setCooldown] = useState(0);
+
+  // Cuenta atrás del reenvío. El `setState` va en el temporizador, no en el
+  // cuerpo del efecto.
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const timer = setTimeout(() => setCooldown((value) => value - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [cooldown]);
 
   const [email, setEmail] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -24,12 +42,13 @@ export default function ForgotPasswordScreen() {
     setSubmitting(true);
     setError(null);
 
-    const result = await requestPasswordReset(email);
+    const result = await requestPasswordReset(email, pathname);
 
     if (result.error) {
       setError(result.error);
     } else {
       setSentTo(email.trim());
+      setCooldown(RESEND_COOLDOWN_S);
     }
 
     setSubmitting(false);
@@ -48,15 +67,31 @@ export default function ForgotPasswordScreen() {
         {sentTo ? (
           <>
             <Callout tone="success" title="Email enviado">
-              {`Si hay una cuenta asociada a ${sentTo}, recibirás un enlace para restablecer la contraseña. El enlace caduca en una hora.`}
+              {`Si hay una cuenta asociada a ${sentTo}, recibirás un enlace para elegir una contraseña nueva. Caduca en una hora.`}
             </Callout>
 
-            <Text variant="caption" color="textSecondary">
-              Si no llega en unos minutos, revisa la carpeta de spam y comprueba que la dirección
-              es la correcta.
-            </Text>
+            <View style={styles.tips}>
+              <Text variant="caption" color="textSecondary">
+                Si no llega en unos minutos, revisa la carpeta de spam. El reenvío tiene un límite por
+                hora: si pides muchos seguidos, dejan de salir.
+              </Text>
+              <Text variant="caption" color="textSecondary">
+                Abre el enlace en este mismo navegador: el enlace solo funciona donde lo pediste.
+              </Text>
+            </View>
 
-            <Button label="Volver a iniciar sesión" size="lg" fullWidth onPress={() => router.replace('/login')} />
+            {error ? <Callout tone="error">{error}</Callout> : null}
+
+            <Button
+              label={cooldown > 0 ? `Reenviar en ${cooldown} s` : 'Reenviar el email'}
+              variant="secondary"
+              size="lg"
+              fullWidth
+              loading={submitting}
+              disabled={cooldown > 0 || submitting}
+              onPress={handleSubmit}
+            />
+            <Button label="Volver a iniciar sesión" variant="ghost" fullWidth onPress={() => router.replace('/login')} />
           </>
         ) : (
           <>
@@ -107,6 +142,9 @@ const styles = StyleSheet.create({
   },
   header: {
     gap: spacing.xs,
+  },
+  tips: {
+    gap: spacing.sm,
   },
   form: {
     gap: spacing.lg,

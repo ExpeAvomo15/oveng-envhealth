@@ -25,6 +25,9 @@ const MESSAGES: Record<string, string> = {
     'Se han enviado demasiados emails a esa dirección. Espera unos minutos antes de pedir otro.',
   same_password: 'La contraseña nueva es igual que la anterior. Elige otra.',
   session_expired: 'Tu sesión ha caducado. Vuelve a iniciar sesión.',
+  otp_expired: 'El enlace ha caducado o ya se usó. Pide uno nuevo.',
+  flow_state_expired: 'El enlace ha caducado. Pide uno nuevo.',
+  flow_state_not_found: 'Este enlace no se puede usar aquí. Pide uno nuevo desde este navegador.',
 };
 
 /**
@@ -41,11 +44,19 @@ export function translateAuthError(error: unknown): string {
     return translateUnknownError(error);
   }
 
+  const message = error.message.toLowerCase();
+
+  // "For security purposes, you can only request this after 37 seconds." Va
+  // antes que el código: el genérico del límite dice "unos minutos", y este
+  // sabe cuántos segundos exactos.
+  const wait = /only request this after (\d+) seconds/.exec(message);
+  if (wait) {
+    return `Por seguridad, espera ${wait[1]} segundos antes de pedir otro email.`;
+  }
+
   if (error.code && error.code in MESSAGES) {
     return MESSAGES[error.code] as string;
   }
-
-  const message = error.message.toLowerCase();
 
   if (message.includes('database error saving new user')) {
     return DATABASE_SIGNUP_ERROR;

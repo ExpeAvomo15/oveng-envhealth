@@ -93,6 +93,12 @@ function RootNavigator() {
       <Stack.Screen name="entidad/[slug]" />
       <Stack.Screen name="user/[username]" />
       <Stack.Screen name="post/[id]" />
+      {/*
+        Adonde lleva el email de recuperación (F4.3). Pública porque se llega
+        sin sesión y la sesión aparece al canjear el enlace: tiene que existir
+        en los dos estados.
+      */}
+      <Stack.Screen name="restablecer" />
     </Stack>
   );
 }

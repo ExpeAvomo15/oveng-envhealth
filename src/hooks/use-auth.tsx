@@ -3,6 +3,7 @@ import { createContext, use, useCallback, useEffect, useMemo, useState, type Rea
 import { AppState, Platform } from 'react-native';
 
 import { translateAuthError } from '@/lib/auth-errors';
+import { passwordResetUrl } from '@/lib/site';
 import type { Profile } from '@/lib/database.types';
 import { supabase } from '@/lib/supabase';
 
@@ -41,7 +42,16 @@ type AuthContextValue = {
   signUp: (params: SignUpParams) => Promise<SignUpResult>;
   signIn: (email: string, password: string) => Promise<ActionResult>;
   signOut: () => Promise<ActionResult>;
-  requestPasswordReset: (email: string) => Promise<ActionResult>;
+  /** `currentRoutePath` es el `usePathname()` de quien llama: da la raíz de la app. */
+  requestPasswordReset: (email: string, currentRoutePath: string) => Promise<ActionResult>;
+  /**
+   * `true` desde que se abre un enlace de recuperación válido (evento
+   * `PASSWORD_RECOVERY`) hasta que se cambia la contraseña. Se guarda aquí y no
+   * en la pantalla porque el evento llega al arrancar el cliente, antes de que
+   * la pantalla exista.
+   */
+  passwordRecovery: boolean;
+  updatePassword: (password: string) => Promise<ActionResult>;
   refreshProfile: () => Promise<void>;
 };
 
@@ -50,6 +60,7 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [passwordRecovery, setPasswordRecovery] = useState(false);
 
   /**
    * Perfil cargado, junto al usuario al que pertenece.
@@ -82,9 +93,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Nada de `await` dentro de este callback: supabase-js advierte de que
     // llamar a sus funciones async aquí puede bloquear el cliente. Solo se
     // guarda la sesión; el perfil se carga en el efecto de abajo.
-    const { data } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+    const { data } = supabase.auth.onAuthStateChange((event, nextSession) => {
       setSession(nextSession);
       setLoading(false);
+      // PKCE: el cliente canjea el `?code=` del enlace al arrancar y avisa con
+      // este evento si el código venía de una recuperación (F4.3).
+      if (event === 'PASSWORD_RECOVERY') setPasswordRecovery(true);
+      if (event === 'SIGNED_OUT') setPasswordRecovery(false);
     });
 
     return () => {
@@ -190,14 +205,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error: error ? translateAuthError(error) : null };
   }, []);
 
-  const requestPasswordReset = useCallback(async (email: string): Promise<ActionResult> => {
-    // En web se vuelve al origen actual; en nativo lo gobierna la Site URL del
-    // proyecto. La pantalla que recoge el enlace todavía no existe (ver notas).
-    const redirectTo =
-      Platform.OS === 'web' && typeof window !== 'undefined' ? window.location.origin : undefined;
+  const requestPasswordReset = useCallback(
+    async (email: string, currentRoutePath: string): Promise<ActionResult> => {
+      // Vuelve a /restablecer **con el subpath** de Pages (F4.3). En nativo lo
+      // gobierna la Site URL del proyecto.
+      const redirectTo = Platform.OS === 'web' ? passwordResetUrl(currentRoutePath) : undefined;
 
-    const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), { redirectTo });
+      const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), { redirectTo });
 
+      return { error: error ? translateAuthError(error) : null };
+    },
+    [],
+  );
+
+  const updatePassword = useCallback(async (password: string): Promise<ActionResult> => {
+    const { error } = await supabase.auth.updateUser({ password });
+    if (!error) setPasswordRecovery(false);
     return { error: error ? translateAuthError(error) : null };
   }, []);
 
@@ -217,6 +240,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signIn,
       signOut,
       requestPasswordReset,
+      passwordRecovery,
+      updatePassword,
       refreshProfile,
     }),
     [
@@ -228,6 +253,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signIn,
       signOut,
       requestPasswordReset,
+      passwordRecovery,
+      updatePassword,
       refreshProfile,
     ],
   );

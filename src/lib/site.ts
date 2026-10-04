@@ -42,6 +42,19 @@ export function shareUrl(target: string, currentRoutePath: string): string {
   return `${appRoot(currentRoutePath)}${target}`;
 }
 
+/**
+ * Adónde vuelve el enlace del email de recuperación (F4.3): la pantalla
+ * `/restablecer`, **con el subpath**. Antes era `window.location.origin` a
+ * secas —`https://expeavomo15.github.io`, sin `/oveng-envhealth`—, y el enlace
+ * del correo llevaba a una página de GitHub que no es la app.
+ *
+ * Esta URL tiene que estar en Supabase → Authentication → URL Configuration →
+ * Redirect URLs, o Supabase la ignora y manda a la Site URL.
+ */
+export function passwordResetUrl(currentRoutePath: string): string {
+  return shareUrl('/restablecer', currentRoutePath);
+}
+
 /** URL pública de una publicación. */
 export function postUrl(postId: string, currentRoutePath: string): string {
   return shareUrl(`/post/${postId}`, currentRoutePath);

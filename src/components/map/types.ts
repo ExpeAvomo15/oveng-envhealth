@@ -3,6 +3,13 @@ import type { EntityResult } from '@/lib/entities';
 /** Punto del mapa en grados. */
 export type MapCenter = { lat: number; lng: number };
 
+/** Lo que se ve del mapa (F4.3): para contar lo que hay "por aquí". */
+export type MapBounds = { north: number; south: number; east: number; west: number };
+
+export function inBounds(bounds: MapBounds, lat: number, lng: number): boolean {
+  return lat <= bounds.north && lat >= bounds.south && lng <= bounds.east && lng >= bounds.west;
+}
+
 /**
  * Encuadre inicial: Guinea Ecuatorial, con Bata y Monte Alén dentro y Bioko
  * asomando por arriba. Las coordenadas salen del seed de F2.1.
@@ -14,8 +21,11 @@ export type EnvironmentalMapProps = {
   entities: EntityResult[];
   selectedId: string | null;
   onSelect: (id: string | null) => void;
-  /** El centro del encuadre, para saber qué medición queda más cerca. */
-  onCenterChange?: (center: MapCenter) => void;
+  /**
+   * El centro del encuadre —para saber qué medición queda más cerca— y, desde
+   * F4.3, lo que se ve, para contar las entidades de una capa.
+   */
+  onCenterChange?: (center: MapCenter, bounds: MapBounds) => void;
   /**
    * Petición de vuelo (F4.2): al buscar un lugar o pulsar "Mi ubicación". El
    * `id` cambia en cada petición, así que pedir dos veces el mismo sitio vuela

@@ -4,12 +4,15 @@
  */
 export { AirQualityCard, type AirQualityCardProps } from './air-quality-card';
 export { CategoryLegend, type CategoryLegendProps } from './category-legend';
+export { CountCard, NatureCard, SoilCard, WaterCard } from './category-cards';
 export { EntitySheet, type EntitySheetProps } from './entity-sheet';
 export { EnvironmentalMap } from './environmental-map';
 export { MapSearchResults, type MapSearchResultsProps } from './map-search-results';
 export {
   INITIAL_VIEW,
   type EnvironmentalMapProps,
+  inBounds,
   type FlyTarget,
+  type MapBounds,
   type MapCenter,
 } from './types';

@@ -342,11 +342,34 @@ F4.5 y F4.6.
       ubicación persistiendo sin coordenadas. Capturas en
       `docs/verificacion/f42/`. Las catorce verificaciones del repositorio en
       verde.
-- [ ] **F4.3 dato vivo por categoría, lenguaje llano y recuperar contraseña**
-      — la tarjeta flotante del mapa enseña el dato de la categoría elegida
-      (suelo y biodiversidad en vivo, agua honestamente ausente), cada término
-      técnico se explica tocándolo, y el flujo de nueva contraseña se cierra de
-      punta a punta. Encargo recibido; va a continuación.
+- [x] **F4.3 dato vivo por categoría, lenguaje llano y recuperar contraseña**
+      — la leyenda del mapa **elige** una capa (antes la apagaba) y la tarjeta
+      enseña su dato: **suelo** en vivo (Open-Meteo, "Seco/Normal/Húmedo" y %),
+      **biodiversidad** en vivo (GBIF, observaciones y especies en 10 km),
+      **agua** como dato de referencia del lugar medido o, si no hay, "Aún no
+      hay datos de agua en vivo"; energía y residuos **cuentan** entidades sin
+      inventar dato. El perfil de un lugar suma "Suelo ahora" y "Naturaleza
+      cerca" con la referencia curada debajo. **Lenguaje para 12 años:** palabra
+      primero, cifra después y un ⓘ con explicación en cada término técnico
+      (`InfoButton`, textos en `src/lib/explainers.ts`). Nuevas reglas: en
+      AGENTS.md la del lenguaje, y en 08_DATOS_EN_VIVO.md el **criterio de
+      fuentes** (mundial, pública y sin clave).
+      **Contraseña:** el enlace volvía a `https://expeavomo15.github.io`, sin el
+      subpath, y no existía pantalla que lo recogiera. Ahora vuelve a
+      `/restablecer`, que canjea el enlace (PKCE, evento `PASSWORD_RECOVERY`),
+      pide la nueva dos veces (mínimo 8, mostrar/ocultar) y deja la sesión
+      iniciada; enlace caducado y "abierto en otro navegador" se dicen. Tras
+      enviar, aviso honesto y reenvío con cuenta atrás. **La causa de que el
+      email no llegue es de Supabase:** su correo integrado solo entrega a
+      direcciones del equipo, dos por hora. Pasos para el dashboard en
+      @docs/01_ARQUITECTURA.md; el SMTP propio necesita un dominio.
+      Verificado con `npm run verify:f43`: las tres fuentes para Bata y Málaga,
+      cada capa contra su API, el agua honesta en Nairobi, cada ⓘ, las fuentes
+      bloqueadas, el perfil, el `redirect_to` correcto, los estados del enlace y
+      el cambio real de contraseña entrando luego con la nueva. El correo real
+      no se envía en la prueba para no gastar el cupo. Capturas en
+      `docs/verificacion/f43/`. Las quince verificaciones del repositorio en
+      verde.
 - [ ] **F4.4 procedencia completa + OpenAQ** — lecturas con fuente, método,
       origen e instante (migración); OpenAQ donde haya estación; etiqueta del
       dato curado. OpenAQ pide clave: depende del criterio de fuentes de F4.3
@@ -406,7 +429,6 @@ es un olvido: cada línea dice por qué está aquí y no en el producto.
 - **Notificaciones.** La campana avisa de que no las hay todavía.
 - **Fila de historias** en Inicio, que aparece en los dos mockups.
 - **Filtros avanzados en Buscar.** El icono está y avisa.
-- **Pantalla para elegir contraseña nueva** tras el email de recuperación.
 - **Verificación real de cuentas:** hoy `verified` lo puede cambiar su dueño.
 
 ### Plataforma

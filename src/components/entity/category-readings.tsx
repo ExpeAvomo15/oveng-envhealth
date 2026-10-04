@@ -1,7 +1,9 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { StyleSheet, View } from 'react-native';
 
+import { InfoButton } from '@/components/explain';
 import { Text } from '@/components/ui';
+import { explainerForMetric } from '@/lib/explainers';
 import { formatMetricValue, type CategoryReading } from '@/lib/metrics';
 import { colors, environmentalCategories, radius, spacing } from '@/theme';
 
@@ -34,10 +36,25 @@ export function CategoryReadings({ readings }: { readings: CategoryReading[] }) 
               <Ionicons name={style.icon} size={16} color={colors[style.onColor]} />
             </View>
 
-            <Text variant="bodyStrong">{value}</Text>
-            <Text variant="micro" color="textMuted">
-              {metric.unit ?? ''}
+            {/* Palabra llana primero (F4.3), si la ficha la tiene; la cifra después. */}
+            {metric.label ? (
+              <Text variant="label" numberOfLines={1}>
+                {metric.label}
+              </Text>
+            ) : null}
+            <Text variant={metric.label ? 'caption' : 'bodyStrong'} color={metric.label ? 'textSecondary' : 'text'}>
+              {value}
             </Text>
+            <View style={styles.unitRow}>
+              <Text variant="micro" color="textMuted">
+                {metric.unit ?? ''}
+              </Text>
+              <InfoButton
+                topic={explainerForMetric(metric.metric)}
+                about={`${style.label.toLowerCase()} de la ficha`}
+                size={13}
+              />
+            </View>
             <Text variant="caption" color="textSecondary" numberOfLines={1}>
               {style.label}
             </Text>
@@ -66,6 +83,11 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.border,
+  },
+  unitRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
   },
   icon: {
     width: 30,

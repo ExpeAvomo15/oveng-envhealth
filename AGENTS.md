@@ -48,6 +48,10 @@ biodiversidad), valoraciones comunitarias y huella ecológica personal.
   editar, crear) es privado y RLS es la garantía real. Razonamiento en
   @docs/07_CRECIMIENTO.md.
 
+- **Lenguaje para un niño de 12 años:** toda cifra o término técnico visible
+  lleva **palabra llana primero** y **explicación tocable después** (ⓘ, con
+  el componente de explicaciones). Nada se muestra sin que pueda entenderse.
+
 ## Protocolo de trabajo (project manager)
 
 1. Al iniciar sesión: lee docs/plan.md y di en qué tarea estamos. NO

@@ -22,6 +22,24 @@ vez de un dato de ejemplo, cambia la conversación. Es una sesión, no una fase.
 
 ---
 
+## Criterio de fuentes
+
+**Solo se integra en vivo lo que tiene una fuente MUNDIAL, PÚBLICA y SIN
+CLAVE.** Mundial, porque OVENG tiene que responder en cualquier punto, no solo
+donde haya convenio; pública, porque la procedencia tiene que poder
+comprobarla cualquiera; y sin clave, porque la app habla con las fuentes desde
+el navegador y una clave en el bundle deja de ser secreta.
+
+Lo que no cumple las tres **se muestra solo como dato curado** de una entidad,
+etiquetado como referencia, **o no se muestra**. Nunca se rellena el hueco con
+algo que parezca un dato vivo.
+
+Fijado al empezar F4.3 (2026-10-04). Consecuencia directa: OpenAQ, Global
+Forest Watch y NASA FIRMS, que piden clave, quedan para cuando haya servidor
+(F4.5), y la calidad del agua sigue siendo curada.
+
+---
+
 ## Lo que hay hoy y por qué no basta
 
 Las 25 métricas de `entity_metrics` son **contenido curado**: las mete el seed y
@@ -81,8 +99,10 @@ Comprobado: **162.964 observaciones** con país Guinea Ecuatorial, 28.545 desde
 honesto sale de ahí: un recuento de observaciones mide cuánta gente ha mirado,
 no cuánta vida hay, y convertirlo en un "8,7 de biodiversidad" sería inventar
 una escala. Cada conjunto de datos lleva su propia licencia, así que la
-atribución va por conjunto. Se evalúa en F4.3; puede acabar siendo "especies
-observadas cerca" sin nota.
+atribución va por conjunto. **Resuelto en F4.3**: se enseña tal cual
+—"X observaciones de Y especies a menos de 10 km"— y nunca como una nota sobre
+10, con un ⓘ que avisa de que muchas observaciones también significa que ahí
+mira más gente.
 
 ---
 
@@ -195,7 +215,7 @@ pareciendo una medición.
 | ---- | --- | ------ |
 | **F4.1** pieza mínima ✅ | Open-Meteo en la tarjeta de zona del feed, en el mapa (centro del encuadre) y en el perfil de cada lugar, con la línea de procedencia. Sin servidor ni migración. Escala: AQI europeo. **Hecha el 2026-10-04.** | 1 sesión |
 | **F4.2** mapa mundial ✅ | Búsqueda de lugares del mundo (Open-Meteo Geocoding) junto a las entidades, y "Mi ubicación" solo con permiso, en el mapa y en el feed. **Hecha el 2026-10-04.** | 1 sesión |
-| **F4.3** dato vivo por categoría | Suelo y biodiversidad en vivo en la tarjeta del mapa, agua honestamente ausente, cada término explicado en lenguaje llano (más recuperar contraseña). | Siguiente |
+| **F4.3** dato vivo por categoría ✅ | Suelo y biodiversidad en vivo en la tarjeta del mapa, agua honestamente ausente, cada término explicado en lenguaje llano (más recuperar contraseña). **Hecha el 2026-10-04.** | 1 sesión |
 | **F4.4** procedencia completa + OpenAQ | Modelo de lecturas con procedencia (migración), OpenAQ donde haya estación cerca, etiqueta del dato curado. | Fase |
 | **F4.5** cron en Railway | Lecturas horarias guardadas en Supabase: histórico, clave de OpenAQ fuera del cliente y sin depender del límite por visita. Desbloquea la gráfica de evolución. | Fase |
 | **F4.6** compartir con marca | Tarjetas, marca de agua y OG tags, con el dato y su procedencia dentro. Descrita en @docs/07_CRECIMIENTO.md. | Fase |
@@ -249,6 +269,50 @@ pareciendo una medición.
   ubicación".
 - **Solo web.** En iOS y Android haría falta `expo-location`.
 
+### F4.3, cómo quedó
+
+- **La tarjeta del mapa sigue a la capa elegida.** La leyenda pasa de apagar
+  capas a **elegir una**: tocarla deja sus marcadores y cambia la tarjeta a su
+  dato; volver a tocarla devuelve todas y el aire. Con interruptores, tocar
+  "Suelo" para ver su dato lo escondía.
+- **Suelo en vivo** (Open-Meteo, `soil_moisture_0_to_1cm`): "Seco / Normal /
+  Húmedo" y el % de agua en la capa de arriba. En el mar el modelo devuelve 0
+  con elevación 0, y se dice "aquí es mar", no "seco".
+- **Biodiversidad en vivo** (GBIF): "X observaciones de Y especies" a menos de
+  10 km, con un día de caché. `hasGeospatialIssue=false` es obligatorio: sin
+  él, el punto 0,0 del océano tiene 1,4 millones de registros mal situados.
+- **Agua, sin inventar:** el dato de referencia del lugar con agua más cercano
+  entre los que se ven; si no hay, "Aún no hay datos de agua en vivo para esta
+  zona" y su ⓘ explicando por qué.
+- **Energía y residuos:** siguen filtrando marcadores y la tarjeta **cuenta**
+  las entidades de la capa en lo que se ve. No hay dato del entorno que dar, y
+  no se finge.
+- **Perfil de un lugar:** "Aire ahora", "Suelo ahora" y "Naturaleza cerca" en
+  vivo, cada uno con la nota curada de la ficha debajo como referencia.
+- **Lenguaje llano en todo:** palabra primero, cifra después y un ⓘ que abre
+  una explicación —qué es, la escala con colores, qué significa para ti y de
+  dónde sale—. Un solo componente (`InfoButton`) y los textos en
+  `src/lib/explainers.ts`.
+
+---
+
+## Indicadores: qué es vivo, qué es curado y qué espera clave
+
+La tabla de referencia tras F4.3, según el criterio de fuentes de arriba.
+
+| Indicador | Estado | Fuente | Dónde se ve |
+| --------- | ------ | ------ | ----------- |
+| Aire (índice europeo, polvo fino) | **Vivo** | Open-Meteo Air Quality (CAMS) | Feed, mapa, perfil |
+| Suelo (humedad) | **Vivo** | Open-Meteo Forecast | Mapa (capa Suelo), perfil |
+| Biodiversidad (observaciones, especies) | **Vivo** | GBIF | Mapa (capa Biodiversidad), perfil |
+| Clima (temperatura, lluvia, viento) | **Vivo posible, sin construir** | Open-Meteo Forecast, misma API que el suelo y sin clave | Todavía en ningún sitio |
+| Agua (pH, calidad) | **Curado** | Ficha de la entidad | Mapa (capa Agua), perfil, feed |
+| Cobertura forestal | **Curado** | Ficha de la entidad | Perfil |
+| Notas sobre 10 y calidad general | **Curado** | Ficha de la entidad | Perfil, feed |
+| Aire por estaciones | **Futuro, pide clave** | OpenAQ | F4.4–F4.5 |
+| Bosque y deforestación | **Futuro, pide clave** (a confirmar) | Global Forest Watch | Con servidor (F4.5) |
+| Incendios activos | **Futuro, pide clave** | NASA FIRMS | Con servidor (F4.5) |
+
 ---
 
 ## Fuentes por tema, para las fases siguientes
@@ -260,12 +324,13 @@ su documentación y se confirma al integrarlo.
 | ---- | ------ | ------ | ------ | ----- |
 | Aire | **Open-Meteo Air Quality** (CAMS) | Estimación de modelo en cualquier coordenada | Sin clave · *comprobado* | **En uso desde F4.1** |
 | Lugares | **Open-Meteo Geocoding** | Ciudades, regiones y países por nombre, en español | Sin clave · *comprobado* | **En uso desde F4.2** (búsqueda del mapa) |
+| Suelo | **Open-Meteo Forecast** | Humedad del suelo, cada 15 min | Sin clave · *comprobado* | **En uso desde F4.3** |
+| Biodiversidad | **GBIF** (en uso) | Observaciones en un radio | Sin clave · *comprobado* | **En uso desde F4.3** (capa y perfil) |
 | Aire | **OpenAQ** | Mediciones de estaciones reales | Clave gratuita · *sin clave da 401, comprobado* | F4.4, preferente donde haya estación cerca |
 | Bosque | **Global Forest Watch** | Pérdida de cobertura arbórea anual y alertas de deforestación por satélite | El listado de datos es público; las consultas, a confirmar si piden clave | **Candidata fuerte para los parques**: Monte Alén, Pico Basilé |
 | Fuego | **NASA FIRMS** | Incendios activos de MODIS y VIIRS, casi en tiempo real | `MAP_KEY` gratuita · *sin ella responde "Invalid MAP_KEY", comprobado* | Candidata para una **capa del mapa** |
 | Ríos | **Open-Meteo Flood** (GloFAS) | Caudal diario de ríos, con previsión | Sin clave · *comprobado* | Caudal, **no calidad**. Rejilla de unos 5 km: en la desembocadura del Ntem devolvió 2 m³/s, que no es el caudal del río principal (probablemente otra celda de la cuenca). Hay que apuntar la celda al cauce. |
 | Agua | **GEMStat** (PNUMA) | Calidad del agua dulce, histórica | Portal y solicitud de datos | A evaluar; poca cobertura en África central y **no es en vivo** |
-| Biodiversidad | **GBIF** | Observaciones de especies | Sin clave · *162.964 registros en Guinea Ecuatorial, comprobado* | A evaluar: un recuento no es un índice |
 
 **La calidad del agua no tiene fuente mundial en vivo.** Ni Open-Meteo, ni
 GloFAS, ni ninguna API abierta da pH, oxígeno disuelto o turbidez de un río

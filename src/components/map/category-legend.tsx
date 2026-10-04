@@ -12,38 +12,43 @@ import {
 } from '@/theme';
 
 export type CategoryLegendProps = {
-  /** Categorías visibles. Vacío no existe: se trata como "todas". */
-  active: Set<EnvironmentalCategoryName>;
-  onToggle: (category: EnvironmentalCategoryName) => void;
+  /** La capa elegida. `null`: todas a la vista. */
+  chosen: EnvironmentalCategoryName | null;
+  onChoose: (category: EnvironmentalCategoryName) => void;
 };
 
 /**
- * Leyenda flotante que además filtra, como la lista vertical del mockup 2.
+ * Leyenda flotante que además **elige una capa**, como la lista vertical del
+ * mockup 2.
  *
  * Es leyenda y control a la vez a propósito: una leyenda que solo explica
- * colores obliga a mirar dos sitios para lo mismo. Aquí el color se explica y
- * se apaga desde la misma fila.
+ * colores obliga a mirar dos sitios para lo mismo.
  *
- * Una categoría apagada baja la opacidad **y tacha el color**: el estado no se
+ * **Desde F4.3 se elige una capa; antes se apagaban.** Tocar "Suelo" enseña
+ * solo sus marcadores y la tarjeta de abajo pasa a contar el suelo; volver a
+ * tocarla devuelve todas. Con interruptores, tocar una capa para ver su dato la
+ * escondía, y "toco una categoría y veo su dato" se contradecía.
+ *
+ * Una capa no elegida baja la opacidad **y vacía su punto**: el estado no se
  * puede confiar solo al color, que es justo lo que el theme advierte de estas
  * seis (varias parejas se distinguen por tono pero no por luminancia).
  */
-export function CategoryLegend({ active, onToggle }: CategoryLegendProps) {
+export function CategoryLegend({ chosen, onChoose }: CategoryLegendProps) {
   return (
-    <View style={styles.panel} accessibilityLabel="Capas del mapa">
+    <View style={styles.panel} accessibilityRole="radiogroup" accessibilityLabel="Capas del mapa">
       {environmentalCategoryOrder.map((key) => {
         const category = environmentalCategories[key];
-        const on = active.has(key);
+        const on = chosen === null || chosen === key;
 
         return (
           <Pressable
             key={key}
-            onPress={() => onToggle(key)}
-            // Es un interruptor y se anuncia como tal. No lleva además
+            onPress={() => onChoose(key)}
+            // Es una opción de un grupo y se anuncia como tal. No lleva además
             // `role="listitem"`: en React Native Web `role` gana a
-            // `accessibilityRole`, y la fila dejaba de ser un interruptor.
-            accessibilityRole="switch"
-            accessibilityState={{ checked: on }}
+            // `accessibilityRole`.
+            accessibilityRole="radio"
+            accessibilityState={{ checked: chosen === key }}
             accessibilityLabel={`Capa ${category.label}`}
             style={({ pressed }) => [styles.row, pressed && styles.pressed]}>
             <View

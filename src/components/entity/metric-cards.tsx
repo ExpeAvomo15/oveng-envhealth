@@ -1,7 +1,9 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { StyleSheet, View } from 'react-native';
 
+import { InfoButton } from '@/components/explain';
 import { Text } from '@/components/ui';
+import { explainerForMetric } from '@/lib/explainers';
 import type { EntityMetric, EntityMetricName } from '@/lib/database.types';
 import { formatReading, metricLabel } from '@/lib/metrics';
 import { colors, radius, spacing } from '@/theme';
@@ -39,14 +41,18 @@ export function MetricCards({ metrics }: { metrics: EntityMetric[] }) {
             <Text variant="micro" color="textSecondary" numberOfLines={2} style={styles.name}>
               {metricLabel(metric.metric)}
             </Text>
+            <InfoButton
+              topic={explainerForMetric(metric.metric)}
+              about={metricLabel(metric.metric).toLowerCase()}
+              size={14}
+            />
           </View>
 
-          <Text variant="subtitle">{formatReading(metric)}</Text>
-          {metric.label ? (
-            <Text variant="caption" color="textSecondary">
-              {metric.label}
-            </Text>
-          ) : null}
+          {/* Palabra llana primero (F4.3); la cifra después. */}
+          {metric.label ? <Text variant="subtitle">{metric.label}</Text> : null}
+          <Text variant={metric.label ? 'caption' : 'subtitle'} color={metric.label ? 'textSecondary' : 'text'}>
+            {formatReading(metric)}
+          </Text>
         </View>
       ))}
     </View>

@@ -57,6 +57,7 @@
     "verify:f24": "node --env-file=.env scripts/verify-f24.mjs",
     "verify:f25": "node --env-file=.env scripts/verify-f25.mjs",
     "verify:f42": "node --env-file=.env scripts/verify-f42.mjs",
+    "verify:f43": "node --env-file=.env scripts/verify-f43.mjs",
     "verify:f41": "node --env-file=.env scripts/verify-f41.mjs",
     "verify:demo": "node --env-file=.env scripts/verify-demo.mjs",
     "capture": "node --env-file=.env scripts/capture-screens.mjs",

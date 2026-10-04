@@ -6,6 +6,8 @@ import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import {
   CategoryReadings,
   LiveAirPanel,
+  LiveNaturePanel,
+  LiveSoilPanel,
   EntityCover,
   MetricCards,
   QualityCircle,
@@ -367,6 +369,20 @@ export default function EntityScreen() {
             coords={{ lat: entity.lat, lng: entity.lng }}
             reference={current?.metrics.find((metric) => metric.metric === 'aire') ?? null}
           />
+        ) : null}
+
+        {/* Suelo y naturaleza en vivo (F4.3), con la nota curada de la ficha debajo. */}
+        {entity.type === 'lugar' && entity.lat !== null && entity.lng !== null ? (
+          <>
+            <LiveSoilPanel
+              coords={{ lat: entity.lat, lng: entity.lng }}
+              reference={current?.metrics.find((metric) => metric.metric === 'suelo') ?? null}
+            />
+            <LiveNaturePanel
+              coords={{ lat: entity.lat, lng: entity.lng }}
+              reference={current?.metrics.find((metric) => metric.metric === 'biodiversidad') ?? null}
+            />
+          </>
         ) : null}
 
         {grouped.general ? (

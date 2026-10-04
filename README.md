@@ -17,7 +17,7 @@ de punta a punta contra Supabase real:
 
 | | |
 | --- | --- |
-| **Cuentas** | Registro, inicio de sesión, recuperación de contraseña y sesión persistente en web y nativo. |
+| **Cuentas** | Registro, inicio de sesión, recuperación de contraseña de punta a punta (`/restablecer`) y sesión persistente en web y nativo. El email de recuperación necesita SMTP propio: ver [docs/01_ARQUITECTURA.md](docs/01_ARQUITECTURA.md). |
 | **Perfiles** | Portada, avatar subido a Storage, biografía, ubicación, contadores reales y perfil público en `/user/[username]`. |
 | **Seguir** | Seguir y dejar de seguir con actualización optimista y contadores cuadrados con la base de datos. |
 | **Publicar** | Compositor con texto, etiquetas extraídas del propio texto y una imagen reducida antes de subirse. |
@@ -59,8 +59,10 @@ En **https://expeavomo15.github.io/oveng-envhealth/** y **sin crear cuenta**:
    categoría, y abajo el aire del **centro del encuadre**. Busca cualquier
    ciudad del mundo —"Douala", "Sevilla"— y el mapa vuela allí con su aire, o
    pulsa **Mi ubicación** para ver el tuyo.
-5. **Apaga una capa** en la leyenda de la derecha: los marcadores de esa
-   categoría desaparecen.
+5. **Elige una capa** en la leyenda de la derecha: quedan sus marcadores y la
+   tarjeta de abajo enseña **su** dato —el suelo en vivo, la naturaleza
+   registrada cerca, el agua de un lugar medido o lo que hay de energía—.
+   Toca cualquier ⓘ y te lo explica en palabras llanas.
 6. **Toca el marcador de Monte Alén** y abre su tarjeta.
 7. **Entra en su perfil ambiental**: el aire en vivo de sus coordenadas y,
    debajo, los datos de referencia del perfil —aire 42 AQI, agua 8,2 pH,
@@ -149,6 +151,7 @@ npm run verify:mvp     # recorrido completo en Chromium, con capturas
 | `verify:f25` | Datos de zona en el feed: posición, paginación, cambio de zona y persistencia. |
 | `verify:f41` | Aire en vivo de Open-Meteo: la API, el feed, el mapa al moverlo, el perfil y la API caída. Sin cuenta y sin escribir nada. |
 | `verify:f42` | Mapa mundial: buscar lugares, "Mi ubicación" concedida y denegada, y la ubicación en el feed. Sin cuenta, con la ubicación simulada. |
+| `verify:f43` | Cada capa del mapa con su dato (suelo, naturaleza, agua, energía, residuos), cada ⓘ, las fuentes caídas, el perfil y recuperar contraseña. |
 | `verify:mvp` | El recorrido social de punta a punta (F1). |
 | `verify:demo` | **La demo completa**: el recorrido de un visitante, sin cuenta y con ella, incluido abrir una publicación, un perfil ajeno y Buscar sin cuenta. |
 

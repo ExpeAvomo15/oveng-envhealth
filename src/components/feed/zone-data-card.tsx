@@ -2,9 +2,11 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { useState, type ReactNode } from 'react';
 import { Modal, Pressable, StyleSheet, View } from 'react-native';
 
-import { AirLevelDot, AirSkeleton, liveAirText, ProvenanceLine } from '@/components/air';
+import { AirSkeleton, AirValue, liveAirText, ProvenanceLine } from '@/components/air';
+import { InfoButton } from '@/components/explain';
 import { Text } from '@/components/ui';
 import { useLiveAir } from '@/hooks/use-live-air';
+import { explainerForMetric } from '@/lib/explainers';
 import { formatReading, metricLabel } from '@/lib/metrics';
 import { LOCATION_PRIVACY_NOTE } from '@/lib/geolocation';
 import { MY_LOCATION, zones, type ZoneData, type ZoneId } from '@/lib/zones';
@@ -94,11 +96,19 @@ export function ZoneDataCard({
               key={metric.metric}
               style={styles.chip}
               accessibilityLabel={`${metricLabel(metric.metric)}: ${formatReading(metric)}`}>
-              <Text variant="micro" color="textSecondary" numberOfLines={1}>
-                {metricLabel(metric.metric)}
-              </Text>
+              <View style={styles.liveRow}>
+                <Text variant="micro" color="textSecondary" numberOfLines={1} style={styles.liveText}>
+                  {metricLabel(metric.metric)}
+                </Text>
+                <InfoButton
+                  topic={explainerForMetric(metric.metric)}
+                  about={metricLabel(metric.metric).toLowerCase()}
+                  size={13}
+                />
+              </View>
+              {/* Palabra llana primero (F4.3); la cifra después. */}
               <Text variant="label" numberOfLines={1}>
-                {formatReading(metric)}
+                {metric.label ? `${metric.label} · ${formatReading(metric)}` : formatReading(metric)}
               </Text>
             </View>
           ))}
@@ -171,19 +181,21 @@ export function ZoneDataCard({
 }
 
 /**
- * La calidad del aire de la tarjeta: **en vivo** desde F4.1.
+ * La calidad del aire de la tarjeta: **en vivo** desde F4.1, y en lenguaje
+ * llano desde F4.3.
  *
  * Se pide para las coordenadas de la referencia —o del centro de la zona, si no
  * la hay— y entra cuando llega, sin bloquear el feed. Tres casos:
  *
- * - **En vivo:** semáforo y palabra, el índice europeo detrás, y la línea de
- *   procedencia "🛰️ Estimación satelital Copernicus".
+ * - **En vivo:** la palabra grande con su color, el índice debajo con su ⓘ, y
+ *   la línea de procedencia "🛰️ Estimación satelital Copernicus".
  * - **La API no responde:** el dato curado de la referencia con su propia
  *   etiqueta, "📋 Dato de referencia". Si tampoco lo hay, se dice.
  * - **Llegando:** un hueco con la forma del dato.
  *
- * Con la referencia, el bloque lleva a su perfil ambiental; sin ella (Málaga),
- * no hay a dónde ir y no se finge un enlace.
+ * **No es un único pulsable.** Lleva dentro botones ⓘ, y un pulsable dentro de
+ * otro hace que en web el toque burbujee: abrir una explicación navegaría
+ * además al perfil. El enlace al perfil de la referencia es su propio botón.
  */
 function AirReading({
   data,
@@ -205,14 +217,7 @@ function AirReading({
         <Text variant="caption" color="textSecondary">
           Calidad del aire
         </Text>
-        {/* Semáforo y palabra primero; el índice, detrás y más pequeño. */}
-        <View style={styles.liveRow}>
-          <AirLevelDot level={live.air.level} size={12} />
-          <Text variant="title">{live.air.label}</Text>
-          <Text variant="body" color="textSecondary" style={styles.liveText}>
-            · {live.air.aqi} AQI europeo
-          </Text>
-        </View>
+        <AirValue air={live.air} />
         <Text variant="micro" color="textMuted" numberOfLines={1}>
           en {airPlace}
         </Text>
@@ -236,14 +241,14 @@ function AirReading({
         <Text variant="caption" color="textSecondary">
           Calidad del aire
         </Text>
-        <Text variant="title">
-          {air.label ? `${air.label} · ` : ''}
-          {formatReading(air)}
-        </Text>
-        <Text variant="micro" color="textMuted" numberOfLines={1}>
-          medido en {reference.name}
-        </Text>
-        <ProvenanceLine kind="reference" />
+        <Text variant="title">{air.label ?? formatReading(air)}</Text>
+        <View style={styles.liveRow}>
+          <Text variant="caption" color="textSecondary">
+            Índice de calidad del aire de la ficha: {formatReading(air)}
+          </Text>
+          <InfoButton topic="aqi-reference" about="índice de aire de la ficha" size={16} />
+        </View>
+        <ProvenanceLine kind="reference" of={reference.name} />
       </>
     );
   } else {
@@ -269,23 +274,20 @@ function AirReading({
     );
   }
 
-  if (!reference) {
-    return (
-      <View style={styles.reading} accessibilityLabel={label}>
-        <View style={styles.readingMain}>{body}</View>
-      </View>
-    );
-  }
-
   return (
-    <Pressable
-      onPress={onOpenReference}
-      accessibilityRole="link"
-      accessibilityLabel={`${label}. Ver el perfil ambiental de ${reference.name}`}
-      style={({ pressed }) => [styles.reading, pressed && styles.pressed]}>
+    <View style={styles.reading} accessibilityLabel={label}>
       <View style={styles.readingMain}>{body}</View>
-      <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
-    </Pressable>
+      {reference ? (
+        <Pressable
+          onPress={onOpenReference}
+          accessibilityRole="link"
+          accessibilityLabel={`Ver el perfil ambiental de ${reference.name}`}
+          hitSlop={8}
+          style={({ pressed }) => [styles.openReference, pressed && styles.pressed]}>
+          <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
+        </Pressable>
+      ) : null}
+    </View>
   );
 }
 
@@ -344,6 +346,11 @@ const styles = StyleSheet.create({
   },
   liveText: {
     flexShrink: 1,
+  },
+  openReference: {
+    alignSelf: 'stretch',
+    justifyContent: 'center',
+    paddingLeft: spacing.sm,
   },
   secondary: {
     flexDirection: 'row',

@@ -7,11 +7,17 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   AirQualityCard,
   CategoryLegend,
+  CountCard,
   EntitySheet,
   EnvironmentalMap,
+  inBounds,
   INITIAL_VIEW,
   MapSearchResults,
+  NatureCard,
+  SoilCard,
+  WaterCard,
   type FlyTarget,
+  type MapBounds,
   type MapCenter,
 } from '@/components/map';
 import { TabBar } from '@/components/navigation/tab-bar';
@@ -19,6 +25,7 @@ import { Button, Callout, Text } from '@/components/ui';
 import { showToast } from '@/components/ui/toast';
 import { useAuth } from '@/hooks/use-auth';
 import { useFontFamily } from '@/hooks/use-fonts';
+import { useLiveNature, useLiveSoil } from '@/hooks/use-live';
 import { useLiveAir } from '@/hooks/use-live-air';
 import { usePlaceSearch } from '@/hooks/use-place-search';
 import type { Place } from '@/lib/geocoding';
@@ -31,7 +38,7 @@ import {
 } from '@/lib/geolocation';
 import type { EntityMetric, EnvironmentalCategoryName } from '@/lib/database.types';
 import { getMetricByEntity, searchEntities, type EntityResult } from '@/lib/entities';
-import { colors, environmentalCategoryOrder, noWebFocusRing, radius, spacing, typography } from '@/theme';
+import { colors, noWebFocusRing, radius, spacing, typography } from '@/theme';
 
 /** Lo que el mapa tiene que estar quieto antes de pedir el aire de su centro. */
 const SETTLE_MS = 600;
@@ -51,6 +58,8 @@ function isAt(center: MapCenter, point: Coords | null): boolean {
 type Loaded = {
   entities: EntityResult[];
   airByEntity: Map<string, EntityMetric>;
+  /** Agua curada de los lugares: la única fuente de agua que hay (F4.3). */
+  waterByEntity: Map<string, EntityMetric>;
 };
 
 /**
@@ -87,9 +96,14 @@ export default function MapScreen() {
   const [error, setError] = useState<string | null>(null);
 
   const [term, setTerm] = useState('');
-  const [hidden, setHidden] = useState<Set<EnvironmentalCategoryName>>(new Set());
+  /**
+   * La capa elegida en la leyenda (F4.3). `null` es "todas", y la tarjeta de
+   * abajo enseña el aire, como antes.
+   */
+  const [chosen, setChosen] = useState<EnvironmentalCategoryName | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [center, setCenter] = useState<MapCenter>({ lat: INITIAL_VIEW.lat, lng: INITIAL_VIEW.lng });
+  const [bounds, setBounds] = useState<MapBounds | null>(null);
 
   /**
    * El centro **al soltar el mapa**. `center` cambia en cada fotograma mientras
@@ -98,12 +112,20 @@ export default function MapScreen() {
    * de 0,1° hace el resto: volver a un sitio ya visto no llama a nadie.
    */
   const [settled, setSettled] = useState<MapCenter>(center);
+  const [settledBounds, setSettledBounds] = useState<MapBounds | null>(null);
   useEffect(() => {
-    const timer = setTimeout(() => setSettled(center), SETTLE_MS);
+    const timer = setTimeout(() => {
+      setSettled(center);
+      setSettledBounds(bounds);
+    }, SETTLE_MS);
     return () => clearTimeout(timer);
-  }, [center]);
+  }, [center, bounds]);
 
   const liveAir = useLiveAir(settled);
+  // Solo se consulta la fuente de la capa elegida: sin capa, nada de suelo ni
+  // de GBIF.
+  const liveSoil = useLiveSoil(chosen === 'suelo' ? settled : null);
+  const liveNature = useLiveNature(chosen === 'biodiversidad' ? settled : null);
 
   /**
    * Búsqueda mundial (F4.2). El mismo texto busca entidades —que además siguen
@@ -193,11 +215,12 @@ export default function MapScreen() {
     searchEntities('', { limit: 100 })
       .then(async (entities) => {
         if (!live) return;
-        const airByEntity = await getMetricByEntity(
-          'aire',
-          entities.map((entity) => entity.id),
-        );
-        if (live) setLoaded({ entities, airByEntity });
+        const ids = entities.map((entity) => entity.id);
+        const [airByEntity, waterByEntity] = await Promise.all([
+          getMetricByEntity('aire', ids),
+          getMetricByEntity('agua', ids),
+        ]);
+        if (live) setLoaded({ entities, airByEntity, waterByEntity });
       })
       .catch(() => {
         if (live) setError('No se ha podido cargar el mapa. Inténtalo de nuevo.');
@@ -208,24 +231,19 @@ export default function MapScreen() {
     };
   }, []);
 
-  const active = useMemo(
-    () => new Set(environmentalCategoryOrder.filter((key) => !hidden.has(key))),
-    [hidden],
-  );
-
   const visible = useMemo(() => {
     if (!loaded) return [];
     const needle = term.trim().toLowerCase();
 
     return loaded.entities.filter((entity) => {
-      if (hidden.has(entity.category)) return false;
+      if (chosen !== null && entity.category !== chosen) return false;
       if (needle.length === 0) return true;
       return (
         entity.name.toLowerCase().includes(needle) ||
         (entity.location_name ?? '').toLowerCase().includes(needle)
       );
     });
-  }, [loaded, hidden, term]);
+  }, [loaded, chosen, term]);
 
   /**
    * La selección se deriva de lo visible, no se limpia con un efecto: si un
@@ -258,14 +276,42 @@ export default function MapScreen() {
     return best;
   }, [loaded, visible, center, selected]);
 
-  function toggleCategory(category: EnvironmentalCategoryName) {
-    setHidden((previous) => {
-      const next = new Set(previous);
-      if (next.has(category)) next.delete(category);
-      else next.add(category);
-      return next;
-    });
+  /** Tocar una capa la elige; tocar la elegida vuelve a todas. */
+  function chooseCategory(category: EnvironmentalCategoryName) {
+    setChosen((previous) => (previous === category ? null : category));
   }
+
+  /** Lo que se ve de la capa elegida, para el agua y para contar entidades. */
+  const inView = useMemo(
+    () =>
+      settledBounds
+        ? visible.filter(
+            (entity) =>
+              entity.lat !== null && entity.lng !== null && inBounds(settledBounds, entity.lat, entity.lng),
+          )
+        : visible,
+    [visible, settledBounds],
+  );
+
+  /** El lugar con agua curada más cercano al centro, entre los que se ven. */
+  const waterReference = useMemo(() => {
+    if (!loaded) return null;
+    let best: { entity: EntityResult; metric: EntityMetric; distance: number } | null = null;
+    for (const entity of inView) {
+      const metric = loaded.waterByEntity.get(entity.id);
+      if (!metric || entity.lat === null || entity.lng === null) continue;
+      const distance = (entity.lat - settled.lat) ** 2 + (entity.lng - settled.lng) ** 2;
+      if (!best || distance < best.distance) best = { entity, metric, distance };
+    }
+    return best;
+  }, [loaded, inView, settled]);
+
+  const where = placeName ?? 'el centro del mapa';
+  /** Para pintar como línea suelta: "Centro del mapa · 2,10 N · 9,90 E". */
+  const whereLine =
+    placeName ??
+    `Centro del mapa · ${Math.abs(settled.lat).toFixed(2).replace('.', ',')} ${settled.lat >= 0 ? 'N' : 'S'} · ${Math.abs(settled.lng).toFixed(2).replace('.', ',')} ${settled.lng >= 0 ? 'E' : 'O'}`;
+  const openEntity = (entity: EntityResult) => router.push(`/entidad/${entity.slug}`);
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
@@ -279,7 +325,10 @@ export default function MapScreen() {
             entities={visible}
             selectedId={selectedId}
             onSelect={setSelectedId}
-            onCenterChange={setCenter}
+            onCenterChange={(nextCenter, nextBounds) => {
+              setCenter(nextCenter);
+              setBounds(nextBounds);
+            }}
             flyTo={fly}
             userLocation={userLocation}
             onLocate={locateMe}
@@ -339,7 +388,7 @@ export default function MapScreen() {
               <View />
             )}
 
-            <CategoryLegend active={active} onToggle={toggleCategory} />
+            <CategoryLegend chosen={chosen} onChoose={chooseCategory} />
           </View>
         </View>
 
@@ -352,20 +401,28 @@ export default function MapScreen() {
               onClose={() => setSelectedId(null)}
               onOpen={() => router.push(`/entidad/${selected.slug}`)}
             />
-          ) : loaded !== null && visible.length === 0 ? (
+          ) : loaded !== null && visible.length === 0 && term.trim().length > 0 ? (
             <View style={styles.empty}>
               <Text variant="caption" color="textSecondary">
-                No hay nada que enseñar con estos filtros. Vuelve a encender una capa o borra la
-                búsqueda.
+                Ninguna entidad de OVENG se llama así. Prueba con un lugar de la lista de arriba.
               </Text>
             </View>
+          ) : chosen === 'suelo' ? (
+            <SoilCard live={liveSoil} where={where} whereLine={whereLine} />
+          ) : chosen === 'biodiversidad' ? (
+            <NatureCard live={liveNature} where={where} />
+          ) : chosen === 'agua' ? (
+            <WaterCard reference={waterReference} onOpen={openEntity} />
+          ) : chosen === 'energia' || chosen === 'residuos' ? (
+            <CountCard category={chosen} entities={inView} />
           ) : (
+            // Aire, o ninguna capa elegida: el aire en vivo, como desde F4.1.
             <AirQualityCard
               live={liveAir}
               center={settled}
               placeName={placeName}
               fallback={nearestAir}
-              onOpenFallback={(entity) => router.push(`/entidad/${entity.slug}`)}
+              onOpenFallback={openEntity}
             />
           )}
         </View>

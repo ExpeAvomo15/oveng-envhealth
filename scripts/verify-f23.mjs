@@ -225,25 +225,26 @@ try {
   await page.screenshot({ path: join(SHOTS, '03-mapa.png') });
 
   // --- 5. Filtro por categoría ------------------------------------------------
-  step('5. La leyenda filtra por categoría');
+  // Desde F4.3 la leyenda **elige** una capa en vez de apagarla: tocarla deja
+  // solo sus marcadores (y la tarjeta de abajo pasa a su dato).
+  step('5. La leyenda elige una categoría');
 
-  await page.getByRole('switch', { name: 'Capa Biodiversidad' }).click();
+  await page.getByRole('radio', { name: 'Capa Biodiversidad' }).click();
   await page.waitForTimeout(1200);
 
   {
     const count = await markers(page).count();
-    const esperado = entities.length - enBiodiversidad;
-    if (count === esperado) ok(`apagar Biodiversidad deja ${count} marcadores (−${enBiodiversidad})`);
-    else bad(`apagar Biodiversidad deja ${count}, se esperaban ${esperado}`);
+    if (count === enBiodiversidad) ok(`elegir Biodiversidad deja solo sus ${count} marcadores`);
+    else bad(`elegir Biodiversidad deja ${count}, se esperaban ${enBiodiversidad}`);
   }
   await page.screenshot({ path: join(SHOTS, '04-filtro-categoria.png') });
 
-  await page.getByRole('switch', { name: 'Capa Biodiversidad' }).click();
+  await page.getByRole('radio', { name: 'Capa Biodiversidad' }).click();
   await page.waitForTimeout(1200);
   {
     const count = await markers(page).count();
-    if (count === entities.length) ok('volver a encenderla los devuelve todos');
-    else bad(`al reencender quedan ${count} de ${entities.length}`);
+    if (count === entities.length) ok('volver a tocarla los devuelve todos');
+    else bad(`al volver a tocarla quedan ${count} de ${entities.length}`);
   }
 
   // --- 6. Búsqueda en el mapa --------------------------------------------------

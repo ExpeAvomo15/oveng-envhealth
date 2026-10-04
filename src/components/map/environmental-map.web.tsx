@@ -117,7 +117,16 @@ export function EnvironmentalMap({
     const onMove = () => {
       setTick((value) => value + 1);
       const center = map.getCenter();
-      onCenterChangeRef.current?.({ lat: center.lat, lng: center.lng });
+      const bounds = map.getBounds();
+      onCenterChangeRef.current?.(
+        { lat: center.lat, lng: center.lng },
+        {
+          north: bounds.getNorth(),
+          south: bounds.getSouth(),
+          east: bounds.getEast(),
+          west: bounds.getWest(),
+        },
+      );
     };
 
     map.on('move', onMove);

@@ -365,7 +365,9 @@ try {
   // --- 8. Navegación desde las tarjetas ---------------------------------------
   step('8. De las tarjetas a los perfiles ambientales');
 
-  await page.getByRole('link', { name: /Calidad del aire en Río Ntem/ }).first().click();
+  // Desde F4.3 el enlace al perfil es su propio botón: el bloque del aire lleva
+  // dentro sus ⓘ, y un pulsable dentro de otro burbujea en web.
+  await page.getByRole('link', { name: 'Ver el perfil ambiental de Río Ntem' }).first().click();
   await page.waitForTimeout(3500);
   {
     const path = new URL(page.url()).pathname.replace(basePath, '');

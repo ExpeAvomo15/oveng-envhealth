@@ -4,7 +4,12 @@
  */
 export { CategoryReadings } from './category-readings';
 export { EntityCover, type EntityCoverProps } from './entity-cover';
-export { LiveAirPanel, type LiveAirPanelProps } from './live-air-panel';
+export {
+  LiveAirPanel,
+  LiveNaturePanel,
+  LiveSoilPanel,
+  type LiveAirPanelProps,
+} from './live-air-panel';
 export { MetricCards } from './metric-cards';
 export { QualityCircle } from './quality-circle';
 export { RatingList, type RatingListProps } from './rating-list';

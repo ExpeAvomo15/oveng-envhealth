@@ -189,24 +189,24 @@ try {
   }
   await shot(visitor, 'mapa');
 
-  step('SIN SESIÓN · 5. Filtrar por capa');
+  step('SIN SESIÓN · 5. Elegir una capa');
 
   const { count: enBiodiversidad } = await anon
     .from('entities')
     .select('*', { count: 'exact', head: true })
     .eq('category', 'biodiversidad');
 
-  await visitor.getByRole('switch', { name: 'Capa Biodiversidad' }).click();
+  // Desde F4.3 la leyenda elige una capa: quedan solo sus marcadores.
+  await visitor.getByRole('radio', { name: 'Capa Biodiversidad' }).click();
   await visitor.waitForTimeout(1500);
   {
     const shown = await markers.count();
-    const esperado = totalEntities - enBiodiversidad;
-    if (shown === esperado) ok(`apagar Biodiversidad deja ${shown} marcadores`);
-    else bad(`quedan ${shown} y se esperaban ${esperado}`);
+    if (shown === enBiodiversidad) ok(`elegir Biodiversidad deja solo sus ${shown} marcadores`);
+    else bad(`quedan ${shown} y se esperaban ${enBiodiversidad}`);
   }
   await shot(visitor, 'mapa-filtrado');
 
-  await visitor.getByRole('switch', { name: 'Capa Biodiversidad' }).click();
+  await visitor.getByRole('radio', { name: 'Capa Biodiversidad' }).click();
   await visitor.waitForTimeout(1500);
 
   step('SIN SESIÓN · 6. Del marcador de Monte Alén a su perfil ambiental');
