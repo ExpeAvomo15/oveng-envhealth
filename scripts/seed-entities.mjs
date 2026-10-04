@@ -17,11 +17,16 @@
  *   SUPABASE_SERVICE_ROLE_KEY='...' npm run seed:entities -- --dry-run
  *
  * Es idempotente: identifica por `slug` y actualiza, así que se puede repetir.
+ *
+ * Desde F4.4 las descripciones de los lugares están escritas para quien los
+ * visita —qué disfrutar allí y cómo cuidarlo—, porque son Turismo Verde.
  */
 
 import { readFileSync } from 'node:fs';
 
 import { createClient } from '@supabase/supabase-js';
+
+import { assertServiceRole } from './lib/service-role.mjs';
 
 const dryRun = process.argv.includes('--dry-run');
 
@@ -72,7 +77,7 @@ const entities = [
     type: 'lugar',
     category: 'biodiversidad',
     description:
-      'Corazón verde de la Guinea continental: 2.000 km² de selva primaria con elefantes de bosque, gorilas y más de 250 especies de aves. El área protegida mejor conservada del país.',
+      'Corazón verde de la Guinea continental: 2.000 km² de selva primaria. Ven a caminar sus senderos con un guía local, escuchar más de 250 especies de aves al amanecer y, con suerte, ver huellas de elefantes de bosque. Lleva calzado para barro y no salgas de los caminos.',
     location_name: 'Monte Alén, Centro Sur',
     country: 'Guinea Ecuatorial',
     lat: 1.65,
@@ -94,7 +99,7 @@ const entities = [
     type: 'lugar',
     category: 'agua',
     description:
-      'El río que marca la frontera norte y desemboca en el Atlántico. Sostiene la pesca artesanal de la costa y es el escenario de las jornadas de limpieza comunitaria.',
+      'El río que marca la frontera norte y desemboca en el Atlántico. Pasea por la orilla al atardecer, mira cómo vuelven las barcas de la pesca artesanal y súmate a una de sus jornadas de limpieza comunitaria. Lo que llevas, te lo llevas.',
     location_name: 'Bata, Litoral',
     country: 'Guinea Ecuatorial',
     lat: 2.35,
@@ -121,7 +126,7 @@ const entities = [
     type: 'lugar',
     category: 'biodiversidad',
     description:
-      'Humedal de manglares en la frontera sur, refugio de manatíes, tortugas marinas y aves migratorias. Zona húmeda de importancia internacional.',
+      'Humedal de manglares en la frontera sur, refugio de manatíes, tortugas marinas y aves migratorias. Ideal para observar aves desde la orilla con prismáticos y en silencio. Es una zona húmeda de importancia internacional: respeta las zonas de cría.',
     location_name: 'Cogo, Litoral',
     country: 'Guinea Ecuatorial',
     lat: 0.98,
@@ -141,7 +146,7 @@ const entities = [
     type: 'lugar',
     category: 'aire',
     description:
-      'El punto más alto del país, a 3.011 metros sobre Bioko. El aire más limpio de Guinea Ecuatorial y un gradiente de vegetación que va de la selva al páramo.',
+      'El punto más alto del país, a 3.011 metros sobre Bioko. Sube por un camino que pasa de la selva al páramo y, si el cielo está despejado, verás la isla entera a tus pies. Arriba hace frío: lleva abrigo y agua.',
     location_name: 'Bioko Norte',
     country: 'Guinea Ecuatorial',
     lat: 3.585,
@@ -161,7 +166,7 @@ const entities = [
     type: 'lugar',
     category: 'agua',
     description:
-      'Archipiélago de arena blanca y aguas transparentes frente al estuario del Muni. Zona de desove de tortugas y de arrecifes poco alterados.',
+      'Islas de arena blanca y aguas transparentes frente al estuario del Muni. Báñate, bucea con gafas en sus arrecifes poco tocados y, en temporada de desove, mira las tortugas desde lejos y sin luces. No dejes nada en la arena.',
     location_name: 'Corisco, Litoral',
     country: 'Guinea Ecuatorial',
     lat: 0.917,
@@ -310,6 +315,12 @@ const admin = createClient(url, serviceRoleKey, {
 });
 
 console.log(`Proyecto : ${url}`);
+// Antes de escribir: que la clave sea de verdad de servicio. Ver lib/service-role.mjs.
+await assertServiceRole(
+  admin,
+  serviceRoleKey,
+  process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? envFile.match(/^EXPO_PUBLIC_SUPABASE_ANON_KEY=(.+)$/m)?.[1],
+);
 console.log(`Modo     : ${dryRun ? 'simulacro' : 'carga real'}`);
 console.log(`Entidades: ${entities.length}\n`);
 

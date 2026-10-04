@@ -38,13 +38,15 @@ export type NewPost = {
   authorId: string;
   content: string;
   imageUrl?: string | null;
+  /** Lugar de Turismo Verde etiquetado (F4.4). */
+  placeId?: string | null;
 };
 
 /**
  * Crea la publicación. Las etiquetas se extraen del propio texto: no hay un
  * campo aparte que rellenar ni forma de que texto y etiquetas se contradigan.
  */
-export async function createPost({ authorId, content, imageUrl = null }: NewPost): Promise<Post> {
+export async function createPost({ authorId, content, imageUrl = null, placeId = null }: NewPost): Promise<Post> {
   const trimmed = content.trim();
 
   if (trimmed.length === 0) {
@@ -61,6 +63,9 @@ export async function createPost({ authorId, content, imageUrl = null }: NewPost
       content: trimmed,
       image_url: imageUrl,
       hashtags: parseHashtags(trimmed),
+      // Solo se manda si hay lugar: una publicación sin lugar se crea igual que
+      // antes de la migración 007.
+      ...(placeId ? { entity_id: placeId } : {}),
     })
     .select()
     .maybeSingle();

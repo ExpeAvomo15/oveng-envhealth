@@ -1,3 +1,5 @@
+import Ionicons from '@expo/vector-icons/Ionicons';
+import type { ComponentProps } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { colors, radius, spacing, type ColorToken } from '@/theme';
@@ -21,14 +23,17 @@ const tones: Record<BadgeTone, { background: ColorToken; label: ColorToken }> = 
 export type BadgeProps = {
   label: string;
   tone?: BadgeTone;
+  /** Icono delante del texto (F4.4: el tipo de entidad, como Turismo Verde). */
+  icon?: ComponentProps<typeof Ionicons>['name'];
 };
 
 /** Etiqueta compacta: categoría, tipo de cuenta, estado. */
-export function Badge({ label, tone = 'neutral' }: BadgeProps) {
+export function Badge({ label, tone = 'neutral', icon }: BadgeProps) {
   const { background, label: labelColor } = tones[tone];
 
   return (
     <View style={[styles.badge, { backgroundColor: colors[background] }]}>
+      {icon ? <Ionicons name={icon} size={13} color={colors[labelColor]} /> : null}
       <Text variant="label" color={labelColor} numberOfLines={1}>
         {label}
       </Text>
@@ -38,6 +43,9 @@ export function Badge({ label, tone = 'neutral' }: BadgeProps) {
 
 const styles = StyleSheet.create({
   badge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
     alignSelf: 'flex-start',
     borderRadius: radius.sm,
     paddingHorizontal: spacing.sm,

@@ -1,5 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useIsFocused, useRouter } from 'expo-router';
+import { useIsFocused, useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, StyleSheet, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -73,6 +73,8 @@ type Loaded = {
  */
 export default function MapScreen() {
   const router = useRouter();
+  /** `?entidad=<slug>`: "Ver en el mapa" desde el perfil de un lugar (F4.4). */
+  const { entidad } = useLocalSearchParams<{ entidad?: string }>();
   const fontFamily = useFontFamily();
   const { session } = useAuth();
 
@@ -220,7 +222,17 @@ export default function MapScreen() {
           getMetricByEntity('aire', ids),
           getMetricByEntity('agua', ids),
         ]);
-        if (live) setLoaded({ entities, airByEntity, waterByEntity });
+        if (!live) return;
+        setLoaded({ entities, airByEntity, waterByEntity });
+
+        // Llegar con `?entidad=`: se vuela a ella y se abre su tarjeta. Va en
+        // el callback de la carga, no en un efecto: es una consecuencia de
+        // tener las entidades, no un estado que sincronizar.
+        const target = entidad ? entities.find((entity) => entity.slug === entidad) : undefined;
+        if (target && target.lat !== null && target.lng !== null) {
+          setSelectedId(target.id);
+          setFly({ lat: target.lat, lng: target.lng, zoom: ENTITY_ZOOM, id: 1000 });
+        }
       })
       .catch(() => {
         if (live) setError('No se ha podido cargar el mapa. Inténtalo de nuevo.');
@@ -229,6 +241,8 @@ export default function MapScreen() {
     return () => {
       live = false;
     };
+    // Se carga una vez: `entidad` solo decide el primer encuadre.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const visible = useMemo(() => {

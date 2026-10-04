@@ -33,6 +33,9 @@ export type FeedAuthor = {
   verified: boolean;
 };
 
+/** El lugar de Turismo Verde etiquetado en una publicación (F4.4). */
+export type FeedPlace = { id: string; slug: string; name: string };
+
 export type FeedPost = {
   id: string;
   content: string;
@@ -40,6 +43,7 @@ export type FeedPost = {
   hashtags: string[];
   createdAt: string;
   author: FeedAuthor;
+  place: FeedPlace | null;
   likesCount: number;
   likedByViewer: boolean;
 };
@@ -52,16 +56,28 @@ type RawFeedRow = {
   hashtags: string[] | null;
   created_at: string;
   author: FeedAuthor | null;
+  place: FeedPlace | null;
   likes_count: { count: number }[];
   /** Ausente en el select anónimo: sin lector no hay "mi me gusta". */
   my_like?: { user_id: string }[];
 };
 
-const FEED_BASE_SELECT = `
+/**
+ * ¿Existe ya `posts.entity_id` (migración `007`, F4.4)? Se supone que sí y, si
+ * PostgREST responde que la relación no existe, se repite la consulta sin el
+ * lugar y se recuerda. Así el feed no se cae en la ventana entre desplegar y
+ * aplicar la migración a mano —que ya pasó con `entity_follows` en F2.2—.
+ */
+let placesAvailable = true;
+
+function baseSelect(): string {
+  return `
   id, content, image_url, hashtags, created_at,
   author:profiles!posts_author_id_fkey ( id, username, display_name, avatar_url, verified ),
+  ${placesAvailable ? 'place:entities!posts_entity_id_fkey ( id, slug, name ),' : ''}
   likes_count:likes!likes_post_id_fkey ( count )
 `;
+}
 
 /**
  * Con lector se pide además `my_like`, que se filtra por su id.
@@ -71,9 +87,35 @@ const FEED_BASE_SELECT = `
  * `likedByViewer` verdadero para cualquiera. El feed es público desde F2.6 y
  * quien no tiene cuenta no ha dado ningún "me gusta".
  */
-const FEED_SELECT = `${FEED_BASE_SELECT},
-  my_like:likes!likes_post_id_fkey ( user_id )
-`;
+function feedSelect(withViewer: boolean): string {
+  return withViewer ? `${baseSelect()},\n  my_like:likes!likes_post_id_fkey ( user_id )\n` : baseSelect();
+}
+
+/** Lo que responde PostgREST cuando la relación o la columna aún no existen. */
+function isMissingPlace(error: { code?: string; message?: string } | null): boolean {
+  if (!error) return false;
+  return error.code === 'PGRST200' || error.code === '42703' || /entity_id/.test(error.message ?? '');
+}
+
+type QueryResult = { data: unknown; error: { code?: string; message?: string } | null };
+
+/**
+ * Ejecuta una consulta del feed y la repite sin el lugar si falta la migración.
+ *
+ * Se reintenta según **el `select` que usó esta consulta**, no según el estado
+ * global: el feed lanza dos a la vez, y si la primera apaga `placesAvailable`
+ * antes de que la segunda falle, la segunda no reintentaría y el feed entero
+ * se quedaba en "No se ha podido cargar". Lo cazó `verify:f15`.
+ */
+async function runFeedQuery(build: (select: string) => PromiseLike<QueryResult>, withViewer: boolean) {
+  const triedPlaces = placesAvailable;
+  let result = await build(feedSelect(withViewer));
+  if (triedPlaces && isMissingPlace(result.error)) {
+    placesAvailable = false;
+    result = await build(feedSelect(withViewer));
+  }
+  return result;
+}
 
 function toFeedPost(row: RawFeedRow): FeedPost | null {
   // Sin autor no hay tarjeta que pintar. No debería pasar —la FK lo impide—
@@ -87,6 +129,7 @@ function toFeedPost(row: RawFeedRow): FeedPost | null {
     hashtags: row.hashtags ?? [],
     createdAt: row.created_at,
     author: row.author,
+    place: row.place ?? null,
     likesCount: row.likes_count[0]?.count ?? 0,
     likedByViewer: (row.my_like?.length ?? 0) > 0,
   };
@@ -136,24 +179,24 @@ export async function fetchFeed({
     return { posts: [], cursor: null };
   }
 
-  let query = supabase
-    .from('posts')
-    .select(viewerId ? FEED_SELECT : FEED_BASE_SELECT)
-    .order('created_at', { ascending: false })
-    .limit(FEED_PAGE_SIZE);
+  const { data, error } = await runFeedQuery((select) => {
+    let query = supabase
+      .from('posts')
+      .select(select)
+      .order('created_at', { ascending: false })
+      .limit(FEED_PAGE_SIZE);
 
-  if (viewerId) {
-    query = query.eq('my_like.user_id', viewerId);
-  }
-
-  if (mode === 'siguiendo' && authorIds) {
-    query = query.in('author_id', authorIds);
-  }
-  if (cursor) {
-    query = query.lt('created_at', cursor);
-  }
-
-  const { data, error } = await query;
+    if (viewerId) {
+      query = query.eq('my_like.user_id', viewerId);
+    }
+    if (mode === 'siguiendo' && authorIds) {
+      query = query.in('author_id', authorIds);
+    }
+    if (cursor) {
+      query = query.lt('created_at', cursor);
+    }
+    return query;
+  }, viewerId !== null);
   if (error) throw error;
 
   const rows = (data ?? []) as unknown as RawFeedRow[];
@@ -168,17 +211,14 @@ export async function fetchFeed({
 
 /** Una publicación suelta, con la misma forma que las del feed. */
 export async function getPost(postId: string, viewerId: string | null): Promise<FeedPost | null> {
-  // Sin lector, igual que el feed: no se pide `my_like` (ver FEED_SELECT).
-  let query = supabase
-    .from('posts')
-    .select(viewerId ? FEED_SELECT : FEED_BASE_SELECT)
-    .eq('id', postId);
-
-  if (viewerId) {
-    query = query.eq('my_like.user_id', viewerId);
-  }
-
-  const { data, error } = await query.maybeSingle();
+  // Sin lector, igual que el feed: no se pide `my_like` (ver feedSelect).
+  const { data, error } = await runFeedQuery((select) => {
+    let query = supabase.from('posts').select(select).eq('id', postId);
+    if (viewerId) {
+      query = query.eq('my_like.user_id', viewerId);
+    }
+    return query.maybeSingle();
+  }, viewerId !== null);
 
   if (error) throw error;
   if (!data) return null;
@@ -201,4 +241,32 @@ export async function unlikePost(userId: string, postId: string): Promise<void> 
     .eq('post_id', postId);
 
   if (error) throw error;
+}
+
+/**
+ * Las publicaciones etiquetadas en un lugar (F4.4), las más nuevas primero.
+ * Para la sección "Publicaciones" del perfil de un lugar de Turismo Verde.
+ */
+export async function fetchPlacePosts(entityId: string, viewerId: string | null, limit = 20): Promise<FeedPost[]> {
+  // Sin la migración 007 no hay publicaciones etiquetadas que pedir.
+  if (!placesAvailable) return [];
+
+  const { data, error } = await runFeedQuery((select) => {
+    let query = supabase
+      .from('posts')
+      .select(select)
+      .eq('entity_id', entityId)
+      .order('created_at', { ascending: false })
+      .limit(limit);
+    if (viewerId) query = query.eq('my_like.user_id', viewerId);
+    return query;
+  }, viewerId !== null);
+  if (error) {
+    if (isMissingPlace(error)) return [];
+    throw error;
+  }
+
+  return ((data ?? []) as unknown as RawFeedRow[])
+    .map(toFeedPost)
+    .filter((post): post is FeedPost => post !== null);
 }

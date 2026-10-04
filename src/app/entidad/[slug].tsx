@@ -8,6 +8,10 @@ import {
   LiveAirPanel,
   LiveNaturePanel,
   LiveSoilPanel,
+  EntityJobs,
+  PageAdmin,
+  PlacePosts,
+  VisitCard,
   EntityCover,
   MetricCards,
   QualityCircle,
@@ -18,9 +22,11 @@ import { ProvenanceLine } from '@/components/air';
 import { Badge, Button, Callout, Screen, Text } from '@/components/ui';
 import { showToast } from '@/components/ui/toast';
 import { useAuth } from '@/hooks/use-auth';
+import { useEntityAdmin } from '@/hooks/use-entity-admin';
 import type { EntityMetric } from '@/lib/database.types';
 import {
   EntityFollowsUnavailable,
+  entityTypeIcons,
   entityTypeLabels,
   followEntity,
   getEntityBySlug,
@@ -147,6 +153,8 @@ export default function EntityScreen() {
   }, [slug, viewerId]);
 
   const grouped = useMemo(() => groupMetrics(current?.metrics ?? []), [current?.metrics]);
+  // ¿Administra quien mira esta página? (F4.4)
+  const admin = useEntityAdmin(entity?.id ?? null);
 
   async function toggleFollow() {
     if (!entity || !viewerId || busy) return;
@@ -299,7 +307,7 @@ export default function EntityScreen() {
           </Text>
 
           <View style={styles.badges}>
-            <Badge label={entityTypeLabels[entity.type]} tone="accent" />
+            <Badge label={entityTypeLabels[entity.type]} tone="accent" icon={entityTypeIcons[entity.type]} />
             <Badge label={category.label} tone="neutral" />
             {/* El estado general del mockup 2 ("Muy bueno"), si lo hay. */}
             {grouped.general?.label ? (
@@ -359,6 +367,11 @@ export default function EntityScreen() {
         )}
 
         {entity.description ? <Text variant="body">{entity.description}</Text> : null}
+
+        {/* Modelo LinkedIn adaptado (F4.4): la página la gestionan personas. */}
+        <PageAdmin entity={entity} admin={admin} hasSession={session !== null} />
+
+        {entity.type === 'lugar' ? <VisitCard entity={entity} /> : null}
 
         {/*
           El aire en vivo de sus coordenadas (F4.1), solo en los lugares: son
@@ -420,10 +433,16 @@ export default function EntityScreen() {
         grouped.key.length === 0 ? (
           <View style={styles.section}>
             <Callout tone="info">
-              {`Esta ${entityTypeLabels[entity.type].toLowerCase()} no tiene mediciones ambientales: las llevan los lugares. Lo que la describe es su valoración comunitaria.`}
+              {entity.type === 'lugar'
+                ? 'Este lugar todavía no tiene mediciones guardadas en su ficha. Arriba tienes el aire, el suelo y la naturaleza de ahora.'
+                : `Esta ${entityTypeLabels[entity.type].toLowerCase()} no tiene mediciones ambientales: las llevan los lugares de Turismo Verde. Lo que la describe es su valoración comunitaria.`}
             </Callout>
           </View>
         ) : null}
+
+        <EntityJobs entity={entity} isAdmin={admin.isAdmin === true} userId={viewerId} />
+
+        {entity.type === 'lugar' ? <PlacePosts entity={entity} viewerId={viewerId} /> : null}
 
         <View style={styles.section}>
           <View style={styles.ratingsHead}>

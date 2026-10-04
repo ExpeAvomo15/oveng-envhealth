@@ -65,6 +65,8 @@ export type Database = {
           content: string;
           image_url: string | null;
           hashtags: string[];
+          /** Lugar de Turismo Verde etiquetado (007). */
+          entity_id: string | null;
           created_at: string;
         };
         Insert: {
@@ -73,6 +75,7 @@ export type Database = {
           content: string;
           image_url?: string | null;
           hashtags?: string[];
+          entity_id?: string | null;
           created_at?: string;
         };
         Update: {
@@ -81,6 +84,7 @@ export type Database = {
           content?: string;
           image_url?: string | null;
           hashtags?: string[];
+          entity_id?: string | null;
           created_at?: string;
         };
         Relationships: [
@@ -89,6 +93,13 @@ export type Database = {
             columns: ['author_id'];
             isOneToOne: false;
             referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'posts_entity_id_fkey';
+            columns: ['entity_id'];
+            isOneToOne: false;
+            referencedRelation: 'entities';
             referencedColumns: ['id'];
           },
         ];
@@ -284,6 +295,99 @@ export type Database = {
           },
         ];
       };
+      entity_admins: {
+        Row: {
+          entity_id: string;
+          user_id: string;
+          role: string;
+          status: string;
+          created_at: string;
+        };
+        Insert: {
+          entity_id: string;
+          user_id: string;
+          role?: string;
+          status?: string;
+          created_at?: string;
+        };
+        Update: {
+          entity_id?: string;
+          user_id?: string;
+          role?: string;
+          status?: string;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'entity_admins_entity_id_fkey';
+            columns: ['entity_id'];
+            isOneToOne: false;
+            referencedRelation: 'entities';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'entity_admins_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      jobs: {
+        Row: {
+          id: string;
+          entity_id: string;
+          created_by: string | null;
+          title: string;
+          description: string;
+          location_name: string | null;
+          type: Database['public']['Enums']['job_type'];
+          how_to_apply: string;
+          active: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          entity_id: string;
+          created_by?: string | null;
+          title: string;
+          description: string;
+          location_name?: string | null;
+          type: Database['public']['Enums']['job_type'];
+          how_to_apply: string;
+          active?: boolean;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          entity_id?: string;
+          created_by?: string | null;
+          title?: string;
+          description?: string;
+          location_name?: string | null;
+          type?: Database['public']['Enums']['job_type'];
+          how_to_apply?: string;
+          active?: boolean;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'jobs_entity_id_fkey';
+            columns: ['entity_id'];
+            isOneToOne: false;
+            referencedRelation: 'entities';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'jobs_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       likes: {
         Row: {
           user_id: string;
@@ -349,6 +453,7 @@ export type Database = {
         | 'cobertura_forestal'
         | 'temperatura_media'
         | 'calidad_general';
+      job_type: 'completa' | 'parcial' | 'voluntariado' | 'practicas';
     };
     CompositeTypes: { [_ in never]: never };
   };
@@ -376,6 +481,9 @@ export type EntityMetric = Tables<'entity_metrics'>;
 export type EntityRating = Tables<'entity_ratings'>;
 export type EntityRatingSummary = Views<'entity_rating_summary'>;
 export type EntityFollow = Tables<'entity_follows'>;
+export type EntityAdmin = Tables<'entity_admins'>;
+export type Job = Tables<'jobs'>;
+export type JobType = Enums<'job_type'>;
 
 export type EntityType = Enums<'entity_type'>;
 export type EnvironmentalCategoryName = Enums<'environmental_category'>;

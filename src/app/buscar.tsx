@@ -5,6 +5,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import {
   EntityCard,
+  JobCard,
   PersonCard,
   ResultSkeleton,
   ScopeChips,
@@ -239,9 +240,11 @@ export default function SearchScreen() {
   const entitySections = useMemo(
     () =>
       [
-        { key: 'empresa' as const, title: 'Empresas', rows: shown.empresas },
-        { key: 'iniciativa' as const, title: 'Iniciativas', rows: shown.iniciativas },
-        { key: 'lugar' as const, title: 'Lugares', rows: shown.lugares },
+        // Las empresas no tienen chip propio desde F4.4 (el chip es Empleo):
+        // su sección sale en "Todo" sin "Ver todo".
+        { key: 'empresa' as const, scope: null, title: 'Empresas', rows: shown.empresas },
+        { key: 'iniciativa' as const, scope: 'iniciativa' as const, title: 'Iniciativas', rows: shown.iniciativas },
+        { key: 'lugar' as const, scope: 'lugar' as const, title: 'Turismo Verde', rows: shown.lugares },
       ].filter((section) => section.rows.length > 0),
     [shown],
   );
@@ -317,14 +320,18 @@ export default function SearchScreen() {
             <ResultSkeleton />
           </View>
         ) : !hasResults(shown) ? (
-          <EmptyResults term={query} category={category} />
+          scope === 'empleo' ? (
+            <EmptyJobs term={query} />
+          ) : (
+            <EmptyResults term={query} category={category} />
+          )
         ) : scope === 'todo' ? (
           <View style={styles.blocks}>
             {entitySections.map((section) => (
               <View key={section.key} style={styles.block}>
                 <SectionTitle
                   title={section.title}
-                  onSeeAll={() => setScope(section.key)}
+                  onSeeAll={section.scope ? () => setScope(section.scope) : undefined}
                 />
                 <View style={styles.list}>{section.rows.map(renderEntity)}</View>
               </View>
@@ -345,9 +352,11 @@ export default function SearchScreen() {
             <View style={styles.list}>
               {scope === 'persona'
                 ? shown.personas.map(renderPerson)
-                : [...shown.empresas, ...shown.iniciativas, ...shown.lugares].map(
-                    renderEntity,
-                  )}
+                : scope === 'empleo'
+                  ? shown.empleos.map((job) => (
+                      <JobCard key={job.id} job={job} onPress={() => router.push(`/empleo/${job.id}`)} />
+                    ))
+                  : [...shown.empresas, ...shown.iniciativas, ...shown.lugares].map(renderEntity)}
             </View>
           </View>
         )}
@@ -381,6 +390,25 @@ function SectionTitle({ title, onSeeAll }: { title: string; onSeeAll?: () => voi
           <Ionicons name="chevron-forward" size={14} color={colors.accent} />
         </Pressable>
       ) : null}
+    </View>
+  );
+}
+
+/** Sin ofertas: se dice, y se dice cómo llegan. */
+function EmptyJobs({ term }: { term: string }) {
+  return (
+    <View style={styles.empty}>
+      <View style={styles.emptyIcon}>
+        <Ionicons name="briefcase-outline" size={28} color={colors.accent} />
+      </View>
+      <Text variant="subtitle" style={styles.centered}>
+        {term.trim() ? 'Ninguna oferta coincide' : 'Aún no hay ofertas aquí'}
+      </Text>
+      <Text variant="caption" color="textSecondary" style={styles.centered}>
+        {term.trim()
+          ? `No hay ofertas que hablen de "${term}". Prueba con otra palabra o borra la búsqueda.`
+          : 'Las publican las empresas e iniciativas desde su página. ¿Trabajas en una? Entra en su página y pulsa «Gestionar esta página».'}
+      </Text>
     </View>
   );
 }

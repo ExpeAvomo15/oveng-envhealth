@@ -65,12 +65,16 @@ El porqué de cada una, enlazado.
 - **Procedencia siempre visible**: 🛰️ estimación, 📡 estación, 📋 curado. Nunca un dato sin su origen. @docs/08_DATOS_EN_VIVO.md
 - Aire en **AQI europeo**, seis tramos oficiales; el curado de los mockups es otra escala y no se mezcla.
 - **Ubicación solo con permiso, pedido por un gesto**; vive en memoria, nunca en base ni dispositivo, y sale a dos decimales.
-- Una API externa caída **no rompe** nada: se cae al dato curado con su etiqueta. Claves de API, nunca en el bundle (F4.5).
+- Una API externa caída **no rompe** nada: se cae al dato curado con su etiqueta. Claves de API, nunca en el bundle (F4.6).
 
 - La leyenda del mapa **elige una capa** y la tarjeta enseña su dato; energía y residuos solo cuentan entidades.
 - **Lenguaje para 12 años** (AGENTS.md): palabra primero, cifra después, ⓘ al lado y nunca dentro de otro pulsable.
 - **Criterio de fuentes**: en vivo solo lo mundial, público y sin clave; lo demás, curado y etiquetado, o nada.
 - Contraseña: enlace PKCE a `/restablecer`, válido solo en el navegador que lo pidió; el correo integrado de Supabase solo llega al equipo.
+
+- **Personas y páginas:** solo hay cuentas de personas; las entidades son páginas que administran (claim al instante por ahora).
+- En la interfaz, `lugar` se llama **Turismo Verde**; el chip de Buscar es **Empleo**, no Empresas.
+- Contenido de ejemplo sin autor (`created_by` nulo) se **marca como ejemplo** y no se puede editar desde la app.
 
 ### Producto
 
@@ -89,6 +93,43 @@ La lista mantenida es el **backlog de @docs/plan.md**. Fuera de ella, sueltos:
 - El clima (temperatura, lluvia) está a una llamada de Open-Meteo, sin clave, y no se enseña en ningún sitio.
 - Marca: falta el **SVG vectorial** (hoy son PNG), los PNG no van cuantizados y
   el icono y el splash nativos siguen siendo los de Expo.
+
+---
+
+## 2026-10-04 — F4.4: feed denso, Turismo Verde y Empleo
+
+**Modelo LinkedIn adaptado.** Solo hay cuentas de personas; una entidad es una
+página que gestionan personas (`entity_admins`, migración `005`). Reclamar da
+admin **al instante**: la política de INSERT obliga a `role = admin` y `status
+= approved`, así que nadie se da un rol mayor escribiendo el campo. La tabla
+nace con `role` y `status` para la verificación y los roles de después de F3.
+
+**Ofertas de ejemplo con `created_by` nulo.** El encargo dejaba elegir. Nulo es
+lo más limpio con la RLS: escribir exige `created_by = auth.uid()`, así que
+nadie las edita desde la app —son curadas, como `entities`— y la app las marca
+"Oferta de ejemplo" y no ofrece aplicar. Inventadas, sí: por eso se dice.
+
+**El feed sobrevive sin la migración 007.** Pide el lugar etiquetado y, si
+PostgREST dice que la relación no existe (`PGRST200`/`42703`), repite sin él y
+lo recuerda. Es la ventana de F2.2 otra vez: se despliega antes de aplicar.
+
+**Una consulta HEAD a una tabla que no existe no da error**: `count: null` y
+204. Para detectar una migración sin aplicar, `select` normal.
+
+**Renumerado otra vez:** procedencia + OpenAQ, cron y compartir pasan a F4.5,
+F4.6 y F4.7.
+
+**Los seeds escribían como anónimos y no lo decían.** `seed:jobs` falló con
+"new row violates row-level security policy" y `seed:entities` "entró" sin
+cambiar nada. No era la `006`: `service_role` tiene `BYPASSRLS` y ese error
+solo sale si la petición llega como anónima, o sea, con la clave equivocada
+—el proyecto usa las claves nuevas, y la publicable y la secreta están juntas
+en el dashboard—. Ahora los dos seeds comprueban la clave **antes** de escribir
+(`scripts/lib/service-role.mjs`) y paran diciendo cuál han recibido.
+
+**Una carrera en el respaldo del feed:** dos peticiones a la vez, la primera
+apagaba el lugar y la segunda ya no reintentaba. Se reintenta según el `select`
+que usó cada una. Lo cazó `verify:f15`.
 
 ---
 
@@ -131,40 +172,6 @@ cambia la contraseña de verdad.
 **Tropiezos de la prueba:** `TextField` no asocia su etiqueta al campo —se usa
 el `placeholder` o un `accessibilityLabel`—, y el error con "after N seconds"
 llega con un código que ya tenía mensaje genérico: ahora se mira antes.
-
----
-
-## 2026-10-04 — F4.2: el mapa busca el mundo, y "Mi ubicación"
-
-Adelantada como F4.1. El plan se renumeró: esta es F4.2 (absorbe la
-geolocalización), los datos por categoría F4.3, y procedencia + OpenAQ, cron y
-compartir con marca pasan a F4.4, F4.5 y F4.6.
-
-**El contrato de Open-Meteo Geocoding**, comprobado antes de construir:
-
-```json
-{ "results": [{ "id": 2232593, "name": "Duala", "latitude": 4.04827,
-  "longitude": 9.70428, "feature_code": "PPLA", "country": "Camerún",
-  "country_code": "CM", "admin1": "Región del Litoral", "admin2": null,
-  "population": 1338082, "timezone": "Africa/Douala" }] }
-```
-
-Nombres **en español** ("Douala" → "Duala"), sin coincidencias **no hay clave
-`results`**, un carácter vuelve vacío, CORS abierto y **sin geocodificación
-inversa**: tu punto se llama "Tu ubicación". El zoom sale del `feature_code`
-(país 5, región 6,5, ciudad 10–11).
-
-**Privacidad.** La ubicación vive en memoria. Ni base ni dispositivo: del feed
-se guarda `mi-ubicacion`, no las coordenadas, y al volver se re-pide solo si el
-permiso sigue concedido. Hacia Open-Meteo sale redondeada a dos decimales
-—también el aire de cualquier punto—: la rejilla es de 0,1° y no cambia nada.
-El aviso va **antes** del diálogo del navegador. `verify:f42` lo comprueba.
-
-**Nunca sin permiso.** `permissions.query` decide la primera carga sin abrir
-el diálogo; el diálogo solo sale al pulsar. Denegado: un aviso y nada se mueve.
-
-**Un fallo del script, no del producto:** el paso de "permiso denegado"
-empezaba con la tarjeta de Monte Alén abierta del paso anterior.
 
 ---
 

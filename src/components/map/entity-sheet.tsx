@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { EntityAvatar, RatingBadge } from '@/components/search';
 import { Badge, Text } from '@/components/ui';
-import { entityTypeLabels, type EntityResult } from '@/lib/entities';
+import { entityTypeIcons, entityTypeLabels, type EntityResult } from '@/lib/entities';
 import { colors, environmentalCategories, radius, shadows, spacing } from '@/theme';
 
 export type EntitySheetProps = {
@@ -35,7 +35,7 @@ export function EntitySheet({ entity, onClose, onOpen }: EntitySheetProps) {
 
         <View style={styles.texts}>
           <View style={styles.topRow}>
-            <Badge label={entityTypeLabels[entity.type]} tone="accent" />
+            <Badge label={entityTypeLabels[entity.type]} tone="accent" icon={entityTypeIcons[entity.type]} />
             {entity.verified ? (
               <Ionicons
                 name="checkmark-circle"

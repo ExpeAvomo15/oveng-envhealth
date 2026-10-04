@@ -10,7 +10,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { likePost, unlikePost, type FeedPost } from '@/lib/feed';
 import { postUrl } from '@/lib/site';
 import { relativeTime } from '@/lib/time';
-import { colors, radius, spacing } from '@/theme';
+import { colors, radius, screenPadding, spacing } from '@/theme';
 
 import { PostText } from './post-text';
 
@@ -18,9 +18,16 @@ export type PostCardProps = {
   post: FeedPost;
   /** Si se pasa, el cuerpo de la tarjeta lleva al detalle. */
   onPressBody?: () => void;
+  /**
+   * `feed` (F4.4): a sangre, como en el mockup 1 —sin radio, borde ni margen,
+   * y la imagen de lado a lado—, para que las publicaciones se encadenen sin
+   * huecos. `card`: la tarjeta de siempre, para el detalle.
+   */
+  variant?: 'feed' | 'card';
 };
 
-export function PostCard({ post, onPressBody }: PostCardProps) {
+export function PostCard({ post, onPressBody, variant = 'card' }: PostCardProps) {
+  const flush = variant === 'feed';
   const router = useRouter();
   // La raíz de la app se deduce de la ruta actual; ver lib/site.ts.
   const pathname = usePathname();
@@ -96,8 +103,8 @@ export function PostCard({ post, onPressBody }: PostCardProps) {
   }
 
   return (
-    <View style={styles.card}>
-      <View style={styles.headerRow}>
+    <View style={flush ? styles.flush : styles.card}>
+      <View style={[styles.headerRow, flush && styles.inset]}>
         <Pressable
           onPress={() => router.push(`/user/${post.author.username}`)}
           accessibilityRole="link"
@@ -127,18 +134,37 @@ export function PostCard({ post, onPressBody }: PostCardProps) {
         </Pressable>
       </View>
 
+      {/*
+        Lugar de Turismo Verde etiquetado (F4.4): una línea con su pin que lleva
+        a su perfil. Pulsable propio, hermano del autor y del cuerpo.
+      */}
+      {post.place ? (
+        <Pressable
+          onPress={() => router.push(`/entidad/${post.place!.slug}`)}
+          accessibilityRole="link"
+          accessibilityLabel={`En ${post.place.name}. Ver el lugar`}
+          style={({ pressed }) => [styles.place, flush && styles.inset, pressed && styles.pressed]}>
+          <Ionicons name="location" size={14} color={colors.accent} />
+          <Text variant="caption" color="accent" numberOfLines={1} style={styles.placeName}>
+            {post.place.name}
+          </Text>
+        </Pressable>
+      ) : null}
+
       <Pressable
         onPress={onPressBody}
         disabled={!onPressBody}
         accessibilityRole={onPressBody ? 'link' : undefined}
         accessibilityLabel={onPressBody ? 'Ver la publicación' : undefined}
         style={styles.body}>
-        <PostText content={post.content} />
+        <View style={flush && styles.inset}>
+          <PostText content={post.content} />
+        </View>
 
         {post.imageUrl ? (
           <Image
             source={{ uri: post.imageUrl }}
-            style={styles.image}
+            style={[styles.image, flush && styles.imageFlush]}
             contentFit="cover"
             transition={150}
             accessibilityLabel="Imagen de la publicación"
@@ -146,7 +172,7 @@ export function PostCard({ post, onPressBody }: PostCardProps) {
         ) : null}
       </Pressable>
 
-      <View style={styles.actions}>
+      <View style={[styles.actions, flush && styles.inset]}>
         <Action
           icon={liked ? 'heart' : 'heart-outline'}
           color={liked ? colors.danger : colors.textSecondary}
@@ -215,8 +241,27 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     gap: spacing.md,
   },
+  /** En el feed: sin tarjeta. El aire lo dan los rellenos de dentro. */
+  flush: {
+    backgroundColor: colors.surface,
+    paddingVertical: spacing.md,
+    gap: spacing.md,
+  },
+  /** Solo el texto, la cabecera y las acciones llevan margen lateral. */
+  inset: {
+    paddingHorizontal: screenPadding,
+  },
   headerRow: {
     flexDirection: 'row',
+  },
+  place: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    marginTop: -spacing.xs,
+  },
+  placeName: {
+    flexShrink: 1,
   },
   author: {
     flexDirection: 'row',
@@ -242,6 +287,9 @@ const styles = StyleSheet.create({
     aspectRatio: 16 / 10,
     borderRadius: radius.md,
     backgroundColor: colors.surfaceMuted,
+  },
+  imageFlush: {
+    borderRadius: 0,
   },
   actions: {
     flexDirection: 'row',

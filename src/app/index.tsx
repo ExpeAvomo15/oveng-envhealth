@@ -107,24 +107,29 @@ export default function HomeScreen() {
               return (
                 <PostCard
                   post={item.post}
+                  variant="feed"
                   onPressBody={() => router.push(`/post/${item.post.id}`)}
                 />
               );
             case 'zone':
               return zone === null ? null : (
-                <ZoneDataCard
-                  data={zone}
-                  onChangeZone={changeZone}
-                  locating={locatingZone}
-                  onOpenReference={(slug) => router.push(`/entidad/${slug}`)}
-                />
+                <View style={styles.band}>
+                  <ZoneDataCard
+                    data={zone}
+                    onChangeZone={changeZone}
+                    locating={locatingZone}
+                    onOpenReference={(slug) => router.push(`/entidad/${slug}`)}
+                  />
+                </View>
               );
             case 'featured':
               return zone?.featured == null ? null : (
-                <FeaturedCard
-                  entity={zone.featured}
-                  onPress={() => router.push(`/entidad/${zone.featured!.slug}`)}
-                />
+                <View style={styles.band}>
+                  <FeaturedCard
+                    entity={zone.featured}
+                    onPress={() => router.push(`/entidad/${zone.featured!.slug}`)}
+                  />
+                </View>
               );
             case 'empty':
               return (
@@ -154,7 +159,9 @@ export default function HomeScreen() {
               <PostSkeleton />
             </View>
           ) : error ? (
-            <Callout tone="error">{error}</Callout>
+            <View style={styles.skeletons}>
+              <Callout tone="error">{error}</Callout>
+            </View>
           ) : null
         }
         ListFooterComponent={
@@ -239,19 +246,36 @@ const styles = StyleSheet.create({
   pressed: {
     opacity: 0.6,
   },
+  /**
+   * El feed es una columna blanca continua (F4.4): las publicaciones van a
+   * sangre y se separan por una línea, no por huecos de fondo gris, como en el
+   * mockup 1. En escritorio la columna se queda centrada en su ancho máximo.
+   */
   list: {
     width: '100%',
     maxWidth: maxContentWidth,
     alignSelf: 'center',
-    paddingHorizontal: screenPadding,
     paddingBottom: spacing.xxxl,
     flexGrow: 1,
+    backgroundColor: colors.surface,
   },
   separator: {
-    height: spacing.md,
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: colors.border,
+  },
+  /**
+   * Las tarjetas ambientales sí siguen siendo tarjetas, sobre una franja del
+   * fondo de la app: se distinguen de las publicaciones sin abrir un hueco
+   * grande en la columna.
+   */
+  band: {
+    paddingHorizontal: screenPadding,
+    paddingVertical: spacing.sm,
+    backgroundColor: colors.background,
   },
   skeletons: {
     gap: spacing.md,
+    padding: screenPadding,
   },
   footer: {
     alignItems: 'center',
@@ -263,6 +287,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: spacing.md,
     paddingVertical: spacing.xxxl,
+    paddingHorizontal: screenPadding,
   },
   emptyIcon: {
     width: 88,

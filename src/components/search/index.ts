@@ -4,6 +4,7 @@
  */
 export { EntityAvatar, type EntityAvatarProps } from './entity-avatar';
 export { EntityCard, type EntityCardProps } from './entity-card';
+export { JobCard, type JobCardProps } from './job-card';
 export { PersonCard, type PersonCardProps } from './person-card';
 export { RatingBadge, compactCount, type RatingBadgeProps } from './rating-badge';
 export { ResultSkeleton } from './result-skeleton';

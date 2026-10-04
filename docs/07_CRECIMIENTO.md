@@ -96,6 +96,46 @@ prioriza **utilidad y directorio** sobre mecánicas de red social.
 
 ---
 
+## Dos hipótesis más para F3: Empleo y Turismo Verde
+
+F4.4 las construyó antes de validarlas, en pequeño y sin cerrar puertas. Las
+conversaciones de F3 tienen que decir si sostienen la red o si son ruido.
+
+**Empleo.** Hipótesis: el empleo verde es una razón para volver que el dato
+ambiental no da —se mira cada semana, no cuando hay un episodio de aire
+malo— y es lo que trae a las **empresas y las iniciativas**: una página que
+publica ofertas tiene un motivo para mantenerse viva. El modelo es el de
+LinkedIn: personas que gestionan páginas.
+
+- ¿Cómo encontraste tu último trabajo o voluntariado relacionado con el medio
+  ambiente? ¿Por dónde te llegó?
+- Si una ONG o empresa verde de tu zona busca a alguien, ¿dónde lo publica
+  hoy? ¿Le sirve?
+- ¿Abrirías OVENG para mirar ofertas aunque no hubiera nada nuevo sobre el
+  aire? ¿Cada cuánto?
+- (A quien lleva una entidad) ¿Reclamarías vuestra página para publicar
+  ofertas? ¿Qué te haría desconfiar de que otra persona la reclame?
+
+**Turismo Verde.** Hipótesis: los lugares son más útiles como **destinos** que
+como fichas de datos —"qué hacer allí y cómo está hoy"— y las publicaciones de
+quien los visita son el contenido que más se comparte por WhatsApp, porque son
+fotos y no cifras. Es la diáspora la que más puede tirar de esto: enseñar su
+tierra.
+
+- ¿Has visitado Monte Alén, Corisco o el Pico Basilé? ¿Cómo te informaste
+  antes de ir?
+- ¿Compartirías una foto tuya en un lugar etiquetado si se viera en su página?
+  ¿Con quién?
+- Si alguien de fuera te pregunta qué ver en Guinea Ecuatorial, ¿qué le
+  mandas hoy?
+
+Lo que tumbaría cada una: que nadie busque empleo verde por esta vía (Empleo),
+o que los lugares solo interesen a quien ya los conoce y no se compartan
+(Turismo Verde). En ese caso se quitan del primer plano —el chip, la sección—
+antes de seguir construyendo encima.
+
+---
+
 ## Comunidad inicial (*beachhead*)
 
 **Primaria: la comunidad ambiental de Guinea Ecuatorial y su diáspora.**
@@ -141,7 +181,7 @@ cómo llegar, el uso no genera distribución. Es el principio *cada uso genera
 distribución* aplicado al objeto que viaja.
 
 Tres piezas, de la más deliberada a la más automática. **Documentadas, no
-construidas**: son la tarea F4.6 de @docs/plan.md.
+construidas**: son la tarea F4.7 de @docs/plan.md.
 
 1. **Tarjetas compartibles generadas.** Una imagen compuesta a propósito para
    compartir: el contenido (una medición, una publicación, una entidad), el
@@ -241,7 +281,7 @@ salió a ser una ruta pública de primer nivel, y el orden en que se declaran la
 rutas decide cuál es la puerta de entrada. El detalle está en el
 [archivo de notas, F2.3](notas-archivo-f0-f2.md#2026-09-27--f23-el-mapa-ambiental-y-las-rutas-públicas).
 
-**Tarjetas compartibles, marca de agua y OG tags:** son la tarea **F4.6
+**Tarjetas compartibles, marca de agua y OG tags:** son la tarea **F4.7
 "Compartir con marca"**, descrita en *Marca en todo lo que sale*. Las páginas
 públicas que necesitaban ya existen —toda vista de lectura lo es—; falta que lo
 que sale de ellas lleve la marca y el camino de vuelta.

@@ -230,9 +230,57 @@ en el perfil ambiental, y conviene que los tres lo calculen igual. Lleva
 las de quien la creó. **Las entidades sin valorar no aparecen en la vista**: la
 ausencia se trata como "sin valoraciones".
 
+### entity_admins (F4.4, migración `005`)
+
+Quién administra la **página** de una entidad: el modelo LinkedIn adaptado,
+donde solo hay cuentas de personas y las entidades las gestionan personas.
+
+| Columna | Tipo | Notas |
+| ------- | ---- | ----- |
+| `entity_id` | `uuid` | FK a `entities`, `on delete cascade`. Parte de la PK. |
+| `user_id` | `uuid` | FK a `profiles`, `on delete cascade`. Parte de la PK. |
+| `role` | `text` | `admin` por defecto; el `check` admite también `super_admin` y `content_admin`, para cuando haya roles. |
+| `status` | `text` | `approved` por defecto; el `check` admite `pending` y `revoked`, para cuando haya revisión. |
+| `created_at` | `timestamptz` | |
+
+**La aprobación es automática por ahora**, y la política de INSERT lo impone:
+solo deja crear la fila en nombre propio y con `role = 'admin'` y `status =
+'approved'`. Así nadie puede darse un rol mayor ni saltarse una revisión
+futura escribiendo el campo. Sin política de UPDATE: hoy nadie cambia un rol.
+Índice extra en `user_id` para "qué páginas administro".
+
+### jobs (F4.4, migración `006`)
+
+Ofertas de empleo de una página. Enumerado `job_type`: `completa`, `parcial`,
+`voluntariado`, `practicas`.
+
+| Columna | Tipo | Notas |
+| ------- | ---- | ----- |
+| `entity_id` | `uuid` | La página que la publica. |
+| `created_by` | `uuid` nullable | Quién la publicó. **Nulo = oferta de ejemplo** cargada por el seed. |
+| `title` / `description` | `text` | 3–120 y 1–4000 caracteres. |
+| `location_name` | `text` | Nullable. |
+| `type` | `job_type` | |
+| `how_to_apply` | `text` | Email o URL; la app lo valida. |
+| `active` | `boolean` | `true` por defecto. Cerrar una oferta es ponerla a `false`. |
+
+Lectura: las activas, cualquiera; las inactivas, solo quien las creó.
+Escritura (INSERT, UPDATE, DELETE): en nombre propio **y** siendo
+administrador aprobado de esa entidad, con una subconsulta a `entity_admins`.
+Por eso las ofertas de ejemplo (`created_by` nulo) no las puede tocar nadie
+desde la app: son contenido curado.
+
+### posts.entity_id (F4.4, migración `007`)
+
+Lugar de Turismo Verde etiquetado en una publicación. Nullable, `on delete set
+null` (si el lugar se borra, la publicación se queda sin etiqueta) e índice
+parcial `(entity_id, created_at desc) where entity_id is not null`. Que sea un
+lugar lo comprueba la app: un `check` necesitaría una subconsulta. RLS de
+`posts` sin cambios.
+
 ## Políticas RLS
 
-El mismo patrón en las ocho tablas: **cualquiera lee**; lo que escribe la gente
+El mismo patrón en las diez tablas: **cualquiera lee**; lo que escribe la gente
 solo lo escribe su propietario, y el contenido curado (`entities`,
 `entity_metrics`) no lo escribe nadie desde la app.
 
@@ -246,6 +294,8 @@ solo lo escribe su propietario, y el contenido curado (`entities`,
 | `entity_metrics` | público (`true`) | — **ninguna**          | — **ninguna**                | — **ninguna**                |
 | `entity_ratings` | público (`true`) | `auth.uid() = user_id` | `auth.uid() = user_id`       | `auth.uid() = user_id`       |
 | `entity_follows` | público (`true`) | `auth.uid() = user_id` | — sin política               | `auth.uid() = user_id`       |
+| `entity_admins` | público (`true`) | propio, `role = admin`, `status = approved` | — sin política | `auth.uid() = user_id` |
+| `jobs` | activas, o propias | propio **y** admin aprobado de la entidad | ídem | ídem |
 
 `entities` y `entity_metrics` **no tienen ninguna política de escritura**, y es
 deliberado: son contenido curado. RLS deniega por defecto, así que ni un
@@ -381,6 +431,9 @@ Viven en `supabase/migrations/`:
 | `002_storage.sql` | Buckets y políticas de `storage.objects`. |
 | `003_entities.sql` | Entidades ambientales, sus métricas, las valoraciones y la vista de resumen. |
 | `004_entity_follows.sql` | Seguir entidades: `entity_follows`, con su índice y sus políticas. |
+| `005_entity_admins.sql` | Administradores de páginas: `entity_admins` y sus políticas (F4.4). |
+| `006_jobs.sql` | Ofertas de empleo: enumerado `job_type`, `jobs` y sus políticas (F4.4). |
+| `007_post_entities.sql` | Lugar etiquetado en una publicación: `posts.entity_id` e índice (F4.4). |
 
 Cada una va envuelta en `begin; … commit;`: si algo falla a mitad, no queda nada
 aplicado a medias.
@@ -401,6 +454,10 @@ medias, pero tampoco aplica la mitad buena.
 4. Repetir con `002_storage.sql` en una query nueva.
 5. Repetir con `003_entities.sql` en otra query nueva.
 6. Repetir con `004_entity_follows.sql` en otra query nueva.
+7. Repetir con `005_entity_admins.sql`.
+8. Repetir con `006_jobs.sql` —**después** de `005`: sus políticas consultan
+   `entity_admins`—.
+9. Repetir con `007_post_entities.sql`.
 
 Si el paso 4 devuelve un error de permisos al crear políticas sobre
 `storage.objects`, crear las mismas reglas desde **Storage → Policies** en el
@@ -434,9 +491,30 @@ SUPABASE_SERVICE_ROLE_KEY='...' npm run seed:entities                # escribe
 > "Simulacro: no se ha escrito nada". Es fácil leerlo como un éxito. Si
 > `verify:f21` dice que `entities` está vacía, es que solo se pasó el simulacro.
 
-Es idempotente por `slug`: repetirlo actualiza en vez de duplicar.
+Los dos seeds comprueban **antes de escribir** que la clave es de verdad de
+servicio —la secreta, `sb_secret_…`, o la `service_role` antigua— y paran si
+reciben la publicable o la anónima. Con la clave equivocada cada fila llegaría
+como anónima y RLS la rechazaría con un error que despista (pasó en F4.4).
 
-**2. Regenerar los tipos**, que son la otra mitad del contrato:
+Es idempotente por `slug`: repetirlo actualiza en vez de duplicar. **Desde
+F4.4 hay que repetirlo una vez**: las descripciones de los cinco lugares están
+reescritas para quien los visita.
+
+**2. Cargar las ofertas de empleo de ejemplo** (tras `006`). Mismo patrón y
+misma clave:
+
+```bash
+SUPABASE_SERVICE_ROLE_KEY='...' npm run seed:jobs -- --dry-run   # solo enumera
+SUPABASE_SERVICE_ROLE_KEY='...' npm run seed:jobs                # escribe
+```
+
+Ocho ofertas repartidas entre EcoGuinea, GreenTech, Bosques Vivos, Bosques
+para el futuro, Río limpio, Solaris, Aire Puro y Reforestación urbana Málaga,
+de los cuatro tipos. Van con `created_by` nulo, que la app enseña como
+**"Oferta de ejemplo"** y en las que no ofrece aplicar; sus direcciones usan
+el dominio reservado `.example`. Idempotente por entidad y título.
+
+**3. Regenerar los tipos**, que son la otra mitad del contrato:
 
 ```bash
 npx supabase login
@@ -458,12 +536,13 @@ que la app:
 ```bash
 npm run verify:auth   # 001 y 002: tablas, RLS en ambos sentidos, trigger, buckets
 npm run verify:f21    # 003: tablas, seed, coordenadas, métricas y RLS de entidades
+npm run verify:f44    # 005-007: claims, ofertas y su RLS, lugares etiquetados
 ```
 
 Lo de abajo es la comprobación a mano, en el **SQL Editor**, para cuando algo
 falla y hay que ver por qué.
 
-### 1. RLS activado en las ocho tablas
+### 1. RLS activado en las diez tablas
 
 ```sql
 select relname as tabla, relrowsecurity as rls_activado
@@ -472,8 +551,8 @@ where relnamespace = 'public'::regnamespace and relkind = 'r'
 order by relname;
 ```
 
-Las ocho deben dar `true`: `profiles`, `posts`, `follows`, `likes`, `entities`,
-`entity_metrics`, `entity_ratings` y `entity_follows`. Una sola en `false` es
+Las diez deben dar `true`: `profiles`, `posts`, `follows`, `likes`, `entities`,
+`entity_metrics`, `entity_ratings`, `entity_follows`, `entity_admins` y `jobs`. Una sola en `false` es
 una tabla abierta a internet.
 
 `entity_rating_summary` no sale en esta consulta porque es una vista, no una
@@ -488,7 +567,7 @@ where schemaname = 'public'
 order by tablename, cmd;
 ```
 
-Esperado, 23 en total:
+Esperado, 30 en total:
 
 | Tabla | Políticas | |
 | ----- | --------- | - |
@@ -500,6 +579,8 @@ Esperado, 23 en total:
 | `entity_metrics` | 1 | solo SELECT |
 | `entity_ratings` | 4 | esto sí lo escribe la gente |
 | `entity_follows` | 3 | sin UPDATE: una fila de seguimiento no se actualiza |
+| `entity_admins` | 3 | sin UPDATE: hoy nadie cambia un rol |
+| `jobs` | 4 | escribir, solo administradores aprobados de la entidad |
 
 ### 3. El trigger crea el perfil
 

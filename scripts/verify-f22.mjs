@@ -104,8 +104,10 @@ step('3. Búsqueda sobre entities');
 }
 
 {
-  // La descripción también se busca: "gorilas" solo aparece ahí.
-  const { data } = await anon.from('entities').select('slug').ilike('description', '%gorilas%');
+  // La descripción también se busca: "páramo" solo aparece ahí, en la de Pico
+  // Basilé. Era "gorilas" hasta que F4.4 reescribió las descripciones de los
+  // lugares para quien los visita.
+  const { data } = await anon.from('entities').select('slug').ilike('description', '%páramo%');
   if (data && data.length > 0) ok('la búsqueda alcanza la descripción');
   else bad('la descripción no se está buscando');
 }
@@ -276,39 +278,42 @@ try {
     /Parque Nacional de Monte Alén/,
     '"monte" encuentra Monte Alén en pantalla',
   );
-  await expectRole('button', 'Ver todo en Lugares', 'los resultados se agrupan por tipo');
+  // "Lugares" se llama Turismo Verde desde F4.4.
+  await expectRole('button', 'Ver todo en Turismo Verde', 'los resultados se agrupan por tipo');
   await shot('02-resultados-monte');
 
-  // --- Chip de Empresas ------------------------------------------------------
-  step('8. El chip Empresas filtra');
+  // --- Chip de Turismo Verde --------------------------------------------------
+  // Desde F4.4 el chip "Empresas" es "Empleo" (ofertas, lo comprueba
+  // verify:f44); el filtro por tipo se comprueba con Turismo Verde.
+  step('8. El chip Turismo Verde filtra');
 
   await field.fill('');
   await page.waitForTimeout(600);
-  await page.getByRole('tab', { name: 'Empresas' }).click();
+  await page.getByRole('tab', { name: 'Turismo Verde' }).click();
   await page.waitForTimeout(2000);
 
   {
     // Se comparan los nombres en pantalla con los que la base dice que son
-    // empresas: comprobar solo "hay 5 fichas" pasaría igual con cinco fichas
+    // lugares: comprobar solo "hay 5 fichas" pasaría igual con cinco fichas
     // equivocadas.
     const labels = (
       await Promise.all((await page.getByRole('link').all()).map((row) => row.getAttribute('aria-label')))
     ).filter((label) => typeof label === 'string');
 
     const onScreen = new Set(labels.map((label) => label.split('. ')[0]));
-    const expected = entities.filter((e) => e.type === 'empresa').map((e) => e.name);
+    const expected = entities.filter((e) => e.type === 'lugar').map((e) => e.name);
     const missing = expected.filter((name) => !onScreen.has(name));
     const extra = [...onScreen].filter((name) => !expected.includes(name));
 
     if (missing.length === 0 && extra.length === 0) {
-      ok(`el chip Empresas deja las ${expected.length} empresas y nada más`);
+      ok(`el chip Turismo Verde deja los ${expected.length} lugares y nada más`);
     } else {
       bad(
-        `el chip Empresas: faltan [${missing.join(', ')}], sobran [${extra.join(', ')}]`,
+        `el chip Turismo Verde: faltan [${missing.join(', ')}], sobran [${extra.join(', ')}]`,
       );
     }
   }
-  await shot('03-chip-empresas');
+  await shot('03-chip-turismo-verde');
 
   // --- Seguir una entidad ----------------------------------------------------
   step('9. Seguir una entidad');
@@ -340,8 +345,7 @@ try {
   step('10. Navegar a la ficha de una entidad');
 
   if (found) {
-    // Volver a "Todo": el paso anterior dejó el chip Empresas puesto, y ahí
-    // "monte" no encuentra nada porque Monte Alén es un lugar.
+    // Volver a "Todo": el paso anterior dejó el chip Turismo Verde puesto.
     await page.getByRole('tab', { name: 'Todo' }).click();
     await page.waitForTimeout(600);
     await field.fill('monte');

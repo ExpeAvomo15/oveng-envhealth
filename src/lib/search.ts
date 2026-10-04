@@ -1,4 +1,5 @@
 import type { EntityResult } from './entities';
+import { listActiveJobs, type JobWithEntity } from './jobs';
 import { sanitizeSearchTerm, searchEntities } from './entities';
 import type { EnvironmentalCategoryName, Profile } from './database.types';
 import { supabase } from './supabase';
@@ -10,15 +11,21 @@ import { supabase } from './supabase';
  * son tablas distintas y no se pueden pedir en una sola llamada.
  */
 
-/** Alcance de la búsqueda: el chip seleccionado bajo la barra. */
-export type SearchScope = 'todo' | 'empresa' | 'iniciativa' | 'lugar' | 'persona';
+/**
+ * Alcance de la búsqueda: el chip seleccionado bajo la barra.
+ *
+ * Desde F4.4 el chip destacado es **Empleo** —las ofertas de las páginas— y no
+ * "Empresas": las empresas siguen saliendo en "Todo", en su sección. Y
+ * "Lugares" se llama **Turismo Verde** en toda la interfaz.
+ */
+export type SearchScope = 'todo' | 'empleo' | 'iniciativa' | 'lugar' | 'persona';
 
 export const searchScopes: { key: SearchScope; label: string }[] = [
   { key: 'todo', label: 'Todo' },
-  { key: 'empresa', label: 'Empresas' },
+  { key: 'empleo', label: 'Empleo' },
   { key: 'iniciativa', label: 'Iniciativas' },
   { key: 'persona', label: 'Personas' },
-  { key: 'lugar', label: 'Lugares' },
+  { key: 'lugar', label: 'Turismo Verde' },
 ];
 
 export type SearchResults = {
@@ -26,6 +33,8 @@ export type SearchResults = {
   iniciativas: EntityResult[];
   lugares: EntityResult[];
   personas: Profile[];
+  /** Ofertas de empleo (F4.4): solo con el chip Empleo. */
+  empleos: JobWithEntity[];
 };
 
 export const EMPTY_RESULTS: SearchResults = {
@@ -33,6 +42,7 @@ export const EMPTY_RESULTS: SearchResults = {
   iniciativas: [],
   lugares: [],
   personas: [],
+  empleos: [],
 };
 
 /** ¿Hay algo que enseñar? */
@@ -45,7 +55,8 @@ export function totalResults(results: SearchResults): number {
     results.empresas.length +
     results.iniciativas.length +
     results.lugares.length +
-    results.personas.length
+    results.personas.length +
+    results.empleos.length
   );
 }
 
@@ -110,6 +121,12 @@ export async function search({ term, scope, category }: SearchParams): Promise<S
     return { ...EMPTY_RESULTS, personas: await searchPeople(term) };
   }
 
+  // Empleo: las ofertas activas, sin término —que es como se recorren— o
+  // filtradas por él. La categoría es de las entidades, no de las ofertas.
+  if (scope === 'empleo') {
+    return { ...EMPTY_RESULTS, empleos: await listActiveJobs(term) };
+  }
+
   if (scope !== 'todo') {
     const entities = await searchEntities(term, { type: scope, category });
     return { ...EMPTY_RESULTS, ...groupByType(entities) };
@@ -127,7 +144,7 @@ export async function search({ term, scope, category }: SearchParams): Promise<S
   return { ...EMPTY_RESULTS, ...groupByType(entities), personas };
 }
 
-function groupByType(entities: EntityResult[]): Omit<SearchResults, 'personas'> {
+function groupByType(entities: EntityResult[]): Omit<SearchResults, 'personas' | 'empleos'> {
   return {
     empresas: entities.filter((entity) => entity.type === 'empresa'),
     iniciativas: entities.filter((entity) => entity.type === 'iniciativa'),

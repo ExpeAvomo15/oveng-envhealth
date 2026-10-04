@@ -279,7 +279,7 @@ mismo y no un dato de ejemplo.
       antes de cualquier lanzamiento.
 - [ ] **F3.2 lanzamiento concentrado** — con la comunidad *beachhead*.
 - [ ] **F3.3 motor de contenido y tarjetas compartibles**. Las tarjetas se
-      construyen en **F4.6**; aquí va el ritmo de publicación que las usa.
+      construyen en **F4.7**; aquí va el ritmo de publicación que las usa.
 
 El orden no es negociable: F3.1 sirve para confirmar o tumbar la tesis de
 producto mientras cambiarla es barato, y adelantar F3.2 la convierte en una
@@ -301,6 +301,10 @@ razón el autor adelantó también F4.2 y F4.3.
 F4.2 (absorbiendo la geolocalización, que era F4.4), los datos por categoría a
 F4.3, y procedencia + OpenAQ, cron y compartir con marca se desplazan a F4.4,
 F4.5 y F4.6.
+
+**Renumerado otra vez el mismo día** al entrar F4.4 (feed denso, Turismo Verde
+y Empleo): procedencia + OpenAQ, cron y compartir con marca pasan a F4.5, F4.6 y
+F4.7.
 
 - [x] **F4.1 pieza mínima** — aire en vivo de Open-Meteo (modelo CAMS de
       Copernicus) en la tarjeta de zona del feed, en el mapa —el **centro del
@@ -370,14 +374,38 @@ F4.5 y F4.6.
       no se envía en la prueba para no gastar el cupo. Capturas en
       `docs/verificacion/f43/`. Las quince verificaciones del repositorio en
       verde.
-- [ ] **F4.4 procedencia completa + OpenAQ** — lecturas con fuente, método,
+- [x] **F4.4 feed denso, Turismo Verde y Empleo** — modelo LinkedIn adaptado:
+      solo hay cuentas de personas, y las entidades son **páginas** que
+      gestionan personas. "¿Trabajas aquí? Gestionar esta página" deja como
+      administrador **al instante** (aprobación automática por ahora, y la
+      página lo dice). Quien administra publica, edita y cierra **ofertas de
+      empleo**; el chip "Empresas" de Buscar pasa a **Empleo** (las empresas
+      siguen en "Todo"). "Lugares" pasa a **Turismo Verde** en toda la interfaz,
+      con publicaciones etiquetadas en el lugar, "Para tu visita" hacia el mapa
+      y descripciones en tono de visitante. El feed va **a sangre**, sin huecos
+      entre publicaciones. Migraciones `005` (administradores), `006` (ofertas)
+      y `007` (lugar en publicaciones), y `npm run seed:jobs` con ofertas **de
+      ejemplo** marcadas como tales.
+      Verificado contra la base real con `npm run verify:f44`, con las
+      migraciones aplicadas y los dos seeds cargados: RLS en los dos sentidos
+      (nadie se da `super_admin` ni otro `status`, nadie reclama en nombre de
+      otro, quien no administra no publica, sin cuenta no se publica, nadie
+      edita la oferta de otro), el claim al instante y persistente, publicar /
+      editar / cerrar una oferta y que deje de verse, Empleo y su detalle sin
+      cuenta con el aviso de salida, las ofertas de ejemplo marcadas y sin
+      aplicar, "Páginas que administras", la publicación etiquetada en el
+      perfil de Monte Alén, "Para tu visita" en el mapa, el pin del feed, y el
+      feed a sangre en móvil y escritorio. Capturas en `docs/verificacion/f44/`
+      (y el antes, en `f44-antes/`).
+      Las dieciséis verificaciones del repositorio en verde.
+- [ ] **F4.5 procedencia completa + OpenAQ** — lecturas con fuente, método,
       origen e instante (migración); OpenAQ donde haya estación; etiqueta del
       dato curado. OpenAQ pide clave: depende del criterio de fuentes de F4.3
-      y del servidor de F4.5.
-- [ ] **F4.5 cron en Railway** — lecturas horarias en Supabase: histórico, la
+      y del servidor de F4.6.
+- [ ] **F4.6 cron en Railway** — lecturas horarias en Supabase: histórico, la
       clave de OpenAQ fuera del cliente y sin gastar una llamada por visita.
       Desbloquea la gráfica de evolución.
-- [ ] **F4.6 compartir con marca** — todo lo que sale de la plataforma lleva
+- [ ] **F4.7 compartir con marca** — todo lo que sale de la plataforma lleva
       marca y camino de vuelta; dentro, el contenido queda limpio. Tarjetas 9:16
       para estados de WhatsApp (contenido, logo, dato y URL), marca de agua con
       la tortuga-O blanca **solo** al descargar o compartir una imagen como
@@ -400,7 +428,7 @@ es un olvido: cada línea dice por qué está aquí y no en el producto.
   no tiene. Probablemente PostGIS: `location` de `posts` es hoy texto libre.
 - **Series temporales y la gráfica de "Evolución de la calidad ambiental"**
   (mockup 1). `entity_metrics` guarda un valor por métrica con su `updated_at`,
-  no un histórico. Llega con el cron de **F4.5**, que acumula lecturas reales;
+  no un histórico. Llega con el cron de **F4.6**, que acumula lecturas reales;
   dibujar cinco puntos inventados sería lo contrario de la trazabilidad que
   costó conseguir en F2.1.
 - **Proveedor de teselas propio.** Las de openstreetmap.org son un servicio
@@ -430,6 +458,24 @@ es un olvido: cada línea dice por qué está aquí y no en el producto.
 - **Fila de historias** en Inicio, que aparece en los dos mockups.
 - **Filtros avanzados en Buscar.** El icono está y avisa.
 - **Verificación real de cuentas:** hoy `verified` lo puede cambiar su dueño.
+
+### Páginas y empleo (post-F3)
+
+Lo que F4.4 dejó a propósito para después de validar con la comunidad:
+
+- **Verificación de administradores.** Hoy reclamar una página la da al
+  instante. Hace falta comprobar que quien reclama trabaja allí (email
+  corporativo, revisión manual) y poder **revocar**. `entity_admins` ya tiene
+  `status` (`pending`, `approved`, `revoked`); falta el proceso y cambiar la
+  política de INSERT para que nazca `pending`.
+- **Roles diferenciados:** Super Admin (gestiona administradores) y Content
+  Admin (publica). La columna `role` ya existe; las políticas solo admiten
+  `admin`.
+- **Crear entidades nuevas desde la app.** Hoy solo existen las catorce del
+  seed: una empresa que no está no puede darse de alta.
+- **Publicar como entidad.** Las publicaciones son siempre de una persona; una
+  página no publica en el feed con su nombre.
+- **Editar la ficha** (descripción, web, imagen) para quien administra.
 
 ### Plataforma
 

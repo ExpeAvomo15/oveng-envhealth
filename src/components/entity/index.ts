@@ -4,6 +4,7 @@
  */
 export { CategoryReadings } from './category-readings';
 export { EntityCover, type EntityCoverProps } from './entity-cover';
+export { EntityJobs, PlacePosts, VisitCard } from './entity-sections';
 export {
   LiveAirPanel,
   LiveNaturePanel,
@@ -11,6 +12,7 @@ export {
   type LiveAirPanelProps,
 } from './live-air-panel';
 export { MetricCards } from './metric-cards';
+export { PageAdmin, type PageAdminProps } from './page-admin';
 export { QualityCircle } from './quality-circle';
 export { RatingList, type RatingListProps } from './rating-list';
 export { RatingSheet, type RatingSheetProps } from './rating-sheet';

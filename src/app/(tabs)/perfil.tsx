@@ -3,7 +3,14 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { Modal, Pressable, StyleSheet, View } from 'react-native';
 
-import { ImpactCard, ProfileCounts, ProfileHeader, ProfileTabs, type ProfileTab } from '@/components/profile';
+import {
+  AdministeredPages,
+  ImpactCard,
+  ProfileCounts,
+  ProfileHeader,
+  ProfileTabs,
+  type ProfileTab,
+} from '@/components/profile';
 import { Button, Callout, Screen, Text } from '@/components/ui';
 import { useAuth } from '@/hooks/use-auth';
 import { EMPTY_COUNTS, getProfileCounts, type ProfileCounts as Counts } from '@/lib/profiles';
@@ -168,6 +175,9 @@ export default function ProfileScreen() {
           note="Se ganan participando en iniciativas."
         />
       </View>
+
+      {/* Las páginas que gestiona esta persona (F4.4). */}
+      {userId ? <AdministeredPages userId={userId} /> : null}
 
       <ProfileTabs active={tab} onChange={setTab} />
 

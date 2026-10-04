@@ -56,6 +56,8 @@ function RootNavigator() {
         {/* Crear se abre sobre las pestañas, no dentro de ellas: es un modal. */}
         <Stack.Screen name="crear" options={{ presentation: 'modal' }} />
         <Stack.Screen name="editar-perfil" options={{ presentation: 'modal' }} />
+        {/* Publicar o editar una oferta: escribir pide cuenta (F4.4). */}
+        <Stack.Screen name="oferta" />
       </Stack.Protected>
 
       {/*
@@ -99,6 +101,8 @@ function RootNavigator() {
         en los dos estados.
       */}
       <Stack.Screen name="restablecer" />
+      {/* El detalle de una oferta se lee sin cuenta, como todo lo demás (F4.4). */}
+      <Stack.Screen name="empleo/[id]" />
     </Stack>
   );
 }

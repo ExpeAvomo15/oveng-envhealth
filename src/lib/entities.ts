@@ -46,10 +46,19 @@ export type EntityResult = Entity & {
 
 /** Nombre visible de cada tipo, en singular. */
 export const entityTypeLabels: Record<EntityType, string> = {
-  lugar: 'Lugar',
+  // "Lugar" se enseña como Turismo Verde desde F4.4: es lo que un lugar es en
+  // OVENG, un sitio que visitar. En la base sigue siendo `lugar`.
+  lugar: 'Turismo Verde',
   empresa: 'Empresa',
   iniciativa: 'Iniciativa',
 };
+
+/** Icono de cada tipo (F4.4): un poste de sendero para Turismo Verde. */
+export const entityTypeIcons = {
+  lugar: 'trail-sign-outline',
+  empresa: 'business-outline',
+  iniciativa: 'people-outline',
+} as const satisfies Record<EntityType, string>;
 
 /**
  * Prepara un término para un `ilike` dentro de un filtro `or` de PostgREST.

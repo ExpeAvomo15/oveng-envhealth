@@ -4,9 +4,11 @@ import { useRouter } from 'expo-router';
 import { useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Platform, Pressable, StyleSheet, TextInput, View } from 'react-native';
 
+import { PlacePicker } from '@/components/compose';
 import { Avatar, Button, Callout, Screen, Text } from '@/components/ui';
 import { useAuth } from '@/hooks/use-auth';
 import { refreshFeed } from '@/hooks/use-feed';
+import type { EntityResult } from '@/lib/entities';
 import { parseHashtags } from '@/lib/hashtags';
 import {
   createPost,
@@ -33,6 +35,8 @@ export default function CreatePostScreen() {
   const inputRef = useRef<TextInput>(null);
   const fontFamily = useFontFamily();
   const [image, setImage] = useState<PickedImage | null>(null);
+  /** Lugar de Turismo Verde etiquetado, opcional (F4.4). */
+  const [place, setPlace] = useState<EntityResult | null>(null);
   const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
 
   const [publishing, setPublishing] = useState(false);
@@ -131,7 +135,7 @@ export default function CreatePostScreen() {
     }
 
     try {
-      await createPost({ authorId: profile.id, content, imageUrl });
+      await createPost({ authorId: profile.id, content, imageUrl, placeId: place?.id ?? null });
       // F1.5 escuchará esto para recargar el feed.
       refreshFeed();
       goToFeed();
@@ -259,6 +263,8 @@ export default function CreatePostScreen() {
             </View>
           </View>
         ) : null}
+
+        <PlacePicker value={place} onChange={setPlace} disabled={publishing} />
 
         {error ? <Callout tone="error">{error}</Callout> : null}
       </View>

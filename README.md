@@ -152,6 +152,7 @@ npm run verify:mvp     # recorrido completo en Chromium, con capturas
 | `verify:f41` | Aire en vivo de Open-Meteo: la API, el feed, el mapa al moverlo, el perfil y la API caída. Sin cuenta y sin escribir nada. |
 | `verify:f42` | Mapa mundial: buscar lugares, "Mi ubicación" concedida y denegada, y la ubicación en el feed. Sin cuenta, con la ubicación simulada. |
 | `verify:f43` | Cada capa del mapa con su dato (suelo, naturaleza, agua, energía, residuos), cada ⓘ, las fuentes caídas, el perfil y recuperar contraseña. |
+| `verify:f44` | Feed denso, Turismo Verde con publicaciones etiquetadas, reclamar una página y publicar ofertas, y su RLS. Necesita las migraciones 005–007 y `seed:jobs`. |
 | `verify:mvp` | El recorrido social de punta a punta (F1). |
 | `verify:demo` | **La demo completa**: el recorrido de un visitante, sin cuenta y con ella, incluido abrir una publicación, un perfil ajeno y Buscar sin cuenta. |
 
@@ -245,6 +246,7 @@ seed: catorce lugares, empresas e iniciativas con sus métricas.
 ```bash
 SUPABASE_SERVICE_ROLE_KEY='...' npm run seed:entities -- --dry-run   # solo enumera
 SUPABASE_SERVICE_ROLE_KEY='...' npm run seed:entities                # escribe
+SUPABASE_SERVICE_ROLE_KEY='...' npm run seed:jobs                    # ofertas de ejemplo (F4.4)
 ```
 
 Necesita `service_role` porque `entities` y `entity_metrics` **no tienen ninguna
