@@ -12,7 +12,7 @@ importa con `@`**.
 
 ## Decisiones vigentes
 
-Una línea cada una; el razonamiento completo, en el enlace.
+Una línea cada una; el porqué, enlazado.
 
 ### Modelo de datos
 
@@ -100,6 +100,8 @@ límite de 150k. Se archiva y la regla queda en AGENTS.md.
 detalle de una publicación pasan a públicos: son lo que se comparte por enlace.
 `(tabs)` queda solo con el perfil propio. Fallo de F2.6 de paso: sin sesión, la
 pestaña Inicio llevaba a la bienvenida. `verify:demo` lo recorre todo sin cuenta.
+
+**Estado:** lint, typecheck y las doce verificaciones en verde.
 
 **F4 documentada** en @docs/08_DATOS_EN_VIVO.md, con las APIs probadas: la
 marca fuera de la app (F4.5) y el dato vivo con procedencia.
