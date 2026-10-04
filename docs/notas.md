@@ -67,6 +67,8 @@ La lista mantenida es el **backlog de @docs/plan.md**. Fuera de ella, sueltos:
 
 - Consola: React #418 (hidratación, esperado por el guard) y un 404 de recurso sin identificar. [F1.2b]
 - Las capturas de pantalla completa pesan ~275 KB cada una en el historial. [F2.4]
+- Marca: falta el **SVG vectorial** (hoy son PNG), los PNG no van cuantizados y
+  el icono y el splash nativos siguen siendo los de Expo.
 
 ---
 
@@ -92,8 +94,12 @@ el número iba uno por encima desde F2.4. Corregido en el plan.
 **La bitácora pesaba 103k** y el arranque de sesión 176k, por encima del
 límite de 150k. Se archiva y la regla queda en AGENTS.md.
 
-**Marca.** Llegan a `docs/design/brand/` los logos oficiales: lockup y
-tortuga-O, en verde y blanco, con transparencia real.
+**Marca.** Los logos oficiales (lockup y tortuga-O, verde y blanco, con
+transparencia real) están en `docs/design/brand/`, que es la fuente de verdad y
+no se toca. `npm run brand:derivatives` saca los derivados a 3x de su tamaño en
+pantalla: el lockup en la cabecera (32 px) y la bienvenida, la tortuga-O en la
+carga, el favicon y los iconos de la webapp, con fondo blanco porque iOS rellena
+de negro lo transparente. El export pasa de 5,4 a 5,9 MB.
 
 ---
 
@@ -222,17 +228,10 @@ La regla que sale de aquí, y que vale para los trece: **una comprobación no de
 suponer en qué estado está la base**, y lo que cree tiene que poder limpiarlo
 aunque falle en medio.
 
-### Higiene: la base arrastra la basura de esta sesión
+### Higiene
 
-Contado al cerrar: **22 perfiles de prueba** (de 24) y **70 publicaciones**, de
-las decenas de ejecuciones de esta sesión. Dos de esos perfiles son de las
-ejecuciones de `verify:f25` que murieron antes de limpiar, y son justo el caso
-que el arreglo de arriba evita a partir de ahora.
-
-Se quita con `SUPABASE_SERVICE_ROLE_KEY='...' npm run cleanup:test-users
--- --confirm`, que borra solo los correos `@ovengtest.dev`. Las dos cuentas
-reales de demo —`@bosque_vivo` y `@juve_obama`— no pueden caer ahí: el dominio
-está fijo en el código.
+Quedaban 22 perfiles y 70 publicaciones de prueba; se borraron el 2026-10-04
+con `npm run cleanup:test-users`. Detalle en el archivo.
 
 ### Comprobado en la demo desplegada
 

@@ -1,64 +1,77 @@
+import { Image } from 'expo-image';
 import { StyleSheet, View } from 'react-native';
 
 import { Text } from '@/components/ui';
-import { colors, radius, spacing } from '@/theme';
+import { spacing } from '@/theme';
 
 export type LogoVariant = 'full' | 'mark' | 'inline';
 
 export type LogoProps = {
   /**
-   * `full` apila marca y nombre (bienvenida) · `mark` solo el símbolo ·
-   * `inline` símbolo y nombre en horizontal (cabeceras).
+   * `full` lockup grande con "EnvHealth" debajo (bienvenida) · `mark` solo la
+   * tortuga-O · `inline` el lockup a altura de cabecera.
    */
   variant?: LogoVariant;
 };
 
 /**
+ * Proporción del lockup oficial (1718 × 465). Se fija aquí en vez de leerla de
+ * la imagen para que el hueco tenga su tamaño antes de que cargue y nada salte.
+ */
+const LOCKUP_RATIO = 1718 / 465;
+
+const INLINE_HEIGHT = 32;
+const FULL_HEIGHT = 64;
+const MARK_SIZE = 88;
+
+/**
  * Marca de OVENG EnvHealth.
  *
- * Dibujada con vistas, sin SVG ni imagen: el logotipo definitivo llegará con
- * los mockups oficiales (docs/design/) y entonces se sustituye por el asset
- * real. Hasta entonces esto evita pantallas sin identidad.
+ * Los originales viven en `docs/design/brand/` y son la fuente de verdad; aquí
+ * se usan derivados a 3x del tamaño al que se pintan, generados con
+ * `npm run brand:derivatives`. El lockup ya dice "OVENG", así que el nombre
+ * accesible lo lleva la imagen y no hay texto duplicado.
  */
 export function Logo({ variant = 'full' }: LogoProps) {
-  const compact = variant === 'inline';
-  const badgeSize = compact ? 32 : 88;
-  const leafSize = compact ? 16 : 44;
-
-  const badge = (
-    <View style={[styles.badge, { width: badgeSize, height: badgeSize }]}>
-      {/* Hoja: un cuadrado con dos esquinas opuestas redondeadas del todo. */}
-      <View style={[styles.leaf, { width: leafSize, height: leafSize }]} />
-    </View>
-  );
-
   if (variant === 'mark') {
-    return badge;
+    return (
+      <Image
+        source={require('../../assets/brand/tortuga-verde.png')}
+        style={styles.mark}
+        contentFit="contain"
+        accessible
+        accessibilityRole="image"
+        accessibilityLabel="OVENG"
+      />
+    );
   }
 
-  if (compact) {
+  if (variant === 'inline') {
     return (
-      <View style={styles.inline}>
-        {badge}
-        <View style={styles.inlineText}>
-          <Text variant="subtitle">OVENG</Text>
-          <Text variant="micro" color="accent">
-            EnvHealth
-          </Text>
-        </View>
-      </View>
+      <Image
+        source={require('../../assets/brand/lockup-verde.png')}
+        style={styles.inline}
+        contentFit="contain"
+        accessible
+        accessibilityRole="image"
+        accessibilityLabel="OVENG EnvHealth"
+      />
     );
   }
 
   return (
     <View style={styles.wrapper}>
-      {badge}
-      <View style={styles.wordmark}>
-        <Text variant="title">OVENG</Text>
-        <Text variant="subtitle" color="accent">
-          EnvHealth
-        </Text>
-      </View>
+      <Image
+        source={require('../../assets/brand/lockup-verde-lg.png')}
+        style={styles.full}
+        contentFit="contain"
+        accessible
+        accessibilityRole="image"
+        accessibilityLabel="OVENG"
+      />
+      <Text variant="subtitle" color="accent">
+        EnvHealth
+      </Text>
     </View>
   );
 }
@@ -66,29 +79,18 @@ export function Logo({ variant = 'full' }: LogoProps) {
 const styles = StyleSheet.create({
   wrapper: {
     alignItems: 'center',
-    gap: spacing.lg,
-  },
-  inline: {
-    flexDirection: 'row',
-    alignItems: 'center',
     gap: spacing.sm,
   },
-  inlineText: {
-    justifyContent: 'center',
+  inline: {
+    height: INLINE_HEIGHT,
+    width: INLINE_HEIGHT * LOCKUP_RATIO,
   },
-  badge: {
-    borderRadius: radius.full,
-    backgroundColor: colors.accentSoft,
-    alignItems: 'center',
-    justifyContent: 'center',
+  full: {
+    height: FULL_HEIGHT,
+    width: FULL_HEIGHT * LOCKUP_RATIO,
   },
-  leaf: {
-    backgroundColor: colors.accent,
-    borderTopLeftRadius: radius.full,
-    borderBottomRightRadius: radius.full,
-    borderTopRightRadius: 4,
-  },
-  wordmark: {
-    alignItems: 'center',
+  mark: {
+    width: MARK_SIZE,
+    height: MARK_SIZE,
   },
 });

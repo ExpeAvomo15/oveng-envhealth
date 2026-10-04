@@ -25,6 +25,14 @@ export default function Root({ children }: PropsWithChildren) {
         <title>OVENG EnvHealth</title>
 
         {/*
+          Icono de la webapp (el favicon lo pone Expo desde `web.favicon`).
+          Fondo blanco y margen: iOS rellena de negro lo transparente.
+        */}
+        <meta name="theme-color" content={colors.accent} />
+        <link rel="apple-touch-icon" href={`${BASE_PATH}/apple-touch-icon.png`} />
+        <link rel="manifest" href={`${BASE_PATH}/manifest.webmanifest`} />
+
+        {/*
           Recupera la ruta que guardó public/404.html antes de que el router
           lea la URL. Sin esto, un enlace profundo recargado en GitHub Pages
           aterrizaría en la raíz.
@@ -40,6 +48,13 @@ export default function Root({ children }: PropsWithChildren) {
     </html>
   );
 }
+
+/**
+ * Subpath de GitHub Pages. Va a juego con `experiments.baseUrl` de app.json, con
+ * `public/404.html` y con `start_url` de `public/manifest.webmanifest`: los
+ * cuatro están atados al nombre del repositorio.
+ */
+const BASE_PATH = '/oveng-envhealth';
 
 const backgroundStyle = `
 body {

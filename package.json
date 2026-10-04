@@ -60,7 +60,8 @@
     "capture": "node --env-file=.env scripts/capture-screens.mjs",
     "cleanup:test-users": "node scripts/cleanup-test-users.mjs",
     "seed:entities": "node scripts/seed-entities.mjs",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "brand:derivatives": "node scripts/brand-derivatives.mjs"
   },
   "private": true
 }
