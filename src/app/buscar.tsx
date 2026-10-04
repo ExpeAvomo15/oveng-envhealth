@@ -14,6 +14,7 @@ import {
   suggestions,
   trendingTopics,
 } from '@/components/search';
+import { TabBar } from '@/components/navigation/tab-bar';
 import { Callout, Screen, Text } from '@/components/ui';
 import { showToast } from '@/components/ui/toast';
 import { useAuth } from '@/hooks/use-auth';
@@ -51,7 +52,7 @@ const DEBOUNCE_MS = 300;
  */
 export default function SearchScreen() {
   const router = useRouter();
-  const { profile: viewer } = useAuth();
+  const { profile: viewer, session } = useAuth();
   // Las etiquetas del feed navegan aquí con el término ya puesto.
   const { q } = useLocalSearchParams<{ q?: string }>();
 
@@ -182,6 +183,12 @@ export default function SearchScreen() {
   }
 
   async function toggleEntityFollow(entity: EntityResult) {
+    // Buscar se ve sin cuenta; seguir la pide. Se dice a dónde ir en vez de no
+    // responder, igual que el "me gusta" del feed.
+    if (session === null) {
+      router.push('/welcome');
+      return;
+    }
     if (!viewerId || busyId) return;
 
     const next = !followedEntities.has(entity.id);
@@ -206,6 +213,10 @@ export default function SearchScreen() {
   }
 
   async function togglePersonFollow(person: Profile) {
+    if (session === null) {
+      router.push('/welcome');
+      return;
+    }
     if (!viewerId || busyId) return;
 
     const next = !followedPeople.has(person.id);
@@ -258,86 +269,91 @@ export default function SearchScreen() {
     />
   );
 
+  // Ruta pública de primer nivel, como Inicio y Mapa: pinta la barra ella
+  // misma porque fuera de `(tabs)` no la pone nadie.
   return (
-    <Screen>
-      <View style={styles.header}>
-        <Text variant="display">Buscar</Text>
-        <SearchBar value={term} onChange={onChangeTerm} />
-        <ScopeChips value={scope} onChange={setScope} />
-      </View>
-
-      {error ? (
-        <View style={styles.block}>
-          <Callout tone="error">{error}</Callout>
+    <View style={styles.page}>
+      <Screen>
+        <View style={styles.header}>
+          <Text variant="display">Buscar</Text>
+          <SearchBar value={term} onChange={onChangeTerm} />
+          <ScopeChips value={scope} onChange={setScope} />
         </View>
-      ) : null}
 
-      {!active ? (
-        <View style={styles.blocks}>
+        {error ? (
           <View style={styles.block}>
-            <SectionTitle title="Sugerencias" />
-            <View style={styles.list}>
-              {suggestions.map((suggestion) => (
-                <SuggestionCard
-                  key={suggestion.title}
-                  suggestion={suggestion}
-                  onPress={() => searchCategory(suggestion.category)}
-                />
-              ))}
-            </View>
+            <Callout tone="error">{error}</Callout>
           </View>
+        ) : null}
 
-          <View style={styles.block}>
-            <SectionTitle title="Tendencias" />
-            <View style={styles.chips}>
-              {trendingTopics.map((topic) => (
-                <TrendChip key={topic} topic={topic} onPress={() => searchTopic(topic)} />
-              ))}
-            </View>
-          </View>
-        </View>
-      ) : loading ? (
-        <View style={styles.list}>
-          <ResultSkeleton />
-          <ResultSkeleton />
-          <ResultSkeleton />
-        </View>
-      ) : !hasResults(shown) ? (
-        <EmptyResults term={query} category={category} />
-      ) : scope === 'todo' ? (
-        <View style={styles.blocks}>
-          {entitySections.map((section) => (
-            <View key={section.key} style={styles.block}>
-              <SectionTitle
-                title={section.title}
-                onSeeAll={() => setScope(section.key)}
-              />
-              <View style={styles.list}>{section.rows.map(renderEntity)}</View>
-            </View>
-          ))}
-
-          {shown.personas.length > 0 ? (
+        {!active ? (
+          <View style={styles.blocks}>
             <View style={styles.block}>
-              <SectionTitle title="Personas" onSeeAll={() => setScope('persona')} />
-              <View style={styles.list}>{shown.personas.map(renderPerson)}</View>
+              <SectionTitle title="Sugerencias" />
+              <View style={styles.list}>
+                {suggestions.map((suggestion) => (
+                  <SuggestionCard
+                    key={suggestion.title}
+                    suggestion={suggestion}
+                    onPress={() => searchCategory(suggestion.category)}
+                  />
+                ))}
+              </View>
             </View>
-          ) : null}
-        </View>
-      ) : (
-        <View style={styles.block}>
-          <Text variant="caption" color="textSecondary">
-            {totalResults(shown) === 1 ? '1 resultado' : `${totalResults(shown)} resultados`}
-          </Text>
-          <View style={styles.list}>
-            {scope === 'persona'
-              ? shown.personas.map(renderPerson)
-              : [...shown.empresas, ...shown.iniciativas, ...shown.lugares].map(
-                  renderEntity,
-                )}
+
+            <View style={styles.block}>
+              <SectionTitle title="Tendencias" />
+              <View style={styles.chips}>
+                {trendingTopics.map((topic) => (
+                  <TrendChip key={topic} topic={topic} onPress={() => searchTopic(topic)} />
+                ))}
+              </View>
+            </View>
           </View>
-        </View>
-      )}
-    </Screen>
+        ) : loading ? (
+          <View style={styles.list}>
+            <ResultSkeleton />
+            <ResultSkeleton />
+            <ResultSkeleton />
+          </View>
+        ) : !hasResults(shown) ? (
+          <EmptyResults term={query} category={category} />
+        ) : scope === 'todo' ? (
+          <View style={styles.blocks}>
+            {entitySections.map((section) => (
+              <View key={section.key} style={styles.block}>
+                <SectionTitle
+                  title={section.title}
+                  onSeeAll={() => setScope(section.key)}
+                />
+                <View style={styles.list}>{section.rows.map(renderEntity)}</View>
+              </View>
+            ))}
+
+            {shown.personas.length > 0 ? (
+              <View style={styles.block}>
+                <SectionTitle title="Personas" onSeeAll={() => setScope('persona')} />
+                <View style={styles.list}>{shown.personas.map(renderPerson)}</View>
+              </View>
+            ) : null}
+          </View>
+        ) : (
+          <View style={styles.block}>
+            <Text variant="caption" color="textSecondary">
+              {totalResults(shown) === 1 ? '1 resultado' : `${totalResults(shown)} resultados`}
+            </Text>
+            <View style={styles.list}>
+              {scope === 'persona'
+                ? shown.personas.map(renderPerson)
+                : [...shown.empresas, ...shown.iniciativas, ...shown.lugares].map(
+                    renderEntity,
+                  )}
+            </View>
+          </View>
+        )}
+      </Screen>
+      <TabBar />
+    </View>
   );
 }
 
@@ -398,6 +414,9 @@ function EmptyResults({
 }
 
 const styles = StyleSheet.create({
+  page: {
+    flex: 1,
+  },
   header: {
     gap: spacing.md,
     paddingTop: spacing.lg,

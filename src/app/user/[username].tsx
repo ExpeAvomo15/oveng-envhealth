@@ -50,7 +50,7 @@ async function loadPublicProfile(
 export default function PublicProfileScreen() {
   const router = useRouter();
   const { username } = useLocalSearchParams<{ username: string }>();
-  const { profile: viewer } = useAuth();
+  const { profile: viewer, session } = useAuth();
 
   /**
    * Todo lo que describe el perfil visitado, junto al nombre de usuario al que
@@ -192,6 +192,15 @@ export default function PublicProfileScreen() {
             variant="secondary"
             fullWidth
             onPress={() => router.push('/editar-perfil')}
+          />
+        ) : session === null ? (
+          // El perfil se ve sin cuenta; seguir la pide, y lo dice antes de
+          // pulsar. Mismo patrón que la ficha de entidad.
+          <Button
+            label="Inicia sesión para seguir"
+            variant="secondary"
+            fullWidth
+            onPress={() => router.push('/welcome')}
           />
         ) : (
           <Button

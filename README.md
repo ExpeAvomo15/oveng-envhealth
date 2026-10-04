@@ -76,10 +76,10 @@ El recorrido completo, paso a paso y con capturas, lo genera
 | --- | --- | --- |
 | ![Datos de zona en el feed](docs/verificacion/demo/02-zona-y-destacado.png) | ![Mapa ambiental](docs/verificacion/demo/04-mapa.png) | ![Perfil ambiental](docs/verificacion/demo/07-perfil-monte-alen.png) |
 | Los datos de tu zona, entre las publicaciones | El mapa con las catorce entidades | El perfil ambiental de Monte Alén |
-| ![Directorio](docs/verificacion/demo/12-buscar-ecoguinea.png) | ![Valorar](docs/verificacion/demo/13-valorar.png) | ![Perfil propio](docs/verificacion/demo/15-perfil-propio.png) |
+| ![Directorio](docs/verificacion/demo/15-buscar-ecoguinea.png) | ![Valorar](docs/verificacion/demo/16-valorar.png) | ![Perfil propio](docs/verificacion/demo/18-perfil-propio.png) |
 | El directorio en Buscar | Valorar un lugar | El perfil propio |
 
-Las dieciséis capturas del recorrido, en orden, están en
+Las diecinueve capturas del recorrido, en orden, están en
 [`docs/verificacion/demo/`](docs/verificacion/demo/) y las genera
 `npm run verify:demo`. El recorrido social del MVP sigue en
 [`docs/verificacion/mvp/`](docs/verificacion/mvp/).
@@ -142,7 +142,7 @@ npm run verify:mvp     # recorrido completo en Chromium, con capturas
 | `verify:f24` | Perfil de entidad: métricas fieles al seed, valoraciones y su RLS. |
 | `verify:f25` | Datos de zona en el feed: posición, paginación, cambio de zona y persistencia. |
 | `verify:mvp` | El recorrido social de punta a punta (F1). |
-| `verify:demo` | **La demo completa**: el recorrido de un visitante, sin cuenta y con ella. |
+| `verify:demo` | **La demo completa**: el recorrido de un visitante, sin cuenta y con ella, incluido abrir una publicación, un perfil ajeno y Buscar sin cuenta. |
 
 Los que abren navegador construyen con `--clear` y comprueban que el bundle
 apunta al proyecto del `.env` antes de dar nada por bueno. `verify:auth` y

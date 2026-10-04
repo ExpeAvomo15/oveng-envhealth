@@ -239,12 +239,90 @@ try {
   if (route(visitor) === '/welcome') ok('y llevan a la bienvenida');
   else bad(`lleva a ${route(visitor)}`);
   await shot(visitor, 'cta-crear-cuenta');
+
+  /*
+   * Lectura libre, cuenta para participar: lo que se comparte por enlace
+   * —una publicación, un perfil, una búsqueda— se abre sin cuenta, y lo que
+   * pide cuenta lo dice. No depende de qué publicaciones haya: se toma la
+   * primera que enseñe el feed, sea de quien sea.
+   */
+  step('SIN SESIÓN · 8. Una publicación, como llega por un enlace');
+
+  await visitor.goto(`${origin}/`, { waitUntil: 'networkidle' });
+  await visitor.waitForTimeout(2500);
+  await visitor.getByRole('link', { name: 'Ver la publicación' }).first().click();
+  await visitor.waitForTimeout(2500);
+  const postRoute = route(visitor);
+  if (postRoute.startsWith('/post/')) ok(`el detalle se abre sin cuenta (${postRoute})`);
+  else bad(`el detalle de una publicación lleva a ${postRoute}`);
+
+  // Recargar es lo que hace quien abre el enlace en WhatsApp: entra en frío.
+  await visitor.goto(`${origin}${postRoute}`, { waitUntil: 'networkidle' });
+  await visitor.waitForTimeout(2500);
+  if (route(visitor) === postRoute) ok('y el enlace directo también, sin muro de registro');
+  else bad(`el enlace directo a la publicación lleva a ${route(visitor)}`);
+  await expectRole(visitor, 'button', 'Me gusta', 'se ve el "me gusta"');
+  await shot(visitor, 'publicacion-sin-cuenta');
+
+  await visitor.getByRole('button', { name: 'Me gusta' }).first().click();
+  await visitor.waitForTimeout(2500);
+  if (route(visitor) === '/welcome') ok('dar "me gusta" pide cuenta y lleva a la bienvenida');
+  else bad(`dar "me gusta" sin cuenta lleva a ${route(visitor)}`);
+
+  step('SIN SESIÓN · 9. El perfil de su autor');
+
+  await visitor.goto(`${origin}${postRoute}`, { waitUntil: 'networkidle' });
+  await visitor.waitForTimeout(2500);
+  await visitor.getByRole('link', { name: /^Perfil de / }).first().click();
+  await visitor.waitForTimeout(2500);
+  const profileRoute = route(visitor);
+  if (profileRoute.startsWith('/user/')) ok(`el perfil ajeno se abre sin cuenta (${profileRoute})`);
+  else bad(`el perfil del autor lleva a ${profileRoute}`);
+  await expectRole(visitor, 'button', 'Inicia sesión para seguir', 'seguir pide cuenta, y lo dice antes de pulsar');
+  await shot(visitor, 'perfil-ajeno-sin-cuenta');
+
+  await visitor.getByRole('button', { name: 'Inicia sesión para seguir' }).click();
+  await visitor.waitForTimeout(2500);
+  if (route(visitor) === '/welcome') ok('y lleva a la bienvenida');
+  else bad(`lleva a ${route(visitor)}`);
+
+  step('SIN SESIÓN · 10. Buscar en el directorio');
+
+  await visitor.goto(`${origin}/buscar`, { waitUntil: 'networkidle' });
+  await visitor.waitForTimeout(2500);
+  if (route(visitor) === '/buscar') ok('Buscar se abre sin cuenta');
+  else bad(`/buscar sin cuenta lleva a ${route(visitor)}`);
+  await visitor.getByRole('textbox', { name: 'Buscar' }).fill('EcoGuinea');
+  await visitor.waitForTimeout(2200);
+  await expectRole(visitor, 'link', /EcoGuinea/, 'y encuentra EcoGuinea');
+  await shot(visitor, 'buscar-sin-cuenta');
+
+  await visitor.getByRole('button', { name: 'Seguir', exact: true }).first().click();
+  await visitor.waitForTimeout(2500);
+  if (route(visitor) === '/welcome') ok('seguir desde Buscar pide cuenta y lleva a la bienvenida');
+  else bad(`seguir sin cuenta lleva a ${route(visitor)}`);
+
+  // La pestaña Inicio llevaba a la bienvenida sin sesión aunque el feed era
+  // público desde F2.6: la barra no lo tenía en su lista de rutas públicas.
+  await visitor.goto(`${origin}/buscar`, { waitUntil: 'networkidle' });
+  await visitor.waitForTimeout(2000);
+  await visitor.getByRole('tab', { name: 'Inicio' }).click();
+  await visitor.waitForTimeout(2000);
+  if (route(visitor) === '/') ok('la pestaña Inicio abre el feed sin cuenta');
+  else bad(`la pestaña Inicio sin cuenta lleva a ${route(visitor)}`);
+
+  // Y lo propio sigue siendo privado.
+  await visitor.goto(`${origin}/perfil`, { waitUntil: 'networkidle' });
+  await visitor.waitForTimeout(2500);
+  if (route(visitor) === '/welcome') ok('el perfil propio sigue pidiendo cuenta');
+  else bad(`/perfil sin cuenta lleva a ${route(visitor)}`);
+
   await visitor.context().close();
 
   // =========================================================================
   // CON SESIÓN — el ciclo completo
   // =========================================================================
-  step('CON SESIÓN · 8. Registro desde la interfaz');
+  step('CON SESIÓN · 11. Registro desde la interfaz');
 
   const page = await newPage();
   await page.goto(`${origin}/register`, { waitUntil: 'networkidle' });
@@ -274,7 +352,7 @@ try {
     }
   }
 
-  step('CON SESIÓN · 9. Publicar con etiqueta');
+  step('CON SESIÓN · 12. Publicar con etiqueta');
 
   await page.getByRole('button', { name: 'Crear publicación' }).click();
   await page.waitForTimeout(1600);
@@ -297,7 +375,7 @@ try {
     else bad(`la publicación guardada es ${JSON.stringify(data)}`);
   }
 
-  step('CON SESIÓN · 10. Dar "me gusta"');
+  step('CON SESIÓN · 13. Dar "me gusta"');
 
   await page.getByRole('button', { name: /Me gusta/ }).first().click();
   await page.waitForTimeout(2500);
@@ -311,7 +389,7 @@ try {
   }
   await shot(page, 'feed-con-sesion');
 
-  step('CON SESIÓN · 11. Buscar EcoGuinea y seguirla');
+  step('CON SESIÓN · 14. Buscar EcoGuinea y seguirla');
 
   await page.getByRole('tab', { name: 'Buscar' }).click();
   await page.waitForTimeout(1500);
@@ -332,7 +410,7 @@ try {
     else bad(`hay ${count} seguimientos de entidad`);
   }
 
-  step('CON SESIÓN · 12. Valorar el Río Ntem');
+  step('CON SESIÓN · 15. Valorar el Río Ntem');
 
   await page.goto(`${origin}/entidad/rio-ntem`, { waitUntil: 'networkidle' });
   await page.waitForTimeout(3500);
@@ -361,7 +439,7 @@ try {
   await expectLabel(page, 'Valoración 5 de 5 con 1 opiniones', 'la ficha refleja la valoración');
   await shot(page, 'ntem-valorado');
 
-  step('CON SESIÓN · 13. Perfil propio y cerrar sesión');
+  step('CON SESIÓN · 16. Perfil propio y cerrar sesión');
 
   // La ficha de entidad es una ruta de Stack y no tiene barra de pestañas: se
   // vuelve al feed antes de usarla.

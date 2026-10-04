@@ -4,15 +4,16 @@ import { TabBar } from '@/components/navigation/tab-bar';
 import { colors } from '@/theme';
 
 /**
- * Lo que queda aquí son **las pestañas que exigen cuenta**.
+ * Lo que queda aquí son **las pestañas que exigen cuenta**: hoy, el perfil
+ * propio.
  *
- * Inicio y Mapa viven fuera del grupo, como rutas públicas de primer nivel: la
- * guarda de `(tabs)` es de todo el grupo, así que una pestaña pública no puede
- * estar dentro. Las dos pintan la barra ellas mismas, que es un componente
+ * Inicio, Buscar y Mapa viven fuera del grupo, como rutas públicas de primer
+ * nivel: la guarda de `(tabs)` es de todo el grupo, así que una pestaña pública
+ * no puede estar dentro. Pintan la barra ellas mismas, que es un componente
  * propio y navega por ruta. Ver src/app/_layout.tsx.
  */
 export const unstable_settings = {
-  anchor: 'buscar',
+  anchor: 'perfil',
 };
 
 export default function TabsLayout() {
@@ -23,8 +24,7 @@ export default function TabsLayout() {
         headerShown: false,
         sceneStyle: { backgroundColor: colors.background },
       }}>
-      {/* Inicio y Mapa no están aquí: son rutas públicas. Ver el layout raíz. */}
-      <Tabs.Screen name="buscar" options={{ title: 'Buscar' }} />
+      {/* Inicio, Buscar y Mapa no están aquí: son rutas públicas. Ver el layout raíz. */}
       <Tabs.Screen name="perfil" options={{ title: 'Perfil' }} />
 
       {/* Referencia visual del design system: accesible por URL, fuera de la barra. */}

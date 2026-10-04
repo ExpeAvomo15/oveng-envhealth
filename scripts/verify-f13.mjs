@@ -256,7 +256,18 @@ try {
 
   await expectVisible(`@${alice.username}`, 'la cabecera muestra el @username');
   await expectVisible('Se unió en', 'muestra la fecha de alta');
-  await expectVisible('Publicaciones', 'muestra los contadores');
+  // Por nombre accesible y no por texto: "Publicaciones" con `exact: false` casa
+  // también con el pie "No hay más publicaciones." del feed que queda debajo en
+  // la pila, oculto, y `.first()` lo cogía en cuanto el feed cabe en una página.
+  try {
+    await page
+      .getByLabel(/^\d+ Publicaciones$/)
+      .first()
+      .waitFor({ state: 'visible', timeout: 8000 });
+    ok('muestra los contadores');
+  } catch {
+    bad('muestra los contadores — no apareció el contador de publicaciones');
+  }
   await expectVisible('Tu impacto ambiental', 'muestra la tarjeta de impacto');
   await expectVisible('Puntos OVENG', 'muestra la tarjeta de puntos');
   await shot('12-perfil-propio');

@@ -43,6 +43,31 @@ hay presupuesto de adquisición, así que el propio uso tiene que ser el canal.
 
 ---
 
+### Lectura libre, cuenta para participar
+
+**Todo contenido es público y enlazable; el registro se pide al actuar, nunca
+para mirar.** Publicaciones, perfiles, entidades, el mapa, el feed y el
+directorio se abren sin cuenta. Lo que pide cuenta es **hacer**: publicar,
+seguir, valorar, dar "me gusta". Y lo dice en el propio botón —"Inicia sesión
+para seguir"— o lleva a la bienvenida al pulsarlo, en vez de esconderse.
+
+La razón es el canal. Sin presupuesto, OVENG crece por **enlaces compartidos**,
+y en la comunidad *beachhead* eso es WhatsApp: alguien reenvía una publicación
+o la ficha de un río a un grupo, y quien la abre tiene que ver lo que le han
+mandado. **Cada muro de login rompe esa cadena**: el que abre el enlace no
+viene a registrarse, viene a mirar, y si no puede, no vuelve. Pedir la cuenta
+cuando quiere actuar es pedirla cuando ya ha visto para qué sirve.
+
+Lo propio sí es privado —tu perfil, editarlo, componer una publicación— y la
+garantía real no es la interfaz sino RLS: la clave anónima lee lo público y no
+puede escribir en nombre de nadie.
+
+Es una regla de construcción, no solo de estrategia: **toda vista de lectura
+nace pública**. Está en AGENTS.md y `verify:demo` la comprueba recorriendo una
+publicación, un perfil ajeno y Buscar sin sesión.
+
+---
+
 ## Tesis de producto
 
 **Pendiente de validar.** Es una tesis, no una decisión tomada, y el apartado
@@ -150,9 +175,13 @@ persona sola y se pierde justo la pieza que funciona en frío. El registro se
 pide más tarde, al **publicar, seguir o valorar** — cuando el valor ya se ha
 demostrado.
 
-**Hecho en F2.3.** El mapa y la ficha de una entidad se ven sin cuenta; seguir,
-valorar y publicar siguen pidiéndola y lo dicen — las pestañas privadas y Crear
-llevan a la bienvenida, y en la ficha el botón pone "Inicia sesión para seguir".
+**Hecho en F2.3**, y extendido después a todo lo que se lee. El mapa y la ficha
+de una entidad (F2.3), el feed (F2.6) y, tras el cierre de la demo, Buscar, el
+perfil de otra cuenta y el detalle de una publicación se ven sin cuenta. Seguir,
+valorar, dar "me gusta" y publicar siguen pidiéndola y lo dicen: Crear y el
+perfil propio llevan a la bienvenida, y los botones de seguir ponen "Inicia
+sesión para seguir" o llevan a ella. Ver *Lectura libre, cuenta para
+participar*, arriba.
 
 Costó averiguar cómo: la guarda de `(tabs)` es de todo el grupo, así que el mapa
 salió a ser una ruta pública de primer nivel, y el orden en que se declaran las

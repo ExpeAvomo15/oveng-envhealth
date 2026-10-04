@@ -38,6 +38,7 @@ Una línea cada una; el razonamiento completo, en el enlace.
 
 ### Rutas y despliegue
 
+- **Toda vista de lectura nace pública**; solo las acciones piden cuenta (AGENTS.md, @docs/07_CRECIMIENTO.md).
 - Las rutas públicas viven fuera de `(tabs)` y se declaran **al final**; entrar y salir de sesión dicen a dónde van. [F2.3] [F2.6]
 - El mapa se monta y desmonta con el foco. [F2.3]
 - `experiments.baseUrl` está atado al nombre del repo; `404.html` y `+html.tsx` van a juego. Credenciales como *Variables*. [F1.2b]
@@ -67,6 +68,7 @@ La lista mantenida es el **backlog de @docs/plan.md**. Fuera de ella, sueltos:
 
 - Consola: React #418 (hidratación, esperado por el guard) y un 404 de recurso sin identificar. [F1.2b]
 - Las capturas de pantalla completa pesan ~275 KB cada una en el historial. [F2.4]
+- El perfil enseña el contador de publicaciones y no la lista (backlog del plan).
 - Marca: falta el **SVG vectorial** (hoy son PNG), los PNG no van cuantizados y
   el icono y el splash nativos siguen siendo los de Expo.
 
@@ -93,6 +95,14 @@ el número iba uno por encima desde F2.4. Corregido en el plan.
 
 **La bitácora pesaba 103k** y el arranque de sesión 176k, por encima del
 límite de 150k. Se archiva y la regla queda en AGENTS.md.
+
+**Lectura libre, cuenta para participar.** Buscar, el perfil ajeno y el
+detalle de una publicación pasan a ser públicos, como el feed y el mapa: son lo
+que se comparte por enlace. Seguir y "me gusta" piden cuenta y lo dicen. Buscar
+sale de `(tabs)`, que se queda solo con el perfil propio. Y aparece un fallo de
+F2.6: la pestaña Inicio no estaba en las rutas públicas de la barra, así que sin
+sesión llevaba a la bienvenida. `verify:demo` recorre ahora las tres vistas sin
+cuenta.
 
 **Marca.** Los logos oficiales (lockup y tortuga-O, verde y blanco, con
 transparencia real) están en `docs/design/brand/`, que es la fuente de verdad y
@@ -195,20 +205,10 @@ es el anti-patrón que el propio documento de crecimiento señala.
 
 ### Cinco veces ya: `getByText`
 
-Al pasar la batería completa, `verify:mvp` falló en "la ubicación se ve en el
-perfil" y en los contadores con la pantalla **correcta** delante — la captura de
-esa misma ejecución muestra "Bata, Litoral". Es la quinta vez.
-
-Las dos causas de siempre: la ubicación se pinta con un icono al lado (dos
-nodos, y un lector los lee como fragmentos sueltos, así que ahora tiene nombre
-accesible propio), y el contador se buscaba como el texto `"1"`, que aparece en
-media pantalla. Los contadores ya tenían nombre accesible desde F1.3; solo había
-que usarlo.
-
-Y una consecuencia de abrir el feed: cuatro comprobaciones daban por hecho que
-la raíz sin sesión era la bienvenida. Lo era, y ha dejado de serlo a propósito.
-Ahora comprueban las dos mitades: que la raíz abre el feed público **y** que
-pedir una ruta privada sigue llevando a la bienvenida.
+`verify:mvp` falló dos veces con la pantalla correcta delante, por buscar texto
+partido en nodos o repetido. Se comprueba por nombre accesible; y abrir el feed
+obligó a que cuatro comprobaciones dejaran de suponer que la raíz sin sesión es
+la bienvenida. Detalle en el archivo.
 
 ### `verify:f25` era el más frágil de los trece, y se arregló de raíz
 

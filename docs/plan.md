@@ -309,6 +309,10 @@ es un olvido: cada línea dice por qué está aquí y no en el producto.
 
 ### Producto social
 
+- **Publicaciones en el perfil.** El perfil (propio y ajeno) enseña el
+  contador real pero la lista dice "Todavía no hay publicaciones": nunca se
+  construyó. Con el perfil ajeno ya público y enlazable, el contrasentido se ve
+  más; es lo primero del producto social.
 - **Comentarios en las publicaciones.** El detalle ya les reserva el sitio y el
   icono avisa de que llegan.
 - **Buscar publicaciones por etiqueta.** Hoy tocar una etiqueta busca en el

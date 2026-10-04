@@ -37,7 +37,14 @@ biodiversidad), valoraciones comunitarias y huella ecológica personal.
 - Diseño: docs/design/ contiene los mockups oficiales. Toda pantalla nueva
   replica su estética (paleta: verde #2E7D32, verde claro #A5D6A7, azul
   #02B8D1, amarillo #FFC107, gris #616161, superficie #F4F6F9; cards radio
-  ~16px, verde solo como acento) antes de inventar variantes.
+  ~16px, verde solo como acento) antes de inventar variantes. La marca vive
+  en docs/design/brand/ (originales, no se tocan; derivados con
+  `npm run brand:derivatives`).
+- **Lectura libre, cuenta para participar:** toda vista de lectura nace
+  pública; solo las acciones (publicar, seguir, valorar, "me gusta") piden
+  cuenta, y lo dicen en el botón o llevan a la bienvenida. Lo propio (perfil,
+  editar, crear) es privado y RLS es la garantía real. Razonamiento en
+  @docs/07_CRECIMIENTO.md.
 
 ## Protocolo de trabajo (project manager)
 

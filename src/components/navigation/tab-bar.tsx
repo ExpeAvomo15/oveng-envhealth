@@ -30,11 +30,14 @@ type TabDefinition = {
 };
 
 /**
- * Rutas que se ven sin cuenta. El mapa es pública desde F2.3; las demás
- * pestañas mandan a la bienvenida, que es donde se decide crear cuenta o
- * entrar. Ver @docs/07_CRECIMIENTO.md.
+ * Rutas que se ven sin cuenta: toda vista de lectura es pública y solo el
+ * perfil propio la pide, así que esa pestaña manda a la bienvenida, que es
+ * donde se decide crear cuenta o entrar. Ver @docs/07_CRECIMIENTO.md.
+ *
+ * Inicio faltaba aquí desde F2.6: el feed ya era público, pero pulsar la
+ * pestaña sin sesión llevaba a la bienvenida.
  */
-const PUBLIC_HREFS = new Set<TabDefinition['href']>(['/mapa']);
+const PUBLIC_HREFS = new Set<TabDefinition['href']>(['/', '/buscar', '/mapa']);
 
 const TABS: readonly TabDefinition[] = [
   { href: '/', label: 'Inicio', icon: 'home' },

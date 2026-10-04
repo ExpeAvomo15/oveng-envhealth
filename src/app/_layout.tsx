@@ -56,8 +56,6 @@ function RootNavigator() {
         {/* Crear se abre sobre las pestañas, no dentro de ellas: es un modal. */}
         <Stack.Screen name="crear" options={{ presentation: 'modal' }} />
         <Stack.Screen name="editar-perfil" options={{ presentation: 'modal' }} />
-        <Stack.Screen name="user/[username]" />
-        <Stack.Screen name="post/[id]" />
       </Stack.Protected>
 
       {/*
@@ -81,10 +79,20 @@ function RootNavigator() {
         `index` es el feed, y es pública desde F2.6: quien llega sin cuenta ve
         el contenido antes de que se le pida nada. Publicar, seguir, valorar y
         el filtro "Siguiendo" siguen pidiéndola, y lo dicen.
+
+        **Toda vista de lectura nace pública; solo las acciones piden cuenta**
+        (AGENTS.md). Buscar, el perfil de otra cuenta y el detalle de una
+        publicación se abrieron después del cierre de la demo: son lo que se
+        comparte por enlace, y un muro de registro ahí rompe la cadena. Lo
+        privado es lo propio —tu perfil, editarlo, publicar— y RLS sigue siendo
+        la garantía real de que nadie escribe en nombre de otro.
       */}
       <Stack.Screen name="index" />
+      <Stack.Screen name="buscar" />
       <Stack.Screen name="mapa" />
       <Stack.Screen name="entidad/[slug]" />
+      <Stack.Screen name="user/[username]" />
+      <Stack.Screen name="post/[id]" />
     </Stack>
   );
 }

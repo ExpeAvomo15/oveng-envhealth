@@ -134,11 +134,12 @@ necesita proveedor propio. El razonamiento completo y los límites están en el
 
 ### Rutas públicas y privadas
 
-El mapa (F2.3) fue la primera **ruta pública** de la app, por el principio de
-utilidad individual de @docs/07_CRECIMIENTO.md; la ficha de entidad y el feed
-(F2.6) le siguieron. Viven fuera del grupo `(tabs)` porque la guarda de ese
-grupo es de todo el grupo: lo que queda dentro de `(tabs)` son las pantallas
-que exigen cuenta. Las rutas públicas se declaran **después** de los grupos
+**Toda vista de lectura es pública** (*lectura libre, cuenta para participar*,
+@docs/07_CRECIMIENTO.md): el feed, Buscar, el mapa, la ficha de entidad, el
+perfil de otra cuenta y el detalle de una publicación. Lo privado es lo propio:
+el perfil propio, editarlo y crear. Las públicas viven fuera del grupo `(tabs)`
+porque la guarda de ese grupo es de todo el grupo, y pintan ellas mismas la
+barra de pestañas; dentro de `(tabs)` queda solo el perfil propio. Las rutas públicas se declaran **después** de los grupos
 protegidos, porque expo-router toma como inicial la primera disponible, y
 entrar o salir de sesión dice explícitamente a dónde va.
 

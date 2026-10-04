@@ -15,11 +15,17 @@ export default function PostDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { profile } = useAuth();
 
-  // Se guarda junto al id al que pertenece para poder derivar `loading`.
-  const [loaded, setLoaded] = useState<{ id: string; post: FeedPost | null } | null>(null);
+  // Se guarda junto al id **y al lector** a los que pertenece para poder
+  // derivar `loading`: al entrar con sesión, la versión anónima (sin "me gusta"
+  // propio) no debe pintarse mientras llega la buena.
+  const [loaded, setLoaded] = useState<{
+    id: string;
+    viewerId: string | null;
+    post: FeedPost | null;
+  } | null>(null);
 
   const viewerId = profile?.id ?? null;
-  const current = loaded?.id === id ? loaded : null;
+  const current = loaded?.id === id && loaded.viewerId === viewerId ? loaded : null;
   const post = current?.post ?? null;
   const loading = current === null;
   const notFound = current !== null && current.post === null;
@@ -28,16 +34,18 @@ export default function PostDetailScreen() {
   // función que hiciera ambas cosas provoca renders en cascada (y lo avisa el
   // linter de React).
   useEffect(() => {
-    if (!id || !viewerId) return;
+    // Público: sin sesión se lee igual. El "me gusta" de la tarjeta ya lleva a
+    // la bienvenida si no hay cuenta.
+    if (!id) return;
 
     let active = true;
 
     getPost(id, viewerId)
       .then((found) => {
-        if (active) setLoaded({ id, post: found });
+        if (active) setLoaded({ id, viewerId, post: found });
       })
       .catch(() => {
-        if (active) setLoaded({ id, post: null });
+        if (active) setLoaded({ id, viewerId, post: null });
       });
 
     return () => {

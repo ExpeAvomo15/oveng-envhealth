@@ -167,13 +167,18 @@ export async function fetchFeed({
 }
 
 /** Una publicación suelta, con la misma forma que las del feed. */
-export async function getPost(postId: string, viewerId: string): Promise<FeedPost | null> {
-  const { data, error } = await supabase
+export async function getPost(postId: string, viewerId: string | null): Promise<FeedPost | null> {
+  // Sin lector, igual que el feed: no se pide `my_like` (ver FEED_SELECT).
+  let query = supabase
     .from('posts')
-    .select(FEED_SELECT)
-    .eq('id', postId)
-    .eq('my_like.user_id', viewerId)
-    .maybeSingle();
+    .select(viewerId ? FEED_SELECT : FEED_BASE_SELECT)
+    .eq('id', postId);
+
+  if (viewerId) {
+    query = query.eq('my_like.user_id', viewerId);
+  }
+
+  const { data, error } = await query.maybeSingle();
 
   if (error) throw error;
   if (!data) return null;
