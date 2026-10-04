@@ -20,6 +20,8 @@ biodiversidad), valoraciones comunitarias y huella ecológica personal.
 - **Modelo de datos:** @docs/03_MODELO_DATOS.md — esquema, RLS y migraciones.
 - **Crecimiento y comunidad:** @docs/07_CRECIMIENTO.md — estrategia de
   distribución y lo que obliga a construir. Transversal, no es una fase.
+- **Datos en vivo (F4):** @docs/08_DATOS_EN_VIVO.md — fuentes, arquitectura
+  híbrida y procedencia siempre visible. Va tras F3, salvo F4.1.
 
 ## Stack
 

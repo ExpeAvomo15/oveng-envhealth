@@ -101,8 +101,8 @@ detalle de una publicación pasan a públicos: son lo que se comparte por enlace
 `(tabs)` queda solo con el perfil propio. Fallo de F2.6 de paso: sin sesión, la
 pestaña Inicio llevaba a la bienvenida. `verify:demo` lo recorre todo sin cuenta.
 
-**Marca fuera de la app** (tarjetas, marca de agua, OG tags): documentada en
-@docs/07_CRECIMIENTO.md como F4.5, sin construir.
+**F4 documentada** en @docs/08_DATOS_EN_VIVO.md, con las APIs probadas: la
+marca fuera de la app (F4.5) y el dato vivo con procedencia.
 
 **Marca.** Los logos oficiales (lockup y tortuga-O, verde y blanco, con
 transparencia real) están en `docs/design/brand/`, que es la fuente de verdad y

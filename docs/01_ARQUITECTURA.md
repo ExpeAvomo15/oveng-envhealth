@@ -152,8 +152,9 @@ F2 cerró la demo sin estas decisiones, a propósito; están en el backlog de
   mockups.
 - Capas de datos ambientales sobre el territorio: el mapa enseña entidades, no
   superficies.
-- Fuente de los datos ambientales: APIs públicas, carga manual o mediciones de
-  la comunidad. Hoy todo es contenido curado del seed.
+- Fuente de los datos ambientales: **decidida para F4** —Open-Meteo como base
+  mundial y OpenAQ donde haya estación, con la procedencia siempre visible—.
+  Hoy todo es contenido curado del seed. Ver @docs/08_DATOS_EN_VIVO.md.
 - Mapa en nativo: en iOS y Android hay un marcador de posición.
 - Estrategia de verificación de cuentas de empresa.
 

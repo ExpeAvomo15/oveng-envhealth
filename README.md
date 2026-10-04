@@ -107,6 +107,7 @@ producto es móvil.
 | [docs/01_ARQUITECTURA.md](docs/01_ARQUITECTURA.md) | Arquitectura y decisiones técnicas. |
 | [docs/03_MODELO_DATOS.md](docs/03_MODELO_DATOS.md) | Esquema, RLS, storage y cómo aplicar las migraciones. |
 | [docs/07_CRECIMIENTO.md](docs/07_CRECIMIENTO.md) | Estrategia de crecimiento y comunidad, y lo que obliga a construir. |
+| [docs/08_DATOS_EN_VIVO.md](docs/08_DATOS_EN_VIVO.md) | F4: dato ambiental vivo, fuentes y procedencia. |
 | [docs/design/](docs/design/) | Mockups oficiales — referencia estética vinculante. |
 
 ## Puesta en marcha
@@ -300,8 +301,10 @@ más. Estado real de cada tarea en [docs/plan.md](docs/plan.md):
    entre las publicaciones, con la zona elegida por quien mira.
 
 **F2 está completa.** Lo siguiente es F3 — comunidad y lanzamiento, en
-[docs/07_CRECIMIENTO.md](docs/07_CRECIMIENTO.md) — y lo que quedó fuera del
-alcance de F2, anotado en [docs/plan.md](docs/plan.md).
+[docs/07_CRECIMIENTO.md](docs/07_CRECIMIENTO.md) — y después F4, el dato
+ambiental vivo de cualquier coordenada con su procedencia a la vista, en
+[docs/08_DATOS_EN_VIVO.md](docs/08_DATOS_EN_VIVO.md). Lo que quedó fuera del
+alcance de F2 está anotado en [docs/plan.md](docs/plan.md).
 
 Cómo se consigue que haya gente dentro —comunidad inicial, distribución y qué
 obliga a construir, como que el mapa se pueda ver sin cuenta— está en

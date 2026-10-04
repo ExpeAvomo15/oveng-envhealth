@@ -274,11 +274,43 @@ condición — sin mapa, las conversaciones de validación no miden nada.
 - [ ] **F3.1 conversaciones de validación** — 20-30 con la comunidad primaria,
       antes de cualquier lanzamiento.
 - [ ] **F3.2 lanzamiento concentrado** — con la comunidad *beachhead*.
-- [ ] **F3.3 motor de contenido y tarjetas compartibles**.
+- [ ] **F3.3 motor de contenido y tarjetas compartibles**. Las tarjetas se
+      construyen en **F4.5**; aquí va el ritmo de publicación que las usa.
 
 El orden no es negociable: F3.1 sirve para confirmar o tumbar la tesis de
 producto mientras cambiarla es barato, y adelantar F3.2 la convierte en una
 justificación de lo ya lanzado.
+
+## F4 — Datos en vivo
+
+Dato ambiental vivo de cualquier punto del mundo, **con su procedencia
+siempre a la vista**: Open-Meteo (modelo CAMS de Copernicus, sin clave) como
+base mundial y OpenAQ (estaciones) donde haya una cerca. Objetivo, fuentes,
+arquitectura híbrida y principios en **@docs/08_DATOS_EN_VIVO.md**.
+
+**Va después de F3**, porque la validación puede cambiar su tamaño.
+**Excepción: F4.1** puede adelantarse a F3: enseñar el aire real de la casa de
+quien escucha, y no un dato de ejemplo, cambia las conversaciones.
+
+- [ ] **F4.1 pieza mínima** — Open-Meteo en la tarjeta de zona y en el mapa,
+      con su línea de procedencia; sin servidor ni migración. Decide la escala
+      de AQI. ~1 sesión.
+- [ ] **F4.2 procedencia completa + OpenAQ** — lecturas con fuente, método,
+      origen e instante (migración); OpenAQ donde haya estación; etiqueta del
+      dato curado; evaluar GBIF para biodiversidad.
+- [ ] **F4.3 cron en Railway** — lecturas horarias en Supabase: histórico, la
+      clave de OpenAQ fuera del cliente y sin gastar una llamada por visita.
+      Desbloquea la gráfica de evolución.
+- [ ] **F4.4 geolocalización opcional** — "tu zona" detectada si hay permiso,
+      elegida si no.
+- [ ] **F4.5 compartir con marca** — todo lo que sale de la plataforma lleva
+      marca y camino de vuelta; dentro, el contenido queda limpio. Tarjetas 9:16
+      para estados de WhatsApp (contenido, logo, dato y URL), marca de agua con
+      la tortuga-O blanca **solo** al descargar o compartir una imagen como
+      fichero, y OG tags por ruta. Las OG tags chocan con el SPA en Pages —los
+      rastreadores no ejecutan JS y las rutas dinámicas entran por un 404—:
+      entidades pre-renderizadas primero, función en el borde con dominio
+      propio después. Detalle en @docs/07_CRECIMIENTO.md.
 
 ## Backlog post-demo
 
@@ -288,13 +320,15 @@ es un olvido: cada línea dice por qué está aquí y no en el producto.
 ### Datos ambientales
 
 - **Capas sobre el territorio.** El mapa enseña entidades, no superficies de
-  aire, agua o suelo. Exige decidir de dónde salen esos datos (APIs públicas,
-  carga manual o mediciones de la comunidad) y probablemente PostGIS:
-  `location` de `posts` es hoy texto libre.
+  aire, agua o suelo. La **fuente** ya está decidida en F4 (Open-Meteo y
+  OpenAQ); lo que queda abierto es pintarla como superficie, porque una rejilla
+  de decenas de kilómetros vista como mancha de color promete una precisión que
+  no tiene. Probablemente PostGIS: `location` de `posts` es hoy texto libre.
 - **Series temporales y la gráfica de "Evolución de la calidad ambiental"**
   (mockup 1). `entity_metrics` guarda un valor por métrica con su `updated_at`,
-  no un histórico. Depende de una fuente histórica real; dibujar cinco puntos
-  inventados sería lo contrario de la trazabilidad que costó conseguir en F2.1.
+  no un histórico. Llega con el cron de **F4.3**, que acumula lecturas reales;
+  dibujar cinco puntos inventados sería lo contrario de la trazabilidad que
+  costó conseguir en F2.1.
 - **Proveedor de teselas propio.** Las de openstreetmap.org son un servicio
   donado: su política pide atribución, prohíbe la descarga masiva y avisa de que
   un uso intenso se mueva a otro proveedor. Va sobrada para la demo y **no para
@@ -324,25 +358,14 @@ es un olvido: cada línea dice por qué está aquí y no en el producto.
 - **Pantalla para elegir contraseña nueva** tras el email de recuperación.
 - **Verificación real de cuentas:** hoy `verified` lo puede cambiar su dueño.
 
-### Distribución
-
-- **F4.5 Compartir con marca.** Todo lo que sale de la plataforma lleva marca
-  y camino de vuelta; dentro, el contenido queda limpio. Tres piezas:
-  tarjetas compartibles 9:16 para estados de WhatsApp (contenido, logo, dato y
-  URL), marca de agua con la tortuga-O blanca **solo** al descargar o compartir
-  una imagen como fichero, y OG tags por ruta. Las OG tags chocan con el SPA en
-  Pages —los rastreadores no ejecutan JS y las rutas dinámicas entran por un
-  404—: entidades pre-renderizadas primero, función en el borde con dominio
-  propio después. Detalle en @docs/07_CRECIMIENTO.md.
-
 ### Plataforma
 
 - **Mapa en nativo.** MapLibre GL JS es de navegador. En iOS y Android hay un
   marcador de posición; hace falta `@maplibre/maplibre-react-native` o
   `react-native-maps`.
-- **Geolocalización.** Convertiría "tu zona" en algo detectado en vez de
-  elegido y desbloquea la distancia en las tarjetas del mapa. Trae consigo el
-  permiso, su denegación y la imprecisión en escritorio.
+- **Geolocalización.** Es **F4.4**. Convertiría "tu zona" en algo detectado en
+  vez de elegido y desbloquea la distancia en las tarjetas del mapa. Trae
+  consigo el permiso, su denegación y la imprecisión en escritorio.
 - **Búsqueda sin acentos.** `ilike` resuelve las mayúsculas y no los acentos:
   "malaga" y "alen" devuelven **cero** resultados contra el seed actual. En una
   app en español es lo primero que arreglaría de Buscar, y pide la extensión
