@@ -282,38 +282,39 @@ try {
   await expectRole('button', 'Ver todo en Turismo Verde', 'los resultados se agrupan por tipo');
   await shot('02-resultados-monte');
 
-  // --- Chip de Turismo Verde --------------------------------------------------
-  // Desde F4.4 el chip "Empresas" es "Empleo" (ofertas, lo comprueba
-  // verify:f44); el filtro por tipo se comprueba con Turismo Verde.
-  step('8. El chip Turismo Verde filtra');
+  // --- Chip de Iniciativas ----------------------------------------------------
+  // "Empresas" es "Empleo" desde F4.4 (lo comprueba verify:f44) y "Turismo
+  // Verde" abre su propia pantalla desde F4.5 (verify:f45): el filtro por tipo
+  // se comprueba con Iniciativas.
+  step('8. El chip Iniciativas filtra');
 
   await field.fill('');
   await page.waitForTimeout(600);
-  await page.getByRole('tab', { name: 'Turismo Verde' }).click();
+  await page.getByRole('tab', { name: 'Iniciativas' }).click();
   await page.waitForTimeout(2000);
 
   {
     // Se comparan los nombres en pantalla con los que la base dice que son
-    // lugares: comprobar solo "hay 5 fichas" pasaría igual con cinco fichas
-    // equivocadas.
+    // iniciativas: comprobar solo "hay 4 fichas" pasaría igual con cuatro
+    // fichas equivocadas.
     const labels = (
       await Promise.all((await page.getByRole('link').all()).map((row) => row.getAttribute('aria-label')))
     ).filter((label) => typeof label === 'string');
 
     const onScreen = new Set(labels.map((label) => label.split('. ')[0]));
-    const expected = entities.filter((e) => e.type === 'lugar').map((e) => e.name);
+    const expected = entities.filter((e) => e.type === 'iniciativa').map((e) => e.name);
     const missing = expected.filter((name) => !onScreen.has(name));
     const extra = [...onScreen].filter((name) => !expected.includes(name));
 
     if (missing.length === 0 && extra.length === 0) {
-      ok(`el chip Turismo Verde deja los ${expected.length} lugares y nada más`);
+      ok(`el chip Iniciativas deja las ${expected.length} iniciativas y nada más`);
     } else {
       bad(
-        `el chip Turismo Verde: faltan [${missing.join(', ')}], sobran [${extra.join(', ')}]`,
+        `el chip Iniciativas: faltan [${missing.join(', ')}], sobran [${extra.join(', ')}]`,
       );
     }
   }
-  await shot('03-chip-turismo-verde');
+  await shot('03-chip-iniciativas');
 
   // --- Seguir una entidad ----------------------------------------------------
   step('9. Seguir una entidad');
@@ -345,7 +346,7 @@ try {
   step('10. Navegar a la ficha de una entidad');
 
   if (found) {
-    // Volver a "Todo": el paso anterior dejó el chip Turismo Verde puesto.
+    // Volver a "Todo": el paso anterior dejó el chip Iniciativas puesto.
     await page.getByRole('tab', { name: 'Todo' }).click();
     await page.waitForTimeout(600);
     await field.fill('monte');

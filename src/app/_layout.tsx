@@ -103,6 +103,8 @@ function RootNavigator() {
       <Stack.Screen name="restablecer" />
       {/* El detalle de una oferta se lee sin cuenta, como todo lo demás (F4.4). */}
       <Stack.Screen name="empleo/[id]" />
+      {/* Turismo Verde por ubicación (F4.5): se lee sin cuenta. */}
+      <Stack.Screen name="turismo-verde" />
     </Stack>
   );
 }

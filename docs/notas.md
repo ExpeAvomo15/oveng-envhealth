@@ -65,7 +65,7 @@ El porqué de cada una, enlazado.
 - **Procedencia siempre visible**: 🛰️ estimación, 📡 estación, 📋 curado. Nunca un dato sin su origen. @docs/08_DATOS_EN_VIVO.md
 - Aire en **AQI europeo**, seis tramos oficiales; el curado de los mockups es otra escala y no se mezcla.
 - **Ubicación solo con permiso, pedido por un gesto**; vive en memoria, nunca en base ni dispositivo, y sale a dos decimales.
-- Una API externa caída **no rompe** nada: se cae al dato curado con su etiqueta. Claves de API, nunca en el bundle (F4.6).
+- Una API externa caída **no rompe** nada: se cae al dato curado con su etiqueta. Claves de API, nunca en el bundle (F4.7).
 
 - La leyenda del mapa **elige una capa** y la tarjeta enseña su dato; energía y residuos solo cuentan entidades.
 - **Lenguaje para 12 años** (AGENTS.md): palabra primero, cifra después, ⓘ al lado y nunca dentro de otro pulsable.
@@ -93,6 +93,29 @@ La lista mantenida es el **backlog de @docs/plan.md**. Fuera de ella, sueltos:
 - El clima (temperatura, lluvia) está a una llamada de Open-Meteo, sin clave, y no se enseña en ningún sitio.
 - Marca: falta el **SVG vectorial** (hoy son PNG), los PNG no van cuantizados y
   el icono y el splash nativos siguen siendo los de Expo.
+
+---
+
+## 2026-10-04 — F4.5: Turismo Verde por ubicación
+
+**Pantalla propia, no un modo de Buscar.** `/turismo-verde` tiene un buscador
+de ciudades; dentro de Buscar habría dos campos de búsqueda distintos a la
+vez. El chip y el "Ver todo" de Buscar llevan a ella. `verify:f22` comprueba
+ahora el filtro por tipo con Iniciativas.
+
+**Coordenadas comprobadas, no recordadas.** Los 13 lugares nuevos salen de
+OpenStreetMap (Nominatim, pocas consultas espaciadas). Se descartaron los que
+no aparecían o aparecían mal: Arena Blanca, las cascadas de Ilachi, Moraka y
+Utonde, y "Acantilados de Maro", que devolvía un apartamento turístico con ese
+nombre (se usó la reserva natural). Sin métricas: no hay fuente.
+
+**Distancia en línea recta, y se dice así.** Haversine en el cliente, radio de
+150 km. "A X km", no "a X km en coche": la ruta la calcula Google Maps al pulsar
+"Cómo llegar" (`?q=lat,lng`, las coordenadas exactas de la entidad).
+
+**Curación es marca.** Donde no hay lugares no se rellena con OpenStreetMap: se
+dice, se enseñan los tres más cercanos y se invita a proponer (#TurismoVerde en
+el compositor). La propuesta formal es post-F3.
 
 ---
 
@@ -130,48 +153,6 @@ en el dashboard—. Ahora los dos seeds comprueban la clave **antes** de escribi
 **Una carrera en el respaldo del feed:** dos peticiones a la vez, la primera
 apagaba el lugar y la segunda ya no reintentaba. Se reintenta según el `select`
 que usó cada una. Lo cazó `verify:f15`.
-
----
-
-## 2026-10-04 — F4.3: cada capa su dato, lenguaje llano y la contraseña
-
-**Contratos, comprobados antes de construir.**
-
-```json
-// Open-Meteo Forecast · current=soil_moisture_0_to_1cm (Bata)
-{ "latitude": 1.8629, "longitude": 9.8013, "elevation": 24.0,
-  "current_units": { "soil_moisture_0_to_1cm": "m³/m³" },
-  "current": { "time": "2026-10-04T14:45", "interval": 900,
-    "soil_moisture_0_to_1cm": 0.160 } }
-// GBIF · occurrence/search?geoDistance=1.86,9.77,10km&facet=speciesKey…
-{ "count": 2792, "results": [], "facets": [{ "field": "SPECIES_KEY",
-  "counts": [{ "name": "2494058", "count": 63 }] }] }
-```
-
-Suelo cada 15 min, en volumen (0,16 = 16 %); **en el mar, 0 con elevación 0**,
-y se dice "aquí es mar". GBIF sin clave y con CORS; las especies son las
-entradas del facet (tope 1.000: "más de 1.000"). **`hasGeospatialIssue=false`
-es obligatorio**: sin él, el 0,0 del océano tiene 1,4 millones de registros.
-
-**La leyenda elige, no apaga.** Con interruptores, tocar "Suelo" para ver su
-dato escondía el suelo. `verify:f23` y `verify:demo` se ajustaron.
-
-**Lenguaje para 12 años, regla en AGENTS.md.** Palabra primero, cifra después,
-ⓘ al lado y nunca dentro de otro pulsable (el bloque del aire del feed dejó de
-ser un enlace entero; el perfil tiene su propio botón). Las escalas sin bordes
-repetidos: "0 a 20, 21 a 40", porque la app cuenta el 20 como Excelente.
-
-**Contraseña: tres causas, dos arregladas.** El `redirectTo` era el origen sin
-el subpath, y no había pantalla de destino: ahora `/restablecer`. La tercera
-es de Supabase: **su correo integrado solo entrega a direcciones del equipo, 2
-por hora** (documentación oficial). Hace falta SMTP propio, y Resend y
-compañía piden dominio verificado. El enlace PKCE solo vale en el navegador
-que lo pidió. `verify:f43` intercepta el envío —para no gastar el cupo— y
-cambia la contraseña de verdad.
-
-**Tropiezos de la prueba:** `TextField` no asocia su etiqueta al campo —se usa
-el `placeholder` o un `accessibilityLabel`—, y el error con "after N seconds"
-llega con un código que ya tenía mensaje genérico: ahora se mira antes.
 
 ---
 

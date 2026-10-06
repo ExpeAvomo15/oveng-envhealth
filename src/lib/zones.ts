@@ -68,6 +68,25 @@ export function zoneById(id: string | null | undefined): Zone {
   return zones.find((zone) => zone.id === id) ?? zones[0]!;
 }
 
+/**
+ * Las zonas que tienen al menos un lugar dentro (F4.5): son los chips de un
+ * toque de Turismo Verde. Se calculan con los lugares que haya, no se escriben
+ * a mano, así que una zona sin rincones no ofrece un chip que lleve a la nada.
+ */
+export function zonesWithPlaces(places: { lat: number | null; lng: number | null }[]): Zone[] {
+  return zones.filter((zone) =>
+    places.some(
+      (place) =>
+        place.lat !== null &&
+        place.lng !== null &&
+        place.lat >= zone.bbox.lat[0] &&
+        place.lat <= zone.bbox.lat[1] &&
+        place.lng >= zone.bbox.lng[0] &&
+        place.lng <= zone.bbox.lng[1],
+    ),
+  );
+}
+
 /** Un identificador guardado que se puede restaurar tal cual. */
 export function isZoneId(id: string | null | undefined): id is ZoneId {
   return id === MY_LOCATION || zones.some((zone) => zone.id === id);

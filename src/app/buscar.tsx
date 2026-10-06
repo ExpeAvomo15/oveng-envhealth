@@ -272,6 +272,19 @@ export default function SearchScreen() {
     />
   );
 
+  /**
+   * Turismo Verde no filtra aquí: tiene su propia pantalla, orientada a
+   * ubicación (F4.5), con un buscador de ciudades que no cabe junto al de
+   * entidades. El chip lleva allí.
+   */
+  function chooseScope(next: SearchScope) {
+    if (next === 'lugar') {
+      router.push('/turismo-verde');
+      return;
+    }
+    setScope(next);
+  }
+
   // Ruta pública de primer nivel, como Inicio y Mapa: pinta la barra ella
   // misma porque fuera de `(tabs)` no la pone nadie.
   return (
@@ -280,7 +293,7 @@ export default function SearchScreen() {
         <View style={styles.header}>
           <Text variant="display">Buscar</Text>
           <SearchBar value={term} onChange={onChangeTerm} />
-          <ScopeChips value={scope} onChange={setScope} />
+          <ScopeChips value={scope} onChange={chooseScope} />
         </View>
 
         {error ? (
@@ -331,7 +344,7 @@ export default function SearchScreen() {
               <View key={section.key} style={styles.block}>
                 <SectionTitle
                   title={section.title}
-                  onSeeAll={section.scope ? () => setScope(section.scope) : undefined}
+                  onSeeAll={section.scope ? () => chooseScope(section.scope) : undefined}
                 />
                 <View style={styles.list}>{section.rows.map(renderEntity)}</View>
               </View>

@@ -1,6 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image } from 'expo-image';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Platform, Pressable, StyleSheet, TextInput, View } from 'react-native';
 
@@ -30,7 +30,10 @@ export default function CreatePostScreen() {
   const router = useRouter();
   const { profile } = useAuth();
 
-  const [content, setContent] = useState('');
+  // `?texto=`: llegar con el texto empezado (F4.5, "Propongo un rincón verde
+  // en …"). Solo cuenta para el valor inicial; después manda quien escribe.
+  const { texto } = useLocalSearchParams<{ texto?: string }>();
+  const [content, setContent] = useState(() => (typeof texto === 'string' ? texto : ''));
   const [inputHeight, setInputHeight] = useState(INPUT_MIN_HEIGHT);
   const inputRef = useRef<TextInput>(null);
   const fontFamily = useFontFamily();

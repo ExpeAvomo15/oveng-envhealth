@@ -279,7 +279,7 @@ mismo y no un dato de ejemplo.
       antes de cualquier lanzamiento.
 - [ ] **F3.2 lanzamiento concentrado** — con la comunidad *beachhead*.
 - [ ] **F3.3 motor de contenido y tarjetas compartibles**. Las tarjetas se
-      construyen en **F4.7**; aquí va el ritmo de publicación que las usa.
+      construyen en **F4.8**; aquí va el ritmo de publicación que las usa.
 
 El orden no es negociable: F3.1 sirve para confirmar o tumbar la tesis de
 producto mientras cambiarla es barato, y adelantar F3.2 la convierte en una
@@ -305,6 +305,9 @@ F4.5 y F4.6.
 **Renumerado otra vez el mismo día** al entrar F4.4 (feed denso, Turismo Verde
 y Empleo): procedencia + OpenAQ, cron y compartir con marca pasan a F4.5, F4.6 y
 F4.7.
+
+**Y una tercera** al entrar F4.5 (Turismo Verde por ubicación): pasan a F4.6,
+F4.7 y F4.8.
 
 - [x] **F4.1 pieza mínima** — aire en vivo de Open-Meteo (modelo CAMS de
       Copernicus) en la tarjeta de zona del feed, en el mapa —el **centro del
@@ -398,14 +401,35 @@ F4.7.
       feed a sangre en móvil y escritorio. Capturas en `docs/verificacion/f44/`
       (y el antes, en `f44-antes/`).
       Las dieciséis verificaciones del repositorio en verde.
-- [ ] **F4.5 procedencia completa + OpenAQ** — lecturas con fuente, método,
+- [x] **F4.5 Turismo Verde orientado a ubicación** — pantalla propia,
+      `/turismo-verde` (el chip de Buscar lleva a ella: su buscador es de
+      ciudades y no cabía junto al de entidades): "🌿 ¿Dónde quieres disfrutar
+      de la naturaleza?", buscador con la geocodificación de F4.2 y chips de un
+      toque —"Cerca de mí" con el permiso de F4.2 y las zonas **que tienen
+      lugares**, calculadas—. Los lugares del directorio salen **ordenados por
+      distancia** (haversine en el cliente, radio de 150 km) con "a X km", su
+      "qué disfrutar", la valoración y **"Cómo llegar"**, que abre Google Maps en
+      las coordenadas exactas (también en el perfil del lugar). Sin lugares en
+      radio: "Aún no tenemos rincones verdes en [zona] 🌱", los tres más
+      cercanos fuera de radio y "Proponer un rincón verde", que abre el
+      compositor con el texto empezado y #TurismoVerde. **13 lugares nuevos**
+      en el seed (8 en Andalucía, 5 en Guinea Ecuatorial) con coordenadas
+      comprobadas en OpenStreetMap y sin métricas.
+      Verificado contra la base real con `npm run verify:f45`: los 13 lugares
+      en su país y sin métricas, "Málaga" con sus 8 rincones ordenados por
+      distancia contra el cálculo real, "Cómo llegar" con la URL exacta, la
+      tarjeta y el perfil, "Cerca de mí" con la posición simulada, Lisboa con el
+      vacío honesto y los tres más cercanos, y proponer sin y con cuenta.
+      Capturas en `docs/verificacion/f45/`. Las diecisiete verificaciones del
+      repositorio en verde.
+- [ ] **F4.6 procedencia completa + OpenAQ** — lecturas con fuente, método,
       origen e instante (migración); OpenAQ donde haya estación; etiqueta del
       dato curado. OpenAQ pide clave: depende del criterio de fuentes de F4.3
-      y del servidor de F4.6.
-- [ ] **F4.6 cron en Railway** — lecturas horarias en Supabase: histórico, la
+      y del servidor de F4.7.
+- [ ] **F4.7 cron en Railway** — lecturas horarias en Supabase: histórico, la
       clave de OpenAQ fuera del cliente y sin gastar una llamada por visita.
       Desbloquea la gráfica de evolución.
-- [ ] **F4.7 compartir con marca** — todo lo que sale de la plataforma lleva
+- [ ] **F4.8 compartir con marca** — todo lo que sale de la plataforma lleva
       marca y camino de vuelta; dentro, el contenido queda limpio. Tarjetas 9:16
       para estados de WhatsApp (contenido, logo, dato y URL), marca de agua con
       la tortuga-O blanca **solo** al descargar o compartir una imagen como
@@ -428,7 +452,7 @@ es un olvido: cada línea dice por qué está aquí y no en el producto.
   no tiene. Probablemente PostGIS: `location` de `posts` es hoy texto libre.
 - **Series temporales y la gráfica de "Evolución de la calidad ambiental"**
   (mockup 1). `entity_metrics` guarda un valor por métrica con su `updated_at`,
-  no un histórico. Llega con el cron de **F4.6**, que acumula lecturas reales;
+  no un histórico. Llega con el cron de **F4.7**, que acumula lecturas reales;
   dibujar cinco puntos inventados sería lo contrario de la trazabilidad que
   costó conseguir en F2.1.
 - **Proveedor de teselas propio.** Las de openstreetmap.org son un servicio
@@ -476,6 +500,13 @@ Lo que F4.4 dejó a propósito para después de validar con la comunidad:
 - **Publicar como entidad.** Las publicaciones son siempre de una persona; una
   página no publica en el feed con su nombre.
 - **Editar la ficha** (descripción, web, imagen) para quien administra.
+- **Proponer lugares de verdad.** Hoy "Proponer un rincón verde" abre el
+  compositor con #TurismoVerde; falta el formulario de propuesta, la cola de
+  revisión y el alta en el directorio.
+- **Rellenar zonas con OpenStreetMap: descartado por ahora.** Sería fácil y
+  llenaría el mapa, pero curación es marca: un lugar de OVENG es uno que
+  alguien ha elegido y revisado. Si algún día se usa, como sugerencia para
+  proponer, nunca como lugar publicado.
 
 ### Plataforma
 

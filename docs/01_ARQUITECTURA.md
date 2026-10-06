@@ -176,7 +176,7 @@ al dato curado de Supabase con su etiqueta: un servicio externo caído no rompe
 ninguna pantalla.
 
 Cuando entren fuentes con clave (OpenAQ, FIRMS), esa clave no puede ir en el
-bundle: llegan con el cron de F4.6. Ver @docs/08_DATOS_EN_VIVO.md.
+bundle: llegan con el cron de F4.7. Ver @docs/08_DATOS_EN_VIVO.md.
 
 ### Rutas públicas y privadas
 

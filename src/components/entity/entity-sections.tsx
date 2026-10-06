@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
 import { useEffect, useState, type ReactNode } from 'react';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Linking, StyleSheet, View } from 'react-native';
 
 import { PostCard } from '@/components/feed/post-card';
 import { JobCard } from '@/components/search';
@@ -9,6 +9,7 @@ import { Button, Text } from '@/components/ui';
 import { showToast } from '@/components/ui/toast';
 import type { EntityResult } from '@/lib/entities';
 import { fetchPlacePosts, type FeedPost } from '@/lib/feed';
+import { directionsUrl } from '@/lib/geo';
 import { listEntityJobs, updateJob, type JobWithEntity } from '@/lib/jobs';
 import { colors, radius, spacing } from '@/theme';
 
@@ -137,7 +138,16 @@ export function VisitCard({ entity }: { entity: EntityResult }) {
         <Text variant="caption" color="textSecondary" style={styles.flex}>
           Míralo en el mapa con el aire y el suelo de ahora, y qué hay cerca.
         </Text>
-        <Button label="Ver en el mapa" size="sm" onPress={() => router.push(`/mapa?entidad=${entity.slug}`)} />
+        <View style={styles.visitActions}>
+          <Button label="Ver en el mapa" size="sm" onPress={() => router.push(`/mapa?entidad=${entity.slug}`)} />
+          {/* Google Maps en el punto exacto (F4.5). Sale de OVENG y lo dice. */}
+          <Button
+            label="Cómo llegar ↗"
+            size="sm"
+            variant="secondary"
+            onPress={() => void Linking.openURL(directionsUrl({ lat: entity.lat!, lng: entity.lng! }))}
+          />
+        </View>
       </View>
     </Section>
   );
@@ -217,6 +227,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.border,
+  },
+  visitActions: {
+    gap: spacing.xs,
   },
   visit: {
     flexDirection: 'row',

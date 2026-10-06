@@ -405,18 +405,20 @@ try {
   const place = await newPage();
   {
     const { page, errors } = place;
+    // Desde F4.5 el chip abre la pantalla de Turismo Verde por ubicación; sin
+    // punto elegido lista todos los lugares (lo demás lo verifica verify:f45).
     await page.goto(`${origin}/buscar`, { waitUntil: 'networkidle' });
     await page.getByRole('tab', { name: 'Turismo Verde' }).click();
-    await page.waitForTimeout(2500);
+    await page.waitForTimeout(3000);
     const lugares = entityRows.filter((entity) => entity.type === 'lugar').map((entity) => entity.name);
-    const labels = (await Promise.all((await page.getByRole('link').all()).map((row) => row.getAttribute('aria-label'))))
+    const labels = (await Promise.all((await page.getByRole('link', { name: /\. Ver el lugar$/ }).all()).map((row) => row.getAttribute('aria-label'))))
       .filter(Boolean)
-      .map((label) => label.split('. ')[0]);
+      .map((label) => label.replace(/\. Ver el lugar$/, ''));
     const onScreen = new Set(labels);
-    if (lugares.every((name) => onScreen.has(name)) && [...onScreen].every((name) => lugares.includes(name))) {
-      ok(`sin cuenta, el chip Turismo Verde deja los ${lugares.length} lugares y nada más`);
+    if (route(page) === '/turismo-verde' && lugares.every((name) => onScreen.has(name)) && onScreen.size === lugares.length) {
+      ok(`sin cuenta, el chip Turismo Verde abre su pantalla con los ${lugares.length} lugares`);
     } else {
-      bad(`el chip Turismo Verde enseña: ${[...onScreen].join(', ')}`);
+      bad(`el chip Turismo Verde: ruta ${route(page)}, enseña ${onScreen.size} de ${lugares.length}`);
     }
     await shot(page, '08-buscar-turismo-verde');
 

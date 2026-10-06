@@ -129,6 +129,16 @@ tierra.
 - Si alguien de fuera te pregunta qué ver en Guinea Ecuatorial, ¿qué le
   mandas hoy?
 
+**Turismo Verde por ubicación (F4.5).** Hipótesis concreta: la pregunta de
+entrada no es "qué lugar te interesa" sino **"¿dónde quieres disfrutar de la
+naturaleza?"**, y la respuesta útil es "esto, a tantos km, y así se llega".
+Pregunta sugerida para F3:
+
+- La última vez que quisiste salir al campo o a la playa un fin de semana,
+  ¿cómo elegiste el sitio? ¿Qué te habría hecho falta saber antes de ir?
+- Si buscas tu ciudad y OVENG te dice "aún no tenemos rincones aquí",
+  ¿propondrías uno? ¿Qué te haría hacerlo?
+
 Lo que tumbaría cada una: que nadie busque empleo verde por esta vía (Empleo),
 o que los lugares solo interesen a quien ya los conoce y no se compartan
 (Turismo Verde). En ese caso se quitan del primer plano —el chip, la sección—
@@ -181,7 +191,7 @@ cómo llegar, el uso no genera distribución. Es el principio *cada uso genera
 distribución* aplicado al objeto que viaja.
 
 Tres piezas, de la más deliberada a la más automática. **Documentadas, no
-construidas**: son la tarea F4.7 de @docs/plan.md.
+construidas**: son la tarea F4.8 de @docs/plan.md.
 
 1. **Tarjetas compartibles generadas.** Una imagen compuesta a propósito para
    compartir: el contenido (una medición, una publicación, una entidad), el
@@ -281,7 +291,7 @@ salió a ser una ruta pública de primer nivel, y el orden en que se declaran la
 rutas decide cuál es la puerta de entrada. El detalle está en el
 [archivo de notas, F2.3](notas-archivo-f0-f2.md#2026-09-27--f23-el-mapa-ambiental-y-las-rutas-públicas).
 
-**Tarjetas compartibles, marca de agua y OG tags:** son la tarea **F4.7
+**Tarjetas compartibles, marca de agua y OG tags:** son la tarea **F4.8
 "Compartir con marca"**, descrita en *Marca en todo lo que sale*. Las páginas
 públicas que necesitaban ya existen —toda vista de lectura lo es—; falta que lo
 que sale de ellas lleve la marca y el camino de vuelta.

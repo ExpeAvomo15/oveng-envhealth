@@ -67,7 +67,9 @@ if (entities.length === 0) {
 }
 
 const PLURAL = { lugar: 'lugares', empresa: 'empresas', iniciativa: 'iniciativas' };
-const esperado = { lugar: 5, empresa: 5, iniciativa: 4 };
+// 18 lugares desde F4.5: los 5 de F2.1 y 13 de Turismo Verde con coordenadas
+// comprobadas en OpenStreetMap.
+const esperado = { lugar: 18, empresa: 5, iniciativa: 4 };
 for (const [tipo, cuantas] of Object.entries(esperado)) {
   const reales = entities.filter((e) => e.type === tipo).length;
   if (reales === cuantas) ok(`${reales} ${PLURAL[tipo]}`);

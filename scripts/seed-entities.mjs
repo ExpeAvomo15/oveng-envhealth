@@ -180,6 +180,186 @@ const entities = [
     ],
   },
 
+  // --- Más lugares de Turismo Verde (F4.5) -----------------------------------
+  //
+  // Coordenadas comprobadas en OpenStreetMap (Nominatim) el 2026-10-04: el
+  // punto del espacio natural, o del pueblo cuando el sitio es su costa.
+  // **Sin métricas**: no hay fuente para ellas, y el aire de ahora ya lo da la
+  // app por coordenadas (F4.1). Verosímil sí, inventado no.
+
+  // Andalucía
+  {
+    slug: 'monte-san-anton',
+    name: 'Monte San Antón',
+    type: 'lugar',
+    category: 'biodiversidad',
+    description:
+      'El monte que vigila Málaga desde el este. Sube entre pinos hasta la cima y tendrás la ciudad y el mar a tus pies; mejor a primera hora, que da mucho el sol.',
+    location_name: 'Málaga',
+    country: 'España',
+    lat: 36.7454,
+    lng: -4.3592,
+    verified: false,
+  },
+  {
+    slug: 'caminito-del-rey',
+    name: 'Caminito del Rey',
+    type: 'lugar',
+    category: 'agua',
+    description:
+      'Pasarelas colgadas sobre el desfiladero de los Gaitanes, con el río Guadalhorce abajo. Hay que reservar la entrada con antelación y llevar calzado cómodo.',
+    location_name: 'Ardales, Málaga',
+    country: 'España',
+    lat: 36.9299,
+    lng: -4.7847,
+    verified: false,
+  },
+  {
+    slug: 'sierra-de-las-nieves',
+    name: 'Parque Nacional Sierra de las Nieves',
+    type: 'lugar',
+    category: 'biodiversidad',
+    description:
+      'Montañas con bosques de pinsapos, un abeto que casi solo vive aquí. Camina sus senderos en silencio y fíjate en las cabras montesas de las laderas.',
+    location_name: 'Sierra de las Nieves, Málaga',
+    country: 'España',
+    lat: 36.6764,
+    lng: -4.9793,
+    verified: false,
+  },
+  {
+    slug: 'dunas-de-artola',
+    name: 'Dunas de Artola',
+    type: 'lugar',
+    category: 'suelo',
+    description:
+      'Dunas junto al mar con una pasarela de madera para recorrerlas sin pisar la arena viva. Ideal para un paseo tranquilo al atardecer.',
+    location_name: 'Cabopino, Marbella',
+    country: 'España',
+    lat: 36.4866,
+    lng: -4.7427,
+    verified: false,
+  },
+  {
+    slug: 'desembocadura-del-guadalhorce',
+    name: 'Desembocadura del Guadalhorce',
+    type: 'lugar',
+    category: 'agua',
+    description:
+      'Lagunas donde el río llega al mar, llenas de aves. Lleva prismáticos y entra en los observatorios: verás flamencos, garzas y patos sin molestarlos.',
+    location_name: 'Málaga',
+    country: 'España',
+    lat: 36.6722,
+    lng: -4.456,
+    verified: false,
+  },
+  {
+    slug: 'torcal-de-antequera',
+    name: 'El Torcal de Antequera',
+    type: 'lugar',
+    category: 'suelo',
+    description:
+      'Rocas de caliza con formas imposibles, como un laberinto de piedra. Sigue las rutas marcadas y no te salgas: es fácil perderse entre las formas.',
+    location_name: 'Antequera, Málaga',
+    country: 'España',
+    lat: 36.9611,
+    lng: -4.5585,
+    verified: false,
+  },
+  {
+    slug: 'montes-de-malaga',
+    name: 'Parque Natural Montes de Málaga',
+    type: 'lugar',
+    category: 'biodiversidad',
+    description:
+      'Pinares y senderos a un paso de la ciudad, con áreas para pasar el día. Un buen sitio para respirar sombra en verano.',
+    location_name: 'Málaga',
+    country: 'España',
+    lat: 36.821,
+    lng: -4.3802,
+    verified: false,
+  },
+  {
+    slug: 'acantilados-de-maro-cerro-gordo',
+    name: 'Acantilados de Maro-Cerro Gordo',
+    type: 'lugar',
+    category: 'agua',
+    description:
+      'Acantilados y calas de agua clara entre Nerja y Granada. Báñate en las calas, o recorre la costa en kayak mirando el fondo.',
+    location_name: 'Nerja, Málaga',
+    country: 'España',
+    lat: 36.7355,
+    lng: -3.7986,
+    verified: false,
+  },
+
+  // Guinea Ecuatorial
+  {
+    slug: 'valle-de-moka',
+    name: 'Valle de Moka',
+    type: 'lugar',
+    category: 'biodiversidad',
+    description:
+      'Tierras altas del sur de Bioko, frescas y verdes, entre bosque y prados. Lleva algo de abrigo: arriba hace bastante menos calor que en la costa.',
+    location_name: 'Moka, Bioko Sur',
+    country: 'Guinea Ecuatorial',
+    lat: 3.3515,
+    lng: 8.6609,
+    verified: false,
+  },
+  {
+    slug: 'playas-de-ureca',
+    name: 'Playas de Ureca',
+    type: 'lugar',
+    category: 'biodiversidad',
+    description:
+      'Playas salvajes del sur de Bioko donde llegan tortugas marinas a poner sus huevos. Ve con guía local y, de noche, sin linternas blancas.',
+    location_name: 'Ureca, Bioko Sur',
+    country: 'Guinea Ecuatorial',
+    lat: 3.2547,
+    lng: 8.5839,
+    verified: false,
+  },
+  {
+    slug: 'luba-y-su-costa',
+    name: 'Luba y su costa',
+    type: 'lugar',
+    category: 'agua',
+    description:
+      'Bahía tranquila al oeste de Bioko, con playas cercanas para bañarse. Buen punto de partida para conocer el sur de la isla.',
+    location_name: 'Luba, Bioko Sur',
+    country: 'Guinea Ecuatorial',
+    lat: 3.4598,
+    lng: 8.5544,
+    verified: false,
+  },
+  {
+    slug: 'reserva-natural-rio-campo',
+    name: 'Reserva Natural de Río Campo',
+    type: 'lugar',
+    category: 'agua',
+    description:
+      'Costa, manglares y la desembocadura del río en el norte del continente, donde también desovan tortugas. Recórrela despacio y respeta las playas de cría.',
+    location_name: 'Río Campo, Litoral',
+    country: 'Guinea Ecuatorial',
+    lat: 2.2072,
+    lng: 9.8468,
+    verified: false,
+  },
+  {
+    slug: 'altos-de-nsork',
+    name: 'Parque Nacional de Los Altos de Nsork',
+    type: 'lugar',
+    category: 'biodiversidad',
+    description:
+      'Selva y colinas en el este del país, poco visitadas. Para quien busca bosque de verdad: ve con guía y con tiempo.',
+    location_name: 'Nsork, Wele-Nzas',
+    country: 'Guinea Ecuatorial',
+    lat: 1.201,
+    lng: 11.148,
+    verified: false,
+  },
+
   // --- Empresas --------------------------------------------------------------
   {
     slug: 'ecoguinea',
