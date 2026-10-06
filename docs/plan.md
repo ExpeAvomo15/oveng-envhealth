@@ -279,7 +279,7 @@ mismo y no un dato de ejemplo.
       antes de cualquier lanzamiento.
 - [ ] **F3.2 lanzamiento concentrado** — con la comunidad *beachhead*.
 - [ ] **F3.3 motor de contenido y tarjetas compartibles**. Las tarjetas se
-      construyen en **F4.8**; aquí va el ritmo de publicación que las usa.
+      construyen en **F4.9**; aquí va el ritmo de publicación que las usa.
 
 El orden no es negociable: F3.1 sirve para confirmar o tumbar la tesis de
 producto mientras cambiarla es barato, y adelantar F3.2 la convierte en una
@@ -308,6 +308,9 @@ F4.7.
 
 **Y una tercera** al entrar F4.5 (Turismo Verde por ubicación): pasan a F4.6,
 F4.7 y F4.8.
+
+**Y una cuarta** al entrar F4.6 (chat 1 a 1, el 2026-10-06): pasan a F4.7, F4.8
+y F4.9.
 
 - [x] **F4.1 pieza mínima** — aire en vivo de Open-Meteo (modelo CAMS de
       Copernicus) en la tarjeta de zona del feed, en el mapa —el **centro del
@@ -422,14 +425,40 @@ F4.7 y F4.8.
       vacío honesto y los tres más cercanos, y proponer sin y con cuenta.
       Capturas en `docs/verificacion/f45/`. Las diecisiete verificaciones del
       repositorio en verde.
-- [ ] **F4.6 procedencia completa + OpenAQ** — lecturas con fuente, método,
+- [x] **F4.6 chat 1 a 1** — mensajes privados entre dos personas, **solo
+      texto**, con **solicitud** como Instagram: el primer mensaje llega a
+      "Solicitudes" y quien lo recibe lo lee y decide —Aceptar o Rechazar, sin
+      que se le diga a quien lo pidió que se ha rechazado— antes de poder
+      responder. **Bloqueo** en los dos sentidos, **no leídos** en la cabecera
+      de Inicio y en la lista, y **tiempo real** con Supabase Realtime.
+      **Se ve que se puede chatear, como en cualquier red social:** un
+      bocadillo 💬 en la cabecera de Inicio (también sin cuenta), otro junto al
+      autor de cada publicación y en cada persona de Buscar, y "Enviar mensaje"
+      con su icono al lado de "Seguir" en el perfil. Sin cuenta, llevan a
+      entrar. Migración **`008`** (`blocks`, `conversations`,
+      `messages`): toda la privacidad la impone RLS —solo las dos personas leen,
+      solo el destinatario acepta y marca como leído, nadie escribe con un
+      bloqueo de por medio—, y Realtime respeta esas mismas políticas.
+      **Sin imágenes, grupos ni notificaciones push** en esta versión.
+      Verificado contra la base real, con la `008` aplicada, con
+      `npm run verify:f46`: un tercero no lee ni escribe (tampoco por enlace
+      directo), nadie escribe en nombre de otro ni acepta su propia solicitud,
+      solicitud → aceptación, **tiempo real entre dos sesiones abiertas (0,8 s)**,
+      no leídos en la cabecera y en la lista que se marcan al abrir, y el
+      bloqueado que ya no puede escribir. Realtime no pidió nada en el
+      dashboard. Capturas en `docs/verificacion/f46/`. Las dieciocho
+      verificaciones del repositorio en verde.
+      **Denunciar mensajes y moderación son OBLIGATORIOS** antes de abrir al
+      público general (ver backlog): sin ellos, un chat privado es un canal de
+      acoso que nadie ve.
+- [ ] **F4.7 procedencia completa + OpenAQ** — lecturas con fuente, método,
       origen e instante (migración); OpenAQ donde haya estación; etiqueta del
       dato curado. OpenAQ pide clave: depende del criterio de fuentes de F4.3
-      y del servidor de F4.7.
-- [ ] **F4.7 cron en Railway** — lecturas horarias en Supabase: histórico, la
+      y del servidor de F4.8.
+- [ ] **F4.8 cron en Railway** — lecturas horarias en Supabase: histórico, la
       clave de OpenAQ fuera del cliente y sin gastar una llamada por visita.
       Desbloquea la gráfica de evolución.
-- [ ] **F4.8 compartir con marca** — todo lo que sale de la plataforma lleva
+- [ ] **F4.9 compartir con marca** — todo lo que sale de la plataforma lleva
       marca y camino de vuelta; dentro, el contenido queda limpio. Tarjetas 9:16
       para estados de WhatsApp (contenido, logo, dato y URL), marca de agua con
       la tortuga-O blanca **solo** al descargar o compartir una imagen como
@@ -443,6 +472,21 @@ F4.7 y F4.8.
 Todo lo que se dejó fuera **a propósito**, agrupado y sin repetir. Nada de esto
 es un olvido: cada línea dice por qué está aquí y no en el producto.
 
+### Mensajes: OBLIGATORIO antes de abrir al público general (post-F3)
+
+**No es opcional.** F4.6 se puede enseñar a la comunidad *beachhead* —gente que
+se conoce y a la que el autor conoce—; no se puede abrir a desconocidos sin esto:
+
+- **Denunciar un mensaje** (y a quien lo envía), con el mensaje denunciado
+  guardado tal cual aunque se borre después.
+- **Moderación:** alguien que revise las denuncias, y la capacidad de suspender
+  una cuenta. Hoy nadie puede leer una conversación ajena —RLS lo impide, y es
+  lo que se quiere—, así que la denuncia es la **única** forma de que un abuso
+  llegue a ojos de alguien.
+- **Límite de solicitudes** por cuenta y día, contra el envío masivo.
+
+Fuera de esta lista, y sin prisa: imágenes, grupos y notificaciones push.
+
 ### Datos ambientales
 
 - **Capas sobre el territorio.** El mapa enseña entidades, no superficies de
@@ -452,7 +496,7 @@ es un olvido: cada línea dice por qué está aquí y no en el producto.
   no tiene. Probablemente PostGIS: `location` de `posts` es hoy texto libre.
 - **Series temporales y la gráfica de "Evolución de la calidad ambiental"**
   (mockup 1). `entity_metrics` guarda un valor por métrica con su `updated_at`,
-  no un histórico. Llega con el cron de **F4.7**, que acumula lecturas reales;
+  no un histórico. Llega con el cron de **F4.8**, que acumula lecturas reales;
   dibujar cinco puntos inventados sería lo contrario de la trazabilidad que
   costó conseguir en F2.1.
 - **Proveedor de teselas propio.** Las de openstreetmap.org son un servicio

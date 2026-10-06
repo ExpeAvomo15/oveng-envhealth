@@ -1,6 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Pressable, StyleSheet, View } from 'react-native';
 
+import { ChatButton } from '@/components/chat/chat-button';
 import { Avatar, Button, Text } from '@/components/ui';
 import type { Profile } from '@/lib/database.types';
 import { profileName } from '@/lib/profiles';
@@ -60,6 +61,8 @@ export function PersonCard({
           </Text>
         </View>
       </Pressable>
+
+      {canFollow ? <ChatButton personId={profile.id} personName={name} size={34} /> : null}
 
       {canFollow ? (
         <Button

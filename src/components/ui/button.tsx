@@ -1,3 +1,5 @@
+import Ionicons from '@expo/vector-icons/Ionicons';
+import type { ComponentProps } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, View, type ViewStyle } from 'react-native';
 
 import { colors, radius, spacing } from '@/theme';
@@ -21,6 +23,8 @@ export type ButtonProps = {
   disabled?: boolean;
   loading?: boolean;
   fullWidth?: boolean;
+  /** Icono delante del texto, para que la acción se reconozca sin leer. */
+  icon?: ComponentProps<typeof Ionicons>['name'];
   style?: ViewStyle;
 };
 
@@ -32,6 +36,7 @@ export function Button({
   disabled = false,
   loading = false,
   fullWidth = false,
+  icon,
   style,
 }: ButtonProps) {
   const isInactive = disabled || loading;
@@ -45,6 +50,8 @@ export function Button({
       onPress={onPress}
       disabled={isInactive}
       accessibilityRole="button"
+      // El nombre es el texto: el glifo del icono no debe leerse.
+      accessibilityLabel={icon ? label : undefined}
       accessibilityState={{ disabled: isInactive, busy: loading }}
       style={({ pressed }) => [
         styles.base,
@@ -62,6 +69,13 @@ export function Button({
         />
       ) : (
         <View style={styles.labelWrap}>
+          {icon ? (
+            <Ionicons
+              name={icon}
+              size={size === 'sm' ? 16 : 18}
+              color={isInactive ? colors.textMuted : variant === 'primary' ? colors.textInverse : colors.accent}
+            />
+          ) : null}
           <Text variant={labelVariant} color={labelColor} numberOfLines={1}>
             {label}
           </Text>

@@ -278,11 +278,47 @@ parcial `(entity_id, created_at desc) where entity_id is not null`. Que sea un
 lugar lo comprueba la app: un `check` necesitaría una subconsulta. RLS de
 `posts` sin cambios.
 
+### Mensajes 1 a 1 (F4.6, migración `008`)
+
+Lo **único privado** del producto: todo lo demás se lee sin cuenta, una
+conversación solo la leen las dos personas que hablan.
+
+| Tabla | Qué guarda |
+| ----- | ---------- |
+| `blocks` | `(blocker_id, blocked_id)`, PK compuesta y `check` contra bloquearse a uno mismo. Solo la ve quien bloquea: el bloqueado no sabe quién le bloqueó. |
+| `conversations` | Una por pareja: `user_low < user_high` con `unique`, así que entre dos personas hay **una** conversación, la empiece quien la empiece. `requested_by`, `status` (`pending` → `accepted` / `declined`) y `last_message_at`, que mueve un trigger. |
+| `messages` | `conversation_id`, `sender_id`, `body` (1–2000 tras quitar espacios), `created_at` y `read_at`, que marca el destinatario. |
+
+**`public.is_blocked_between(a, b)`** dice si hay un bloqueo en cualquier
+sentido. Es `security definer` porque las políticas de mensajes necesitan
+saberlo aunque quien escribe sea el bloqueado, que no puede leer `blocks`; y
+solo responde si quien pregunta es `a` o `b`, así que no sirve para averiguar
+bloqueos ajenos.
+
+**Columnas que la app puede cambiar:** en `conversations`, solo `status`; en
+`messages`, solo `read_at`. Va con `grant update (columna)` además de la
+política: la política dice **quién**, el permiso de columna dice **qué**. Así
+nadie mueve la pareja, cambia quién pidió la conversación ni reescribe un
+mensaje enviado.
+
+**`touch_conversation`** (trigger `after insert` en `messages`, `security
+definer`) sube `last_message_at`: lo hace la base para que nadie necesite
+permiso sobre esa columna.
+
+**Tiempo real.** `messages` y `conversations` entran en la publicación
+`supabase_realtime`. Realtime aplica la RLS de quien escucha: un mensaje solo le
+llega a quien puede leerlo.
+
+**Sin DELETE** en conversaciones ni mensajes, todavía. Denunciar y moderar son
+obligatorios antes de abrir al público general (@docs/plan.md).
+
 ## Políticas RLS
 
-El mismo patrón en las diez tablas: **cualquiera lee**; lo que escribe la gente
-solo lo escribe su propietario, y el contenido curado (`entities`,
-`entity_metrics`) no lo escribe nadie desde la app.
+Dos patrones. En las diez tablas públicas, **cualquiera lee**; lo que escribe la
+gente solo lo escribe su propietario, y el contenido curado (`entities`,
+`entity_metrics`) no lo escribe nadie desde la app. En las tres del chat
+(`blocks`, `conversations`, `messages`) **solo leen las personas implicadas**, y
+ningún anónimo lee nada.
 
 | Tabla      | SELECT            | INSERT                       | UPDATE                       | DELETE                       |
 | ---------- | ----------------- | ---------------------------- | ---------------------------- | ---------------------------- |
@@ -296,6 +332,9 @@ solo lo escribe su propietario, y el contenido curado (`entities`,
 | `entity_follows` | público (`true`) | `auth.uid() = user_id` | — sin política               | `auth.uid() = user_id`       |
 | `entity_admins` | público (`true`) | propio, `role = admin`, `status = approved` | — sin política | `auth.uid() = user_id` |
 | `jobs` | activas, o propias | propio **y** admin aprobado de la entidad | ídem | ídem |
+| `blocks` | solo quien bloquea | `auth.uid() = blocker_id` | — sin política | `auth.uid() = blocker_id` |
+| `conversations` | las dos personas | quien pide, siendo parte, `pending` y sin bloqueo | solo el destinatario, a `accepted`/`declined`; solo `status` | — sin política |
+| `messages` | las dos personas | propio, en conversación aceptada (o pendiente si la pediste) y sin bloqueo | solo el destinatario; solo `read_at` | — sin política |
 
 `entities` y `entity_metrics` **no tienen ninguna política de escritura**, y es
 deliberado: son contenido curado. RLS deniega por defecto, así que ni un
@@ -434,6 +473,7 @@ Viven en `supabase/migrations/`:
 | `005_entity_admins.sql` | Administradores de páginas: `entity_admins` y sus políticas (F4.4). |
 | `006_jobs.sql` | Ofertas de empleo: enumerado `job_type`, `jobs` y sus políticas (F4.4). |
 | `007_post_entities.sql` | Lugar etiquetado en una publicación: `posts.entity_id` e índice (F4.4). |
+| `008_messages.sql` | Mensajes 1 a 1: `blocks`, `conversations`, `messages`, la función `is_blocked_between`, el trigger `touch_conversation` y la publicación de Realtime (F4.6). |
 
 Cada una va envuelta en `begin; … commit;`: si algo falla a mitad, no queda nada
 aplicado a medias.
@@ -458,6 +498,10 @@ medias, pero tampoco aplica la mitad buena.
 8. Repetir con `006_jobs.sql` —**después** de `005`: sus políticas consultan
    `entity_admins`—.
 9. Repetir con `007_post_entities.sql`.
+10. Repetir con `008_messages.sql`. Su última línea añade `messages` y
+    `conversations` a la publicación `supabase_realtime`; para comprobarlo,
+    **Database → Publications → supabase_realtime** debe listar las dos (o
+    ver el paso 10 de la verificación).
 
 Si el paso 4 devuelve un error de permisos al crear políticas sobre
 `storage.objects`, crear las mismas reglas desde **Storage → Policies** en el
@@ -542,7 +586,7 @@ npm run verify:f44    # 005-007: claims, ofertas y su RLS, lugares etiquetados
 Lo de abajo es la comprobación a mano, en el **SQL Editor**, para cuando algo
 falla y hay que ver por qué.
 
-### 1. RLS activado en las diez tablas
+### 1. RLS activado en las trece tablas
 
 ```sql
 select relname as tabla, relrowsecurity as rls_activado
@@ -551,9 +595,11 @@ where relnamespace = 'public'::regnamespace and relkind = 'r'
 order by relname;
 ```
 
-Las diez deben dar `true`: `profiles`, `posts`, `follows`, `likes`, `entities`,
-`entity_metrics`, `entity_ratings`, `entity_follows`, `entity_admins` y `jobs`. Una sola en `false` es
-una tabla abierta a internet.
+Las trece deben dar `true`: `profiles`, `posts`, `follows`, `likes`, `entities`,
+`entity_metrics`, `entity_ratings`, `entity_follows`, `entity_admins`, `jobs`,
+`blocks`, `conversations` y `messages`. Una sola en `false` es una tabla
+abierta a internet — y en las tres del chat, conversaciones privadas a la vista
+de cualquiera.
 
 `entity_rating_summary` no sale en esta consulta porque es una vista, no una
 tabla. La suya se comprueba en el punto 8.
@@ -567,7 +613,7 @@ where schemaname = 'public'
 order by tablename, cmd;
 ```
 
-Esperado, 30 en total:
+Esperado, 39 en total:
 
 | Tabla | Políticas | |
 | ----- | --------- | - |
@@ -581,6 +627,9 @@ Esperado, 30 en total:
 | `entity_follows` | 3 | sin UPDATE: una fila de seguimiento no se actualiza |
 | `entity_admins` | 3 | sin UPDATE: hoy nadie cambia un rol |
 | `jobs` | 4 | escribir, solo administradores aprobados de la entidad |
+| `blocks` | 3 | sin UPDATE |
+| `conversations` | 3 | sin DELETE |
+| `messages` | 3 | sin DELETE |
 
 ### 3. El trigger crea el perfil
 
@@ -783,6 +832,32 @@ rollback;
 
 Un anónimo no puede insertar en ningún caso: la política de INSERT es solo para
 `authenticated`.
+
+### 10. Mensajes (migración 008)
+
+**Lo rápido:** `npm run verify:f46` lo comprueba todo con tres cuentas de prueba
+—dos que se escriben y una tercera que no debe ver nada— y las borra al acabar.
+
+A mano, que Realtime emite las dos tablas:
+
+```sql
+select tablename from pg_publication_tables
+where pubname = 'supabase_realtime' and schemaname = 'public'
+order by tablename;
+```
+
+Deben salir `conversations` y `messages`. Si faltan, los mensajes se guardan
+pero no llegan solos: hay que recargar para verlos.
+
+Y que un anónimo no lee nada:
+
+```sql
+begin;
+  set local role anon;
+  select count(*) from public.messages;       -- 0
+  select count(*) from public.conversations;  -- 0
+rollback;
+```
 
 ## Limitaciones conocidas
 

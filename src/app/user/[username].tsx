@@ -16,6 +16,7 @@ import {
   unfollowUser,
   type ProfileCounts as Counts,
 } from '@/lib/profiles';
+import { MessagesUnavailable, openConversationWith } from '@/lib/messages';
 import { colors, radius, screenPadding, spacing } from '@/theme';
 
 type PublicProfileData = {
@@ -60,6 +61,7 @@ export default function PublicProfileScreen() {
   const [loaded, setLoaded] = useState<PublicProfileData | null>(null);
 
   const [busy, setBusy] = useState(false);
+  const [opening, setOpening] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [tab, setTab] = useState<ProfileTab>('publicaciones');
 
@@ -147,6 +149,32 @@ export default function PublicProfileScreen() {
     }
   }
 
+  /**
+   * Abre la conversación con esta cuenta (F4.6): la que ya hubiera, o una
+   * solicitud nueva. Sin cuenta, lleva a entrar, como seguir.
+   */
+  async function openChat() {
+    if (!profile) return;
+    if (!viewerId) {
+      router.push('/welcome');
+      return;
+    }
+    setOpening(true);
+    setError(null);
+    try {
+      const id = await openConversationWith(viewerId, profile.id);
+      router.push({ pathname: '/mensajes/[id]', params: { id } });
+    } catch (caught) {
+      setError(
+        caught instanceof MessagesUnavailable
+          ? 'Los mensajes todavía no están disponibles.'
+          : 'No se ha podido abrir la conversación.',
+      );
+    } finally {
+      setOpening(false);
+    }
+  }
+
   if (loading) {
     return (
       <Screen scroll={false}>
@@ -185,7 +213,7 @@ export default function PublicProfileScreen() {
 
       <ProfileHeader profile={profile} />
 
-      <View style={styles.actions}>
+      <View style={[styles.actions, !isOwnProfile && styles.actionsRow]}>
         {isOwnProfile ? (
           <Button
             label="Editar perfil"
@@ -201,16 +229,35 @@ export default function PublicProfileScreen() {
             variant="secondary"
             fullWidth
             onPress={() => router.push('/welcome')}
+            style={styles.half}
           />
         ) : (
           <Button
             label={following ? 'Siguiendo' : 'Seguir'}
             variant={following ? 'secondary' : 'primary'}
             fullWidth
+            icon={following ? 'checkmark' : 'person-add-outline'}
             loading={busy}
             onPress={toggleFollow}
+            style={styles.half}
           />
         )}
+        {/*
+          Mensaje al lado de Seguir, con su bocadillo, como en Instagram: la
+          acción se reconoce por el dibujo antes de leerla (F4.6).
+        */}
+        {isOwnProfile ? null : (
+          <Button
+            label="Enviar mensaje"
+            icon="chatbubble-ellipses-outline"
+            variant="secondary"
+            fullWidth
+            loading={opening}
+            onPress={openChat}
+            style={styles.half}
+          />
+        )}
+
       </View>
 
       {error ? (
@@ -274,8 +321,15 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   actions: {
+    gap: spacing.sm,
     paddingHorizontal: screenPadding,
     paddingVertical: spacing.lg,
+  },
+  actionsRow: {
+    flexDirection: 'row',
+  },
+  half: {
+    flex: 1,
   },
   inset: {
     paddingHorizontal: screenPadding,

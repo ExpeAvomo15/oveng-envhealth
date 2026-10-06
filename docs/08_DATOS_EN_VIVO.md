@@ -36,7 +36,7 @@ algo que parezca un dato vivo.
 
 Fijado al empezar F4.3 (2026-10-04). Consecuencia directa: OpenAQ, Global
 Forest Watch y NASA FIRMS, que piden clave, quedan para cuando haya servidor
-(F4.7), y la calidad del agua sigue siendo curada.
+(F4.8), y la calidad del agua sigue siendo curada.
 
 ---
 
@@ -78,7 +78,7 @@ europeo 16 y PM2.5 de 3 µg/m³.
 
 **A cerrar antes de usarlo en serio:** el uso gratuito es **no comercial** y con
 límite de llamadas diarias, y los datos piden atribución. Hay que revisar las
-condiciones vigentes antes de cualquier uso comercial, y el cron de F4.7 sirve
+condiciones vigentes antes de cualquier uso comercial, y el cron de F4.8 sirve
 también para no gastar una llamada por visita.
 
 ### OpenAQ: estaciones de verdad
@@ -86,11 +86,11 @@ también para no gastar una llamada por visita.
 Una estación mide; un modelo estima. Donde haya una estación cerca, su dato
 gana. La API v3 **exige clave** (sin ella responde 401, comprobado), y la clave
 **no puede ir en el bundle** —sería pública—, así que OpenAQ entra con el
-servidor de F4.7, no antes.
+servidor de F4.8, no antes.
 
 **Cobertura en Guinea Ecuatorial: por medir.** Lo probable es que no haya
 ninguna estación y que allí todo sea Open-Meteo; en Málaga y Andalucía sí hay
-red oficial. Se mide al empezar F4.6, no se supone.
+red oficial. Se mide al empezar F4.7, no se supone.
 
 ### GBIF: biodiversidad, a evaluar
 
@@ -119,7 +119,7 @@ graph LR
     subgraph curado["Curado"]
         seed["seed de entidades<br/>entity_metrics"]
     end
-    cron["cron F4.7<br/>Railway"]
+    cron["cron F4.8<br/>Railway"]
     db[("Supabase<br/>lecturas + procedencia")]
     app["App"]
 
@@ -133,7 +133,7 @@ graph LR
 
 - **F4.1, sin servidor.** El cliente pide a Open-Meteo la coordenada que toca.
   Sin clave, sin migración, sin despliegue nuevo: por eso cabe en una sesión.
-- **F4.7, con servidor.** Un cron en **Railway** consulta las fuentes por
+- **F4.8, con servidor.** Un cron en **Railway** consulta las fuentes por
   horas, guarda cada lectura en Supabase con su procedencia y deja la app
   leyendo de su propia base. Tres cosas que el cliente solo no puede:
   esconder la clave de OpenAQ, **acumular histórico** —que es lo que desbloquea
@@ -153,7 +153,7 @@ Toda lectura guarda, además del valor, **de dónde sale y cómo se obtuvo**:
 | instante de la medición | no el de la consulta |
 | distancia | de la estación o del punto de rejilla al lugar pedido |
 
-Es una migración y la aplica una persona a mano; se diseña en F4.6.
+Es una migración y la aplica una persona a mano; se diseña en F4.7.
 
 ---
 
@@ -187,7 +187,7 @@ F2.4 no dibujó una gráfica sin histórico. Esta etapa le pone nombre.
   ninguna parte se lee como decoración.
 - **Tu zona frente a la media, como mecánica compartible.** "El aire en tu zona
   está mejor que el 80 % de la región hoy" es una frase que se reenvía; un
-  "AQI 22" no. Es la materia de las tarjetas de F4.8.
+  "AQI 22" no. Es la materia de las tarjetas de F4.9.
 - **Una escala de índice, y la misma en todas partes.** Open-Meteo da US AQI y
   europeo, con tramos distintos. **Decidido en F4.1: el AQI europeo**, y la
   pantalla lo dice ("15 AQI europeo"). El 42 "Bueno" de los mockups es de otra
@@ -218,9 +218,9 @@ pareciendo una medición.
 | **F4.3** dato vivo por categoría ✅ | Suelo y biodiversidad en vivo en la tarjeta del mapa, agua honestamente ausente, cada término explicado en lenguaje llano (más recuperar contraseña). **Hecha el 2026-10-04.** | 1 sesión |
 | **F4.4** feed denso, Turismo Verde y Empleo | No es dato en vivo: es producto social (páginas administradas, ofertas, lugares con publicaciones). Va en F4 por orden de llegada. Ver @docs/plan.md. | 1 sesión |
 | **F4.5** Turismo Verde por ubicación | Producto, no dato en vivo: lugares por distancia, "Cómo llegar" a Google Maps y estado vacío que invita a proponer. Usa la geocodificación de F4.2. | 1 sesión |
-| **F4.6** procedencia completa + OpenAQ | Modelo de lecturas con procedencia (migración), OpenAQ donde haya estación cerca, etiqueta del dato curado. | Fase |
-| **F4.7** cron en Railway | Lecturas horarias guardadas en Supabase: histórico, clave de OpenAQ fuera del cliente y sin depender del límite por visita. Desbloquea la gráfica de evolución. | Fase |
-| **F4.8** compartir con marca | Tarjetas, marca de agua y OG tags, con el dato y su procedencia dentro. Descrita en @docs/07_CRECIMIENTO.md. | Fase |
+| **F4.7** procedencia completa + OpenAQ | Modelo de lecturas con procedencia (migración), OpenAQ donde haya estación cerca, etiqueta del dato curado. | Fase |
+| **F4.8** cron en Railway | Lecturas horarias guardadas en Supabase: histórico, clave de OpenAQ fuera del cliente y sin depender del límite por visita. Desbloquea la gráfica de evolución. | Fase |
+| **F4.9** compartir con marca | Tarjetas, marca de agua y OG tags, con el dato y su procedencia dentro. Descrita en @docs/07_CRECIMIENTO.md. | Fase |
 
 ### F4.1, cómo quedó
 
@@ -311,9 +311,9 @@ La tabla de referencia tras F4.3, según el criterio de fuentes de arriba.
 | Agua (pH, calidad) | **Curado** | Ficha de la entidad | Mapa (capa Agua), perfil, feed |
 | Cobertura forestal | **Curado** | Ficha de la entidad | Perfil |
 | Notas sobre 10 y calidad general | **Curado** | Ficha de la entidad | Perfil, feed |
-| Aire por estaciones | **Futuro, pide clave** | OpenAQ | F4.6–F4.7 |
-| Bosque y deforestación | **Futuro, pide clave** (a confirmar) | Global Forest Watch | Con servidor (F4.7) |
-| Incendios activos | **Futuro, pide clave** | NASA FIRMS | Con servidor (F4.7) |
+| Aire por estaciones | **Futuro, pide clave** | OpenAQ | F4.7–F4.8 |
+| Bosque y deforestación | **Futuro, pide clave** (a confirmar) | Global Forest Watch | Con servidor (F4.8) |
+| Incendios activos | **Futuro, pide clave** | NASA FIRMS | Con servidor (F4.8) |
 
 ---
 
@@ -328,7 +328,7 @@ su documentación y se confirma al integrarlo.
 | Lugares | **Open-Meteo Geocoding** | Ciudades, regiones y países por nombre, en español | Sin clave · *comprobado* | **En uso desde F4.2** (búsqueda del mapa) |
 | Suelo | **Open-Meteo Forecast** | Humedad del suelo, cada 15 min | Sin clave · *comprobado* | **En uso desde F4.3** |
 | Biodiversidad | **GBIF** (en uso) | Observaciones en un radio | Sin clave · *comprobado* | **En uso desde F4.3** (capa y perfil) |
-| Aire | **OpenAQ** | Mediciones de estaciones reales | Clave gratuita · *sin clave da 401, comprobado* | F4.6, preferente donde haya estación cerca |
+| Aire | **OpenAQ** | Mediciones de estaciones reales | Clave gratuita · *sin clave da 401, comprobado* | F4.7, preferente donde haya estación cerca |
 | Bosque | **Global Forest Watch** | Pérdida de cobertura arbórea anual y alertas de deforestación por satélite | El listado de datos es público; las consultas, a confirmar si piden clave | **Candidata fuerte para los parques**: Monte Alén, Pico Basilé |
 | Fuego | **NASA FIRMS** | Incendios activos de MODIS y VIIRS, casi en tiempo real | `MAP_KEY` gratuita · *sin ella responde "Invalid MAP_KEY", comprobado* | Candidata para una **capa del mapa** |
 | Ríos | **Open-Meteo Flood** (GloFAS) | Caudal diario de ríos, con previsión | Sin clave · *comprobado* | Caudal, **no calidad**. Rejilla de unos 5 km: en la desembocadura del Ntem devolvió 2 m³/s, que no es el caudal del río principal (probablemente otra celda de la cuenca). Hay que apuntar la celda al cauce. |

@@ -28,6 +28,7 @@ El porqué de cada una, enlazado.
 - Seis categorías (unión de los mockups) con color fijo; una guarda de tipos rompe la compilación si base y theme divergen. [F2.1]
 - Migraciones a mano en el SQL Editor, `begin…commit`, no re-ejecutables. Una preferencia de vista no justifica una migración. [F0.3] [F2.5]
 - Feed: `select` anidado y cursor por `created_at`; sin lector no se pide `my_like`. [F1.5] [F2.6]
+- Mensajes: lo **único privado**. RLS dice quién y `grant update (columna)` dice qué; Realtime aplica la misma RLS. Solicitud antes de conversar; denunciar y moderar, obligatorios antes de abrir al público. [F4.6]
 - "Tu zona" es **elegida**, no detectada, y una zona es un recuadro de coordenadas, no un país. [F2.5]
 
 ### Interfaz
@@ -65,7 +66,7 @@ El porqué de cada una, enlazado.
 - **Procedencia siempre visible**: 🛰️ estimación, 📡 estación, 📋 curado. Nunca un dato sin su origen. @docs/08_DATOS_EN_VIVO.md
 - Aire en **AQI europeo**, seis tramos oficiales; el curado de los mockups es otra escala y no se mezcla.
 - **Ubicación solo con permiso, pedido por un gesto**; vive en memoria, nunca en base ni dispositivo, y sale a dos decimales.
-- Una API externa caída **no rompe** nada: se cae al dato curado con su etiqueta. Claves de API, nunca en el bundle (F4.7).
+- Una API externa caída **no rompe** nada: se cae al dato curado con su etiqueta. Claves de API, nunca en el bundle (F4.8).
 
 - La leyenda del mapa **elige una capa** y la tarjeta enseña su dato; energía y residuos solo cuentan entidades.
 - **Lenguaje para 12 años** (AGENTS.md): palabra primero, cifra después, ⓘ al lado y nunca dentro de otro pulsable.
@@ -96,6 +97,102 @@ La lista mantenida es el **backlog de @docs/plan.md**. Fuera de ella, sueltos:
 
 ---
 
+## 2026-10-06 — F4.6: chat 1 a 1
+
+Mensajes privados entre dos personas: texto, solicitud, bloqueo, no leídos y
+tiempo real. Alcance confirmado por el autor: **sin imágenes, grupos ni push**.
+
+### Solicitud, como Instagram
+
+El primer mensaje no abre una conversación: llega a **Solicitudes**, quien lo
+recibe lo lee y decide. Hasta que acepta, solo escribe quien pidió; quien
+recibe no puede responder sin aceptar antes, y rechazar **no se le dice** a
+quien pidió (se entera solo porque ya no puede escribir; eso es honesto y no
+se esconde). Es la defensa más barata contra que cualquiera te escriba: el
+coste de abrir la puerta lo decide quien la tiene.
+
+Entre dos personas hay **una sola conversación**: la pareja se guarda ordenada
+(`user_low < user_high`) con `unique`, la empiece quien la empiece. "Enviar
+mensaje" abre la que haya o crea la solicitud; una solicitud **sin mensajes**
+no se le enseña a quien la recibe, porque todavía no le han dicho nada.
+
+### La privacidad la impone la base, y Realtime la respeta
+
+Es lo primero privado del producto —todo lo demás se lee sin cuenta— y por eso
+no hay ni una regla de acceso en el cliente que no esté también en RLS:
+
+- Leer: solo las dos personas. Un tercero, ni por enlace directo: la pantalla
+  dice "No encontramos esta conversación", que es exactamente lo que ve.
+- Escribir: en nombre propio, en conversación aceptada (o pendiente si la
+  pediste) y **sin bloqueo en ningún sentido**.
+- Cambiar: la política dice **quién** y `grant update (columna)` dice **qué**.
+  En `conversations` solo `status` y solo el destinatario; en `messages` solo
+  `read_at` y solo quien recibe. Sin el permiso por columna, el destinatario
+  podría haber movido `requested_by` y convertirse en quien pidió.
+- El bloqueo se consulta con una función `security definer` porque la política
+  tiene que saberlo aunque escriba el bloqueado, que no puede leer `blocks` —
+  y solo responde a una de las dos personas, para no servir de oráculo.
+
+Realtime (`postgres_changes`) aplica la RLS de quien escucha: supabase-js le
+pasa el token de la sesión al entrar y al refrescarlo. Así que **no hay canal
+privado que montar**: se escucha la tabla y a cada uno le llega lo suyo.
+
+### Que se vea que se puede chatear
+
+La primera versión solo tenía un botón de texto en el perfil y el icono de la
+cabecera, este solo con sesión. El autor lo cazó: **no se veía** que con
+alguien se puede hablar. Ahora hay un bocadillo 💬 —el gesto de WhatsApp e
+Instagram— allí donde aparece una persona: junto al autor de cada publicación,
+en cada persona de Buscar, al lado de "Seguir" en el perfil y siempre en la
+cabecera. Un único `ChatButton` y un único `useStartChat`; sin cuenta llevan a
+la bienvenida, que es la regla de siempre: se ve que se puede, se pide la
+cuenta al actuar. `Button` gana un `icon`, con el texto como nombre accesible
+para que el glifo no se lea.
+
+### No leídos, sin contadores guardados
+
+Los no leídos se **cuentan** (`read_at is null` y no soy quien envía), no se
+guardan en un contador que haya que mantener. Se marcan al tener la
+conversación delante —con la pantalla enfocada, no debajo de otra— y la
+cabecera de Inicio se refresca sola con los eventos de Realtime. El nombre
+accesible del icono dice cuánto es cada cosa: "Mensajes, 2 sin leer, 1
+solicitud".
+
+Contar en el cliente con hasta mil mensajes recientes vale para la demo; con
+volumen, una vista o un RPC. Anotado, no resuelto.
+
+### Lo que falta es obligatorio, no opcional
+
+Un chat privado sin forma de denunciar es un canal de acoso que nadie ve: RLS
+impide —a propósito— que nadie lea conversaciones ajenas, así que la denuncia
+es la **única** vía por la que un abuso llega a alguien. Denunciar mensajes,
+moderación y un límite de solicitudes van en el plan como **obligatorios antes
+de abrir al público general (post-F3)**. Para la comunidad *beachhead*, que se
+conoce, vale con bloquear.
+
+### Migración 008
+
+La aplicó el autor en el SQL Editor (instrucciones en @docs/03_MODELO_DATOS.md,
+paso 10). Antes de aplicarla se comprobó que la app **degrada**: la bandeja
+sale vacía, el icono sin números y "Enviar mensaje" dice que los mensajes
+todavía no están disponibles, sin errores de página. Una segunda ejecución da
+`already exists` y no cambia nada: la migración no es re-ejecutable, como todas.
+
+**Realtime no pidió nada en el dashboard**: la propia migración añade las dos
+tablas a `supabase_realtime`, y en la verificación un mensaje llegó a la otra
+sesión en **0,8 s** sin recargar.
+
+**Un localizador, otra vez.** El primer `verify:f46` falló con la pantalla
+correcta delante: el texto del mensaje salía dos veces porque la lista de Chats
+sigue montada debajo de la conversación, con el mensaje como vista previa. Las
+esperas por texto miran ahora solo lo visible.
+
+En la batería completa, `verify:f24` falló una vez esperando el botón
+"Valorar" (30 s) y pasó entero al repetirlo, sin cambios: lentitud de la red,
+no del código. Si se repite, es el primero al que mirar.
+
+---
+
 ## 2026-10-04 — F4.5: Turismo Verde por ubicación
 
 **Pantalla propia, no un modo de Buscar.** `/turismo-verde` tiene un buscador
@@ -116,61 +213,3 @@ nombre (se usó la reserva natural). Sin métricas: no hay fuente.
 **Curación es marca.** Donde no hay lugares no se rellena con OpenStreetMap: se
 dice, se enseñan los tres más cercanos y se invita a proponer (#TurismoVerde en
 el compositor). La propuesta formal es post-F3.
-
----
-
-## 2026-10-04 — F4.4: feed denso, Turismo Verde y Empleo
-
-**Modelo LinkedIn adaptado.** Solo hay cuentas de personas; una entidad es una
-página que gestionan personas (`entity_admins`, migración `005`). Reclamar da
-admin **al instante**: la política de INSERT obliga a `role = admin` y `status
-= approved`, así que nadie se da un rol mayor escribiendo el campo. La tabla
-nace con `role` y `status` para la verificación y los roles de después de F3.
-
-**Ofertas de ejemplo con `created_by` nulo.** El encargo dejaba elegir. Nulo es
-lo más limpio con la RLS: escribir exige `created_by = auth.uid()`, así que
-nadie las edita desde la app —son curadas, como `entities`— y la app las marca
-"Oferta de ejemplo" y no ofrece aplicar. Inventadas, sí: por eso se dice.
-
-**El feed sobrevive sin la migración 007.** Pide el lugar etiquetado y, si
-PostgREST dice que la relación no existe (`PGRST200`/`42703`), repite sin él y
-lo recuerda. Es la ventana de F2.2 otra vez: se despliega antes de aplicar.
-
-**Una consulta HEAD a una tabla que no existe no da error**: `count: null` y
-204. Para detectar una migración sin aplicar, `select` normal.
-
-**Renumerado otra vez:** procedencia + OpenAQ, cron y compartir pasan a F4.5,
-F4.6 y F4.7.
-
-**Los seeds escribían como anónimos y no lo decían.** `seed:jobs` falló con
-"new row violates row-level security policy" y `seed:entities` "entró" sin
-cambiar nada. No era la `006`: `service_role` tiene `BYPASSRLS` y ese error
-solo sale si la petición llega como anónima, o sea, con la clave equivocada
-—el proyecto usa las claves nuevas, y la publicable y la secreta están juntas
-en el dashboard—. Ahora los dos seeds comprueban la clave **antes** de escribir
-(`scripts/lib/service-role.mjs`) y paran diciendo cuál han recibido.
-
-**Una carrera en el respaldo del feed:** dos peticiones a la vez, la primera
-apagaba el lugar y la segunda ya no reintentaba. Se reintenta según el `select`
-que usó cada una. Lo cazó `verify:f15`.
-
----
-
-<!-- Enlaces al archivo. Son enlaces, no imports: no llevan @. -->
-
-[F0.2]: notas-archivo-f0-f2.md#2026-09-18--f02-app-expo-y-design-system
-[F0.3]: notas-archivo-f0-f2.md#2026-09-18--f03-esquema-de-supabase-y-cliente
-[verif-f11]: notas-archivo-f0-f2.md#2026-09-18--verificación-de-f11-y-f12-contra-el-entorno-real
-[F1.2b]: notas-archivo-f0-f2.md#2026-09-18--f12b-despliegue-en-github-pages
-[F1.3]: notas-archivo-f0-f2.md#2026-09-18--f13-perfiles-completos-y-seguimiento
-[F1.4]: notas-archivo-f0-f2.md#2026-09-18--f14-composición-de-publicaciones
-[F1.5]: notas-archivo-f0-f2.md#2026-09-18--f15-feed-de-inicio
-[F1.6]: notas-archivo-f0-f2.md#2026-09-18--f16-cierre-del-mvp-social
-[F2.1]: notas-archivo-f0-f2.md#2026-09-19--f21-entidades-ambientales
-[diag-0927]: notas-archivo-f0-f2.md#2026-09-27--sesión-de-diagnóstico-el-seed-las-pruebas-caducas-y-las-capturas
-[crecimiento]: notas-archivo-f0-f2.md#2026-09-27--estrategia-de-crecimiento-y-una-tensión-con-la-visión
-[F2.2]: notas-archivo-f0-f2.md#2026-09-27--f22-el-directorio-de-buscar-y-seguir-entidades
-[F2.3]: notas-archivo-f0-f2.md#2026-09-27--f23-el-mapa-ambiental-y-las-rutas-públicas
-[F2.4]: notas-archivo-f0-f2.md#2026-09-27--f24-el-perfil-ambiental-y-una-regla-en-vez-de-dos-pantallas
-[F2.5]: notas-archivo-f0-f2.md#2026-09-27--f25-el-dato-ambiental-dentro-del-feed
-[F2.6]: notas-archivo-f0-f2.md#2026-09-27--f26-cierre-de-la-demo

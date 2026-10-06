@@ -4,6 +4,7 @@ import { usePathname, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Platform, Pressable, Share, StyleSheet, View } from 'react-native';
 
+import { ChatButton } from '@/components/chat/chat-button';
 import { Avatar, Text } from '@/components/ui';
 import { showToast } from '@/components/ui/toast';
 import { useAuth } from '@/hooks/use-auth';
@@ -132,6 +133,8 @@ export function PostCard({ post, onPressBody, variant = 'card' }: PostCardProps)
             </Text>
           </View>
         </Pressable>
+        {/* Hablar con quien publica, sin pasar por su perfil (F4.6). */}
+        <ChatButton personId={post.author.id} personName={authorName} size={34} />
       </View>
 
       {/*
@@ -253,6 +256,9 @@ const styles = StyleSheet.create({
   },
   headerRow: {
     flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.sm,
   },
   place: {
     flexDirection: 'row',

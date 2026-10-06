@@ -153,6 +153,8 @@ npm run verify:mvp     # recorrido completo en Chromium, con capturas
 | `verify:f42` | Mapa mundial: buscar lugares, "Mi ubicación" concedida y denegada, y la ubicación en el feed. Sin cuenta, con la ubicación simulada. |
 | `verify:f43` | Cada capa del mapa con su dato (suelo, naturaleza, agua, energía, residuos), cada ⓘ, las fuentes caídas, el perfil y recuperar contraseña. |
 | `verify:f44` | Feed denso, Turismo Verde con publicaciones etiquetadas, reclamar una página y publicar ofertas, y su RLS. Necesita las migraciones 005–007 y `seed:jobs`. |
+| `verify:f45` | Turismo Verde por ubicación: distancia, "Cómo llegar", "Cerca de mí" y el vacío honesto. |
+| `verify:f46` | Chat 1 a 1: solicitud y aceptación, tiempo real entre dos sesiones, no leídos, bloqueo, y que una tercera cuenta no ve nada. Necesita la migración 008. |
 | `verify:mvp` | El recorrido social de punta a punta (F1). |
 | `verify:demo` | **La demo completa**: el recorrido de un visitante, sin cuenta y con ella, incluido abrir una publicación, un perfil ajeno y Buscar sin cuenta. |
 

@@ -6,6 +6,64 @@ conservan íntegras y no se editan. Se enlaza, **nunca se importa con `@`**.
 
 ---
 
+## 2026-10-04 — F4.4: feed denso, Turismo Verde y Empleo
+
+**Modelo LinkedIn adaptado.** Solo hay cuentas de personas; una entidad es una
+página que gestionan personas (`entity_admins`, migración `005`). Reclamar da
+admin **al instante**: la política de INSERT obliga a `role = admin` y `status
+= approved`, así que nadie se da un rol mayor escribiendo el campo. La tabla
+nace con `role` y `status` para la verificación y los roles de después de F3.
+
+**Ofertas de ejemplo con `created_by` nulo.** El encargo dejaba elegir. Nulo es
+lo más limpio con la RLS: escribir exige `created_by = auth.uid()`, así que
+nadie las edita desde la app —son curadas, como `entities`— y la app las marca
+"Oferta de ejemplo" y no ofrece aplicar. Inventadas, sí: por eso se dice.
+
+**El feed sobrevive sin la migración 007.** Pide el lugar etiquetado y, si
+PostgREST dice que la relación no existe (`PGRST200`/`42703`), repite sin él y
+lo recuerda. Es la ventana de F2.2 otra vez: se despliega antes de aplicar.
+
+**Una consulta HEAD a una tabla que no existe no da error**: `count: null` y
+204. Para detectar una migración sin aplicar, `select` normal.
+
+**Renumerado otra vez:** procedencia + OpenAQ, cron y compartir pasan a F4.5,
+F4.6 y F4.7.
+
+**Los seeds escribían como anónimos y no lo decían.** `seed:jobs` falló con
+"new row violates row-level security policy" y `seed:entities` "entró" sin
+cambiar nada. No era la `006`: `service_role` tiene `BYPASSRLS` y ese error
+solo sale si la petición llega como anónima, o sea, con la clave equivocada
+—el proyecto usa las claves nuevas, y la publicable y la secreta están juntas
+en el dashboard—. Ahora los dos seeds comprueban la clave **antes** de escribir
+(`scripts/lib/service-role.mjs`) y paran diciendo cuál han recibido.
+
+**Una carrera en el respaldo del feed:** dos peticiones a la vez, la primera
+apagaba el lugar y la segunda ya no reintentaba. Se reintenta según el `select`
+que usó cada una. Lo cazó `verify:f15`.
+
+---
+
+<!-- Enlaces al archivo. Son enlaces, no imports: no llevan @. -->
+
+[F0.2]: notas-archivo-f0-f2.md#2026-09-18--f02-app-expo-y-design-system
+[F0.3]: notas-archivo-f0-f2.md#2026-09-18--f03-esquema-de-supabase-y-cliente
+[verif-f11]: notas-archivo-f0-f2.md#2026-09-18--verificación-de-f11-y-f12-contra-el-entorno-real
+[F1.2b]: notas-archivo-f0-f2.md#2026-09-18--f12b-despliegue-en-github-pages
+[F1.3]: notas-archivo-f0-f2.md#2026-09-18--f13-perfiles-completos-y-seguimiento
+[F1.4]: notas-archivo-f0-f2.md#2026-09-18--f14-composición-de-publicaciones
+[F1.5]: notas-archivo-f0-f2.md#2026-09-18--f15-feed-de-inicio
+[F1.6]: notas-archivo-f0-f2.md#2026-09-18--f16-cierre-del-mvp-social
+[F2.1]: notas-archivo-f0-f2.md#2026-09-19--f21-entidades-ambientales
+[diag-0927]: notas-archivo-f0-f2.md#2026-09-27--sesión-de-diagnóstico-el-seed-las-pruebas-caducas-y-las-capturas
+[crecimiento]: notas-archivo-f0-f2.md#2026-09-27--estrategia-de-crecimiento-y-una-tensión-con-la-visión
+[F2.2]: notas-archivo-f0-f2.md#2026-09-27--f22-el-directorio-de-buscar-y-seguir-entidades
+[F2.3]: notas-archivo-f0-f2.md#2026-09-27--f23-el-mapa-ambiental-y-las-rutas-públicas
+[F2.4]: notas-archivo-f0-f2.md#2026-09-27--f24-el-perfil-ambiental-y-una-regla-en-vez-de-dos-pantallas
+[F2.5]: notas-archivo-f0-f2.md#2026-09-27--f25-el-dato-ambiental-dentro-del-feed
+[F2.6]: notas-archivo-f0-f2.md#2026-09-27--f26-cierre-de-la-demo
+
+---
+
 ## 2026-10-04 — F4.1: aire en vivo de Open-Meteo
 
 Adelantada a F3 —que sigue en curso, en paralelo— para que las conversaciones
