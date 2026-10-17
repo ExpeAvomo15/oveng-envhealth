@@ -5,6 +5,7 @@ import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 
 import { Avatar, Button, Callout, Screen, Text, TextField } from '@/components/ui';
 import { useAuth } from '@/hooks/use-auth';
+import type { Profile } from '@/lib/database.types';
 import { pickAvatarImage, uploadAvatar } from '@/lib/avatars';
 import { profileName, updateProfile } from '@/lib/profiles';
 import { colors, radius, spacing } from '@/theme';
@@ -12,22 +13,20 @@ import { colors, radius, spacing } from '@/theme';
 const BIO_MAX_LENGTH = 160;
 
 export default function EditProfileScreen() {
-  const router = useRouter();
-  const { profile, refreshProfile } = useAuth();
+  const { profile } = useAuth();
 
-  const [displayName, setDisplayName] = useState(profile?.display_name ?? '');
-  const [bio, setBio] = useState(profile?.bio ?? '');
-  const [location, setLocation] = useState(profile?.location ?? '');
-  const [avatarUrl, setAvatarUrl] = useState(profile?.avatar_url ?? null);
-
-  const [uploading, setUploading] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
+  /*
+   * Abierta por URL directa, la pantalla se pinta antes de que llegue el
+   * perfil. Si el formulario naciera entonces, sus campos se inicializarían
+   * vacíos y ya no cambiarían: el nombre salía en blanco con su aviso de
+   * error. Así que el formulario solo se monta con el perfil en la mano, y
+   * mientras tanto se dice que se está cargando.
+   */
   if (!profile) {
     return (
       <Screen background="surface">
-        <View style={styles.centeredFill}>
+        <View style={styles.centeredFill} accessibilityLiveRegion="polite">
+          <ActivityIndicator color={colors.accent} />
           <Text variant="body" color="textSecondary">
             Cargando tu perfil…
           </Text>
@@ -36,13 +35,28 @@ export default function EditProfileScreen() {
     );
   }
 
+  // `key`: si cambiara la cuenta, el formulario empieza de nuevo con la suya.
+  return <EditProfileForm key={profile.id} profile={profile} />;
+}
+
+function EditProfileForm({ profile }: { profile: Profile }) {
+  const router = useRouter();
+  const { refreshProfile } = useAuth();
+
+  const [displayName, setDisplayName] = useState(profile.display_name ?? '');
+  const [bio, setBio] = useState(profile.bio ?? '');
+  const [location, setLocation] = useState(profile.location ?? '');
+  const [avatarUrl, setAvatarUrl] = useState(profile.avatar_url ?? null);
+
+  const [uploading, setUploading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   const bioTooLong = bio.length > BIO_MAX_LENGTH;
   const nameEmpty = displayName.trim().length === 0;
   const canSave = !nameEmpty && !bioTooLong && !saving && !uploading;
 
   async function handlePickAvatar() {
-    if (!profile) return;
-
     setError(null);
     setUploading(true);
 
@@ -67,7 +81,7 @@ export default function EditProfileScreen() {
   }
 
   async function handleSave() {
-    if (!profile || !canSave) return;
+    if (!canSave) return;
 
     setSaving(true);
     setError(null);
@@ -193,6 +207,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    gap: spacing.md,
   },
   header: {
     flexDirection: 'row',

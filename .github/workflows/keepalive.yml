@@ -1,0 +1,53 @@
+# Latido contra la pausa de Supabase.
+#
+# El plan gratuito pausa un proyecto tras ~7 días sin actividad, y con él cae
+# la app entera: feed, mapa, perfiles, todo lee de ahí. Pasó en octubre de
+# 2026. Cada dos días esto hace una lectura mínima y legítima de la API
+# pública —lo mismo que pide un visitante sin cuenta al abrir el mapa—, con la
+# clave publicable que ya está en Variables. Sin secretos nuevos.
+#
+# Si la petición falla, el job falla: GitHub avisa por correo y se ve en
+# Actions, en vez de enterarse por la app caída.
+name: Keepalive Supabase
+
+on:
+  schedule:
+    # Cada dos días a las 06:17 UTC (un minuto suelto: en punto, GitHub va
+    # saturado y retrasa los cron).
+    - cron: '17 6 */2 * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ping:
+    name: Lectura mínima
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      SUPABASE_URL: ${{ vars.EXPO_PUBLIC_SUPABASE_URL }}
+      SUPABASE_KEY: ${{ vars.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
+
+    steps:
+      - name: Leer una entidad
+        run: |
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_KEY" ]; then
+            echo "::error::Faltan EXPO_PUBLIC_SUPABASE_URL o EXPO_PUBLIC_SUPABASE_ANON_KEY en Variables del repositorio."
+            exit 1
+          fi
+
+          # `entities` es contenido curado y de lectura pública: una fila basta.
+          status=$(curl --silent --show-error --retry 3 --retry-delay 20 \
+            --output body.json --write-out '%{http_code}' \
+            --header "apikey: $SUPABASE_KEY" \
+            --header "Authorization: Bearer $SUPABASE_KEY" \
+            "$SUPABASE_URL/rest/v1/entities?select=slug&limit=1")
+
+          echo "HTTP $status"
+          if [ "$status" != "200" ] || ! grep -q '"slug"' body.json; then
+            echo "::error::Supabase no respondió como se esperaba (HTTP $status). ¿Está pausado el proyecto?"
+            cat body.json
+            exit 1
+          fi
+          echo "Supabase responde: $(cat body.json)"

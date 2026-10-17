@@ -57,6 +57,7 @@ El porqué de cada una, enlazado.
 - Al cambiar una pantalla se pasan también las verificaciones que la atraviesan. [F2.3]
 - Cada script limpia solo su subdirectorio de capturas; lo manual va en `docs/verificacion/produccion/`. [diag-0927]
 - `service_role` solo en el shell; la limpieza borra solo `@ovengtest.dev`, fijo en el código. [F1.6]
+- **Latido anti-pausa**: `keepalive.yml` lee una entidad cada dos días; el plan gratuito de Supabase pausa a los ~7 días sin actividad. [cierre-1017]
 - Supabase: URL base sin `/rest/v1`; "Confirm email" desactivado (reactivarlo exige SMTP propio); rechaza `@example.com`. [verif-f11]
 - Chromium usa librerías de `~/.local/chromium-deps`; un `git push` con `HTTP 408` se arregla con `http.postBuffer` y HTTP/1.1. [verif-f11] [F2.4]
 
@@ -95,6 +96,46 @@ La lista mantenida es el **backlog de @docs/plan.md**. Fuera de ella, sueltos:
 - El clima (temperatura, lluvia) está a una llamada de Open-Meteo, sin clave, y no se enseña en ningún sitio.
 - Marca: falta el **SVG vectorial** (hoy son PNG), los PNG no van cuantizados y
   el icono y el splash nativos siguen siendo los de Expo.
+
+---
+
+## 2026-10-17 — Cierre: latido anti-pausa y editar perfil
+
+Dos arreglos, sin funcionalidad nueva.
+
+### Supabase se pausó, y con él la app entera
+
+**Causa.** El plan gratuito de Supabase **pausa un proyecto tras unos siete
+días sin actividad**. Esta semana pasó: sin visitas ni sesiones de trabajo, el
+proyecto quedó pausado y la demo publicada se quedó sin nada que leer —feed,
+mapa, perfiles, todo sale de ahí—. El autor lo reanudó a mano desde el
+dashboard. Durante una fase sin código (F3 son conversaciones) es justo lo que
+va a volver a pasar.
+
+**Remedio.** `.github/workflows/keepalive.yml`: cada dos días (06:17 UTC; un
+minuto suelto porque en punto GitHub retrasa los cron) hace
+`GET /rest/v1/entities?select=slug&limit=1` con la clave publicable de
+Variables, la misma que lleva el bundle. Es una lectura pública y legítima
+—lo que pide cualquier visitante al abrir el mapa—, sin secretos nuevos. Si no
+responde 200 con una fila, **el job falla**: GitHub avisa por correo, y uno se
+entera por ahí y no por la app caída. Dos días deja margen para que fallen dos
+latidos seguidos antes de la pausa.
+
+**Lo que no cubre.** GitHub **desactiva los cron de un repositorio sin
+actividad durante 60 días** (avisa por correo antes). Mientras haya commits no
+pasa; si el repositorio se queda quieto dos meses, hay que reactivarlo en
+Actions. Y si el proyecto ya está pausado, el latido no lo despierta —eso
+solo se hace desde el dashboard—: falla y avisa.
+
+### Editar perfil por URL directa
+
+El bug anotado en F4.6b: abierta con la URL, la pantalla se pintaba antes de
+que llegara el perfil y el formulario inicializaba sus campos vacíos, que ya no
+cambiaban. Ahora la pantalla enseña "Cargando tu perfil…" hasta tener el
+perfil y solo entonces monta el formulario (`EditProfileForm`, con `key` por
+cuenta), que nace relleno. `verify:f13` lo recorre recargando
+`/editar-perfil`; contra el código anterior da tres fallos (nombre, biografía
+y aviso), así que la comprobación caza el bug.
 
 ---
 
@@ -193,99 +234,3 @@ montada debajo de la conversación. `verify:f46` pulsa solo el visible y
 comprueba además que la fila ofrece las dos acciones. Y en `verify:f13`, el
 primer texto «Siguiendo» de la página ya no es el botón sino la etiqueta del
 contador, que ahora va arriba: se busca por rol. Las dieciocho en verde.
-
----
-
-## 2026-10-06 — F4.6: chat 1 a 1
-
-Mensajes privados entre dos personas: texto, solicitud, bloqueo, no leídos y
-tiempo real. Alcance confirmado por el autor: **sin imágenes, grupos ni push**.
-
-### Solicitud, como Instagram
-
-El primer mensaje no abre una conversación: llega a **Solicitudes**, quien lo
-recibe lo lee y decide. Hasta que acepta, solo escribe quien pidió; quien
-recibe no puede responder sin aceptar antes, y rechazar **no se le dice** a
-quien pidió (se entera solo porque ya no puede escribir; eso es honesto y no
-se esconde). Es la defensa más barata contra que cualquiera te escriba: el
-coste de abrir la puerta lo decide quien la tiene.
-
-Entre dos personas hay **una sola conversación**: la pareja se guarda ordenada
-(`user_low < user_high`) con `unique`, la empiece quien la empiece. "Enviar
-mensaje" abre la que haya o crea la solicitud; una solicitud **sin mensajes**
-no se le enseña a quien la recibe, porque todavía no le han dicho nada.
-
-### La privacidad la impone la base, y Realtime la respeta
-
-Es lo primero privado del producto —todo lo demás se lee sin cuenta— y por eso
-no hay ni una regla de acceso en el cliente que no esté también en RLS:
-
-- Leer: solo las dos personas. Un tercero, ni por enlace directo: la pantalla
-  dice "No encontramos esta conversación", que es exactamente lo que ve.
-- Escribir: en nombre propio, en conversación aceptada (o pendiente si la
-  pediste) y **sin bloqueo en ningún sentido**.
-- Cambiar: la política dice **quién** y `grant update (columna)` dice **qué**.
-  En `conversations` solo `status` y solo el destinatario; en `messages` solo
-  `read_at` y solo quien recibe. Sin el permiso por columna, el destinatario
-  podría haber movido `requested_by` y convertirse en quien pidió.
-- El bloqueo se consulta con una función `security definer` porque la política
-  tiene que saberlo aunque escriba el bloqueado, que no puede leer `blocks` —
-  y solo responde a una de las dos personas, para no servir de oráculo.
-
-Realtime (`postgres_changes`) aplica la RLS de quien escucha: supabase-js le
-pasa el token de la sesión al entrar y al refrescarlo. Así que **no hay canal
-privado que montar**: se escucha la tabla y a cada uno le llega lo suyo.
-
-### Que se vea que se puede chatear
-
-La primera versión solo tenía un botón de texto en el perfil y el icono de la
-cabecera, este solo con sesión. El autor lo cazó: **no se veía** que con
-alguien se puede hablar. Ahora hay un bocadillo 💬 —el gesto de WhatsApp e
-Instagram— allí donde aparece una persona: junto al autor de cada publicación,
-en cada persona de Buscar, al lado de "Seguir" en el perfil y siempre en la
-cabecera. Un único `ChatButton` y un único `useStartChat`; sin cuenta llevan a
-la bienvenida, que es la regla de siempre: se ve que se puede, se pide la
-cuenta al actuar. `Button` gana un `icon`, con el texto como nombre accesible
-para que el glifo no se lea.
-
-### No leídos, sin contadores guardados
-
-Los no leídos se **cuentan** (`read_at is null` y no soy quien envía), no se
-guardan en un contador que haya que mantener. Se marcan al tener la
-conversación delante —con la pantalla enfocada, no debajo de otra— y la
-cabecera de Inicio se refresca sola con los eventos de Realtime. El nombre
-accesible del icono dice cuánto es cada cosa: "Mensajes, 2 sin leer, 1
-solicitud".
-
-Contar en el cliente con hasta mil mensajes recientes vale para la demo; con
-volumen, una vista o un RPC. Anotado, no resuelto.
-
-### Lo que falta es obligatorio, no opcional
-
-Un chat privado sin forma de denunciar es un canal de acoso que nadie ve: RLS
-impide —a propósito— que nadie lea conversaciones ajenas, así que la denuncia
-es la **única** vía por la que un abuso llega a alguien. Denunciar mensajes,
-moderación y un límite de solicitudes van en el plan como **obligatorios antes
-de abrir al público general (post-F3)**. Para la comunidad *beachhead*, que se
-conoce, vale con bloquear.
-
-### Migración 008
-
-La aplicó el autor en el SQL Editor (instrucciones en @docs/03_MODELO_DATOS.md,
-paso 10). Antes de aplicarla se comprobó que la app **degrada**: la bandeja
-sale vacía, el icono sin números y "Enviar mensaje" dice que los mensajes
-todavía no están disponibles, sin errores de página. Una segunda ejecución da
-`already exists` y no cambia nada: la migración no es re-ejecutable, como todas.
-
-**Realtime no pidió nada en el dashboard**: la propia migración añade las dos
-tablas a `supabase_realtime`, y en la verificación un mensaje llegó a la otra
-sesión en **0,8 s** sin recargar.
-
-**Un localizador, otra vez.** El primer `verify:f46` falló con la pantalla
-correcta delante: el texto del mensaje salía dos veces porque la lista de Chats
-sigue montada debajo de la conversación, con el mensaje como vista previa. Las
-esperas por texto miran ahora solo lo visible.
-
-En la batería completa, `verify:f24` falló una vez esperando el botón
-"Valorar" (30 s) y pasó entero al repetirlo, sin cambios: lentitud de la red,
-no del código. Si se repite, es el primero al que mirar.

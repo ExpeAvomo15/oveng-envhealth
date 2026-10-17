@@ -100,6 +100,13 @@ El workflow comprueba el artefacto antes de publicarlo: que la URL de Supabase
 está dentro del bundle, que los assets llevan el subpath y que existe
 `404.html`. Publica en https://expeavomo15.github.io/oveng-envhealth/.
 
+### Latido contra la pausa de Supabase
+
+El plan gratuito pausa el proyecto tras ~7 días sin actividad, y la app cae
+entera. `keepalive.yml` hace cada dos días una lectura pública mínima con la
+clave publicable de Variables y falla —avisando por correo— si no responde.
+Causa y remedio en [notas.md](notas.md).
+
 ### Secretos y configuración
 
 Solo variables públicas del cliente (URL del proyecto y clave anónima de

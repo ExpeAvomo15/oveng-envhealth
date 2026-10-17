@@ -328,6 +328,28 @@ try {
   await shot('14-perfil-actualizado');
 
   // --- Perfil de otra cuenta y seguir ---------------------------------------
+  // Abierta por URL directa, la pantalla arranca antes de que llegue el
+  // perfil. Hasta F4.6b el formulario nacía entonces, con el nombre vacío y su
+  // aviso de error; ahora espera al perfil y sale relleno.
+  step('6b. Editar perfil abierto por URL directa');
+  await page.goto(`${origin}/editar-perfil`, { waitUntil: 'networkidle' });
+  try {
+    await page.waitForFunction(
+      (expected) => document.querySelector('input[placeholder="Tu nombre"]')?.value === expected,
+      nuevoNombre,
+      { timeout: 15000 },
+    );
+    ok('el nombre visible sale relleno tras recargar');
+  } catch {
+    const value = await page.getByPlaceholder('Tu nombre').inputValue().catch(() => null);
+    bad(`el nombre visible sale como «${value}» tras recargar`);
+  }
+  if ((await page.getByPlaceholder('Cuenta en una línea qué te mueve').inputValue()) === nuevaBio) ok('la biografía también');
+  else bad('la biografía sale vacía tras recargar');
+  if ((await page.getByText('no puede quedar vacío', { exact: false }).count()) === 0) ok('sin el aviso de nombre vacío');
+  else bad('sale el aviso de nombre vacío con el nombre puesto');
+  await shot('14b-editar-perfil-url-directa');
+
   step('7. Perfil público y seguimiento');
 
   await page.goto(`${origin}/user/${bob.username}`, { waitUntil: 'networkidle' });
