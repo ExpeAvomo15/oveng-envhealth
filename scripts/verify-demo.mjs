@@ -19,9 +19,13 @@ import { createClient } from '@supabase/supabase-js';
 
 import { useLocalBrowserLibraries } from './lib/browser.mjs';
 import { serveStatic } from './lib/static-server.mjs';
+import { preCleanTestUsers } from './lib/test-users.mjs';
 
 useLocalBrowserLibraries();
 const { chromium } = await import('playwright');
+
+// Antes de crear nada: recoge las cuentas de prueba de baterías anteriores.
+await preCleanTestUsers();
 
 const ROOT = process.cwd();
 const SHOTS = join(ROOT, 'docs/verificacion/demo');

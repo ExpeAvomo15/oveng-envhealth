@@ -264,6 +264,22 @@ Los scripts de verificación crean cuentas con correos `@ovengtest.dev`. Borrar
 un usuario de `auth.users` requiere la clave `service_role`, que **salta RLS** y
 da acceso total al proyecto.
 
+**Se limpian solas.** Cada script de verificación (y de capturas) empieza
+borrando las cuentas de prueba que haya, antes de crear nada: lo que dejó una
+batería cortada a mitad se recoge en la siguiente. Para eso la clave tiene que
+estar exportada en la terminal donde se lanza la batería:
+
+```bash
+export SUPABASE_SERVICE_ROLE_KEY='sb_secret_…'   # solo en el shell, una vez por terminal
+npm run verify:f46                              # → "Limpieza previa: N cuentas de prueba de antes borradas"
+```
+
+Sin la clave, la verificación avisa ("Limpieza previa omitida") y sigue igual.
+**No lances dos verificaciones a la vez:** la limpieza de una se llevaría las
+cuentas que la otra está usando.
+
+La herramienta manual queda para emergencias, con simulacro:
+
 ```bash
 SUPABASE_SERVICE_ROLE_KEY='...' npm run cleanup:test-users            # simulacro
 SUPABASE_SERVICE_ROLE_KEY='...' npm run cleanup:test-users -- --confirm

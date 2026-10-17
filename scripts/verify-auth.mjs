@@ -8,12 +8,18 @@
  *   node --env-file=.env scripts/verify-auth.mjs
  *   node --env-file=.env scripts/verify-auth.mjs tu-correo-real@ejemplo.com
  *
- * ⚠️ Crea una cuenta de prueba en tu proyecto. Para borrarla:
+ * ⚠️ Crea una cuenta de prueba en tu proyecto. Si es @ovengtest.dev, la recoge
+ *    la limpieza previa de la siguiente verificación; si pasas un correo real:
  *    Supabase → Authentication → Users → seleccionar → Delete user.
  *    (El perfil se borra solo: la FK es `on delete cascade`.)
  */
 
 import { createClient } from '@supabase/supabase-js';
+
+import { preCleanTestUsers } from './lib/test-users.mjs';
+
+// Antes de crear nada: recoge las cuentas de prueba de baterías anteriores.
+await preCleanTestUsers();
 
 const url = process.env.EXPO_PUBLIC_SUPABASE_URL;
 const anonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
@@ -260,5 +266,9 @@ if (failures === 0) {
 } else {
   console.log(`RESULTADO: ${failures} comprobación(es) fallida(s).`);
 }
-console.log(`\nBorra la cuenta de prueba (${email}) en Authentication → Users.`);
+console.log(
+  email.endsWith('@ovengtest.dev')
+    ? `\nCuenta de prueba ${email}: se recoge sola al empezar la próxima verificación.`
+    : `\nBorra la cuenta (${email}) en Authentication → Users: no es @ovengtest.dev y nadie la limpiará.`,
+);
 process.exit(failures === 0 ? 0 : 1);

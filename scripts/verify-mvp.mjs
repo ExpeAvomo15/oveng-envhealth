@@ -21,9 +21,13 @@ import { createClient } from '@supabase/supabase-js';
 
 import { useLocalBrowserLibraries } from './lib/browser.mjs';
 import { serveStatic } from './lib/static-server.mjs';
+import { preCleanTestUsers } from './lib/test-users.mjs';
 
 useLocalBrowserLibraries();
 const { chromium } = await import('playwright');
+
+// Antes de crear nada: recoge las cuentas de prueba de baterías anteriores.
+await preCleanTestUsers();
 
 const ROOT = process.cwd();
 const SHOTS = join(ROOT, 'docs/verificacion/mvp');
@@ -494,7 +498,7 @@ try {
 console.log('\n' + '─'.repeat(64));
 console.log(failures === 0 ? 'RESULTADO: el recorrido completo del MVP funciona.' : `RESULTADO: ${failures} fallo(s).`);
 console.log(`Capturas en docs/verificacion/mvp/ (${shotIndex}).`);
-console.log('\nCuentas de prueba creadas (bórralas con npm run cleanup:test-users):');
+console.log('\nCuentas de prueba creadas (se recogen solas al empezar la próxima verificación):');
 console.log(`  ${yo.email}`);
 console.log(`  ${vecina.email}`);
 process.exit(failures === 0 ? 0 : 1);

@@ -16,9 +16,13 @@ import { createClient } from '@supabase/supabase-js';
 
 import { useLocalBrowserLibraries } from './lib/browser.mjs';
 import { serveStatic } from './lib/static-server.mjs';
+import { preCleanTestUsers } from './lib/test-users.mjs';
 
 useLocalBrowserLibraries();
 const { chromium } = await import('playwright');
+
+// Antes de crear nada: recoge las cuentas de prueba de baterías anteriores.
+await preCleanTestUsers();
 
 const label = process.argv[2];
 if (!label || label.startsWith('--')) {
@@ -191,4 +195,4 @@ try {
   rmSync(TMP, { recursive: true, force: true });
 }
 
-console.log(`Cuenta de prueba: ${cuenta.email} (bórrala con npm run cleanup:test-users)`);
+console.log(`Cuenta de prueba: ${cuenta.email} (se recoge sola al empezar la próxima verificación)`);

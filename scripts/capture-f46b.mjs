@@ -9,7 +9,7 @@
  * cuentas —A, que mira; B, con quien A tiene un chat; C, que le pide hablar— y
  * una publicación con foto, para que el feed, el perfil y los mensajes no
  * salgan vacíos. Lo borra todo al terminar (los usuarios de Auth quedan, como
- * en el resto de scripts: `npm run cleanup:test-users`).
+ * en el resto de scripts, y se recogen solos al empezar la siguiente).
  */
 
 import { execSync } from 'node:child_process';
@@ -20,9 +20,13 @@ import { createClient } from '@supabase/supabase-js';
 
 import { useLocalBrowserLibraries } from './lib/browser.mjs';
 import { serveStatic } from './lib/static-server.mjs';
+import { preCleanTestUsers } from './lib/test-users.mjs';
 
 useLocalBrowserLibraries();
 const { chromium } = await import('playwright');
+
+// Antes de crear nada: recoge las cuentas de prueba de baterías anteriores.
+await preCleanTestUsers();
 
 const label = process.argv[2];
 if (!label || label.startsWith('--')) {
@@ -274,4 +278,4 @@ try {
   if (imagePath) await users.a.storage.from('post-images').remove([imagePath]);
 }
 
-console.log(`Cuentas de prueba (${stamp}) en Auth: bórralas con npm run cleanup:test-users`);
+console.log(`Cuentas de prueba (${stamp}) en Auth: se recogen solas al empezar la próxima verificación`);

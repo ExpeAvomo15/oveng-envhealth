@@ -14,18 +14,15 @@
  *   SUPABASE_SERVICE_ROLE_KEY='...' npm run cleanup:test-users -- --confirm
  *
  * Sin `--confirm` solo enumera lo que borraría.
+ *
+ * **Es la herramienta de emergencia.** Cada script de verificación ya hace esta
+ * misma limpieza al empezar (`preCleanTestUsers`, en scripts/lib/test-users.mjs)
+ * si la clave está exportada en el shell.
  */
 
 import { readFileSync } from 'node:fs';
 
-import { createClient } from '@supabase/supabase-js';
-
-/**
- * Dominio de las cuentas de prueba. **Deliberadamente fijo en el código**: si
- * fuera un parámetro, una errata podría borrar cuentas reales.
- */
-const TEST_EMAIL_DOMAIN = '@ovengtest.dev';
-const BUCKETS = ['avatars', 'post-images'];
+import { adminClient, deleteTestUser, listTestUsers, TEST_EMAIL_DOMAIN } from './lib/test-users.mjs';
 
 const confirmed = process.argv.includes('--confirm');
 
@@ -66,29 +63,18 @@ if (!url) {
 }
 
 // --- Trabajo ------------------------------------------------------------------
-const admin = createClient(url, serviceRoleKey, {
-  auth: { persistSession: false, autoRefreshToken: false },
-});
+const admin = adminClient(url, serviceRoleKey);
 
 console.log(`Proyecto : ${url}`);
 console.log(`Modo     : ${confirmed ? 'BORRADO REAL' : 'simulacro (añade -- --confirm para borrar)'}`);
 console.log(`Criterio : cuentas cuyo email termina en ${TEST_EMAIL_DOMAIN}\n`);
 
-const testUsers = [];
-let page = 1;
-
-for (;;) {
-  const { data, error } = await admin.auth.admin.listUsers({ page, perPage: 200 });
-
-  if (error) {
-    console.error(`✗ No se ha podido listar usuarios: ${error.message}`);
-    process.exit(1);
-  }
-
-  testUsers.push(...data.users.filter((user) => user.email?.endsWith(TEST_EMAIL_DOMAIN)));
-
-  if (data.users.length < 200) break;
-  page += 1;
+let testUsers;
+try {
+  testUsers = await listTestUsers(admin);
+} catch (cause) {
+  console.error(`✗ ${cause.message}`);
+  process.exit(1);
 }
 
 if (testUsers.length === 0) {
@@ -112,27 +98,13 @@ let deleted = 0;
 let storageRemoved = 0;
 
 for (const user of testUsers) {
-  // El storage NO cae por cascade: hay que vaciar la carpeta del usuario antes.
-  for (const bucket of BUCKETS) {
-    const { data: files } = await admin.storage.from(bucket).list(user.id);
-
-    if (files && files.length > 0) {
-      const paths = files.map((file) => `${user.id}/${file.name}`);
-      const { error } = await admin.storage.from(bucket).remove(paths);
-      if (error) console.log(`  ! ${bucket}/${user.id}: ${error.message}`);
-      else storageRemoved += paths.length;
-    }
-  }
-
-  // Al borrar el usuario caen perfil, publicaciones, likes y follows por la
-  // cascada de claves ajenas definida en 001_initial_schema.sql.
-  const { error } = await admin.auth.admin.deleteUser(user.id);
-
-  if (error) {
-    console.log(`  ✗ ${user.email}: ${error.message}`);
-  } else {
+  const result = await deleteTestUser(admin, user);
+  storageRemoved += result.files;
+  if (result.ok) {
     deleted += 1;
     console.log(`  ✓ ${user.email}`);
+  } else {
+    console.log(`  ✗ ${user.email}: ${result.error}`);
   }
 }
 

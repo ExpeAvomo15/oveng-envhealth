@@ -57,6 +57,7 @@ El porqué de cada una, enlazado.
 - Al cambiar una pantalla se pasan también las verificaciones que la atraviesan. [F2.3]
 - Cada script limpia solo su subdirectorio de capturas; lo manual va en `docs/verificacion/produccion/`. [diag-0927]
 - `service_role` solo en el shell; la limpieza borra solo `@ovengtest.dev`, fijo en el código. [F1.6]
+- Cada verificación **empieza** borrando las cuentas de prueba previas si la clave está exportada en el shell; sin ella avisa y sigue. Nunca dos baterías a la vez. [cierre-1017]
 - **Latido anti-pausa**: `keepalive.yml` lee una entidad cada dos días; el plan gratuito de Supabase pausa a los ~7 días sin actividad. [cierre-1017]
 - Supabase: URL base sin `/rest/v1`; "Confirm email" desactivado (reactivarlo exige SMTP propio); rechaza `@example.com`. [verif-f11]
 - Chromium usa librerías de `~/.local/chromium-deps`; un `git push` con `HTTP 408` se arregla con `http.postBuffer` y HTTP/1.1. [verif-f11] [F2.4]
@@ -136,6 +137,29 @@ perfil y solo entonces monta el formulario (`EditProfileForm`, con `key` por
 cuenta), que nace relleno. `verify:f13` lo recorre recargando
 `/editar-perfil`; contra el código anterior da tres fallos (nombre, biografía
 y aviso), así que la comprobación caza el bug.
+
+### Las cuentas de prueba se recogen solas
+
+Cada script de verificación y de capturas llama a `preCleanTestUsers()`
+(`scripts/lib/test-users.mjs`) **antes de crear nada**: lo que dejó una batería
+cortada a mitad se borra al empezar la siguiente. `cleanup:test-users` usa las
+mismas funciones y queda como herramienta de emergencia, con su simulacro.
+
+**La clave sigue solo en el shell.** Borrar de `auth.users` exige
+`service_role`, y esa clave no entra en `.env` —la limpieza se niega si la
+encuentra ahí—. Se exporta una vez por terminal antes de la batería. Sin ella,
+o con una clave pública por error, la verificación lo dice ("Limpieza previa
+omitida") y sigue: no poder barrer no es motivo para no verificar.
+
+Al empezar y no al terminar, a propósito: un script que se corta a mitad no
+llega a su final, pero el siguiente siempre llega a su principio. El precio es
+que **dos baterías a la vez se pisan**: la segunda borra las cuentas de la
+primera.
+
+Probado sin clave (avisa y pasa), con la clave pública (avisa y pasa) y con un
+cliente simulado de 450 usuarios en tres páginas: lista los 150 de prueba, no
+toca ninguno real, vacía su storage y se niega a borrar un correo ajeno. El
+borrado contra Supabase real necesita la clave, que esta sesión no tiene.
 
 ---
 

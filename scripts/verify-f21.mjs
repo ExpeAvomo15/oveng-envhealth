@@ -9,6 +9,11 @@
 
 import { createClient } from '@supabase/supabase-js';
 
+import { preCleanTestUsers } from './lib/test-users.mjs';
+
+// Antes de crear nada: recoge las cuentas de prueba de baterías anteriores.
+await preCleanTestUsers();
+
 const url = process.env.EXPO_PUBLIC_SUPABASE_URL;
 const anonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
 if (!url || !anonKey) {
