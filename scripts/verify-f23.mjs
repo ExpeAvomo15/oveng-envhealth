@@ -18,7 +18,7 @@ import { createClient } from '@supabase/supabase-js';
 
 import { useLocalBrowserLibraries } from './lib/browser.mjs';
 import { serveStatic } from './lib/static-server.mjs';
-import { preCleanTestUsers } from './lib/test-users.mjs';
+import { finishTestRun, preCleanTestUsers } from './lib/test-users.mjs';
 
 useLocalBrowserLibraries();
 const { chromium } = await import('playwright');
@@ -361,7 +361,7 @@ try {
   step('11. Limpieza de los datos de prueba');
   await user.from('profiles').delete().eq('id', uid);
   ok(`perfil @${account.username} eliminado`);
-  info(`cuenta a borrar en Authentication → Users: ${account.email}`);
+  info('la cuenta de Auth se borra en la limpieza final');
 } catch (caught) {
   bad(`recorrido interrumpido: ${caught.message}`);
 } finally {
@@ -372,4 +372,5 @@ try {
 console.log('\n' + '─'.repeat(64));
 console.log(failures === 0 ? 'RESULTADO: todo correcto.' : `RESULTADO: ${failures} fallo(s).`);
 console.log('Capturas en docs/verificacion/f23/');
-process.exit(failures === 0 ? 0 : 1);
+// Borra las cuentas de esta verificación (si hay clave de servicio) y sale.
+await finishTestRun(failures === 0 ? 0 : 1);

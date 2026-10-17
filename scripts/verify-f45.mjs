@@ -20,7 +20,7 @@ import { createClient } from '@supabase/supabase-js';
 
 import { useLocalBrowserLibraries } from './lib/browser.mjs';
 import { serveStatic } from './lib/static-server.mjs';
-import { preCleanTestUsers } from './lib/test-users.mjs';
+import { finishTestRun, preCleanTestUsers } from './lib/test-users.mjs';
 
 useLocalBrowserLibraries();
 const { chromium } = await import('playwright');
@@ -345,10 +345,11 @@ if (uid) {
   await owner.auth.signInWithPassword({ email: account.email, password: account.password });
   await owner.from('profiles').delete().eq('id', uid);
   ok(`perfil @${account.username} eliminado`);
-  info(`queda 1 usuario en Authentication → Users: ${account.email}`);
+  info('las cuentas de Auth se borran en la limpieza final');
 }
 
 console.log('\n' + '─'.repeat(64));
 console.log(failures === 0 ? 'RESULTADO: todo correcto.' : `RESULTADO: ${failures} fallo(s).`);
 console.log('Capturas en docs/verificacion/f45/');
-process.exit(failures === 0 ? 0 : 1);
+// Borra las cuentas de esta verificación (si hay clave de servicio) y sale.
+await finishTestRun(failures === 0 ? 0 : 1);

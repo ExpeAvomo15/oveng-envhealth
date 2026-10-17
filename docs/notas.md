@@ -57,7 +57,7 @@ El porqué de cada una, enlazado.
 - Al cambiar una pantalla se pasan también las verificaciones que la atraviesan. [F2.3]
 - Cada script limpia solo su subdirectorio de capturas; lo manual va en `docs/verificacion/produccion/`. [diag-0927]
 - `service_role` solo en el shell; la limpieza borra solo `@ovengtest.dev`, fijo en el código. [F1.6]
-- Cada verificación **empieza** borrando las cuentas de prueba previas si la clave está exportada en el shell; sin ella avisa y sigue. Nunca dos baterías a la vez. [cierre-1017]
+- Cada verificación **termina** borrando sus cuentas de prueba y **empieza** borrando las que queden (red de seguridad), si la clave está exportada en el shell; sin ella avisa y sigue. `verify:all` falla si queda residuo. Nunca dos baterías a la vez. [cierre-1017]
 - **Latido anti-pausa**: `keepalive.yml` lee una entidad cada dos días; el plan gratuito de Supabase pausa a los ~7 días sin actividad. [cierre-1017]
 - Supabase: URL base sin `/rest/v1`; "Confirm email" desactivado (reactivarlo exige SMTP propio); rechaza `@example.com`. [verif-f11]
 - Chromium usa librerías de `~/.local/chromium-deps`; un `git push` con `HTTP 408` se arregla con `http.postBuffer` y HTTP/1.1. [verif-f11] [F2.4]
@@ -151,10 +151,17 @@ encuentra ahí—. Se exporta una vez por terminal antes de la batería. Sin ell
 o con una clave pública por error, la verificación lo dice ("Limpieza previa
 omitida") y sigue: no poder barrer no es motivo para no verificar.
 
-Al empezar y no al terminar, a propósito: un script que se corta a mitad no
-llega a su final, pero el siguiente siempre llega a su principio. El precio es
-que **dos baterías a la vez se pisan**: la segunda borra las cuentas de la
-primera.
+**Y también al terminar** (`finishTestRun(código)`, en lugar del
+`process.exit` final): una verificación que acaba bien no deja **ninguna**
+cuenta @ovengtest.dev, no solo ninguna acumulada. Sale con el mismo código:
+limpiar no cambia el resultado. La limpieza previa se queda porque un script
+que se corta a mitad (Ctrl+C, un error al preparar) no llega a su final, pero
+el siguiente siempre llega a su principio. El precio de las dos es que **dos
+baterías a la vez se pisan**.
+
+`npm run verify:all` pasa las dieciocho con un solo build y termina
+consultando `auth.users`: falla si alguna verificación falla o si queda una
+sola cuenta de prueba.
 
 Probado sin clave (avisa y pasa), con la clave pública (avisa y pasa) y con un
 cliente simulado de 450 usuarios en tres páginas: lista los 150 de prueba, no

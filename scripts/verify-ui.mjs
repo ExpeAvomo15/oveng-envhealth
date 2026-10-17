@@ -19,7 +19,7 @@ import { join } from 'node:path';
 
 import { useLocalBrowserLibraries } from './lib/browser.mjs';
 import { serveStatic } from './lib/static-server.mjs';
-import { preCleanTestUsers } from './lib/test-users.mjs';
+import { finishTestRun, preCleanTestUsers } from './lib/test-users.mjs';
 
 useLocalBrowserLibraries();
 const { chromium } = await import('playwright');
@@ -327,4 +327,5 @@ try {
 console.log('\n' + '─'.repeat(64));
 console.log(failures === 0 ? 'RESULTADO: todo correcto.' : `RESULTADO: ${failures} fallo(s).`);
 console.log(`Capturas en docs/verificacion/f1/`);
-process.exit(failures === 0 ? 0 : 1);
+// Borra las cuentas de esta verificación (si hay clave de servicio) y sale.
+await finishTestRun(failures === 0 ? 0 : 1);

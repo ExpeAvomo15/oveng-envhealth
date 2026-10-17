@@ -18,7 +18,7 @@ import { createClient } from '@supabase/supabase-js';
 
 import { useLocalBrowserLibraries } from './lib/browser.mjs';
 import { serveStatic } from './lib/static-server.mjs';
-import { preCleanTestUsers } from './lib/test-users.mjs';
+import { finishTestRun, preCleanTestUsers } from './lib/test-users.mjs';
 
 useLocalBrowserLibraries();
 const { chromium } = await import('playwright');
@@ -376,7 +376,7 @@ try {
   const { data } = await users.a.from('conversations').select('id').eq('id', conversationId ?? '00000000-0000-0000-0000-000000000000');
   if ((data ?? []).length === 0) ok('perfiles, conversación, mensajes y bloqueos de prueba eliminados');
   else bad('la conversación de prueba sigue en la base');
-  info(`quedan 3 usuarios en Authentication → Users (${stamp})`);
+  info('las cuentas de Auth se borran en la limpieza final');
 } catch (caught) {
   bad(`no se pudo limpiar: ${caught.message}`);
 }
@@ -384,4 +384,5 @@ try {
 console.log('\n' + '─'.repeat(64));
 console.log(failures === 0 ? 'RESULTADO: todo correcto.' : `RESULTADO: ${failures} fallo(s).`);
 console.log('Capturas en docs/verificacion/f46/');
-process.exit(failures === 0 ? 0 : 1);
+// Borra las cuentas de esta verificación (si hay clave de servicio) y sale.
+await finishTestRun(failures === 0 ? 0 : 1);

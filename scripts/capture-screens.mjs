@@ -16,7 +16,7 @@ import { createClient } from '@supabase/supabase-js';
 
 import { useLocalBrowserLibraries } from './lib/browser.mjs';
 import { serveStatic } from './lib/static-server.mjs';
-import { preCleanTestUsers } from './lib/test-users.mjs';
+import { finishTestRun, preCleanTestUsers } from './lib/test-users.mjs';
 
 useLocalBrowserLibraries();
 const { chromium } = await import('playwright');
@@ -195,4 +195,6 @@ try {
   rmSync(TMP, { recursive: true, force: true });
 }
 
-console.log(`Cuenta de prueba: ${cuenta.email} (se recoge sola al empezar la próxima verificación)`);
+
+// Borra las cuentas de esta captura (si hay clave de servicio) y sale.
+await finishTestRun(process.exitCode ?? 0);

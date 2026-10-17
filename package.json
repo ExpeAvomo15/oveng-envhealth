@@ -63,6 +63,7 @@
     "verify:f46": "node --env-file=.env scripts/verify-f46.mjs",
     "verify:f41": "node --env-file=.env scripts/verify-f41.mjs",
     "verify:demo": "node --env-file=.env scripts/verify-demo.mjs",
+    "verify:all": "node --env-file=.env scripts/verify-all.mjs",
     "capture": "node --env-file=.env scripts/capture-screens.mjs",
     "capture:f46b": "node --env-file=.env scripts/capture-f46b.mjs",
     "cleanup:test-users": "node scripts/cleanup-test-users.mjs",

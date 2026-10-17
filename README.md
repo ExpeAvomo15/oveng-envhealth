@@ -156,6 +156,7 @@ npm run verify:mvp     # recorrido completo en Chromium, con capturas
 | `verify:f45` | Turismo Verde por ubicación: distancia, "Cómo llegar", "Cerca de mí" y el vacío honesto. |
 | `verify:f46` | Chat 1 a 1: solicitud y aceptación, tiempo real entre dos sesiones, no leídos, bloqueo, y que una tercera cuenta no ve nada. Necesita la migración 008. |
 | `verify:mvp` | El recorrido social de punta a punta (F1). |
+| `verify:all` | **La batería entera** con un solo build, y comprueba al final que no queda ninguna cuenta `@ovengtest.dev` en Auth (con la clave exportada). |
 | `verify:demo` | **La demo completa**: el recorrido de un visitante, sin cuenta y con ella, incluido abrir una publicación, un perfil ajeno y Buscar sin cuenta. |
 
 Los que abren navegador construyen con `--clear` y comprueban que el bundle
@@ -264,19 +265,23 @@ Los scripts de verificación crean cuentas con correos `@ovengtest.dev`. Borrar
 un usuario de `auth.users` requiere la clave `service_role`, que **salta RLS** y
 da acceso total al proyecto.
 
-**Se limpian solas.** Cada script de verificación (y de capturas) empieza
-borrando las cuentas de prueba que haya, antes de crear nada: lo que dejó una
-batería cortada a mitad se recoge en la siguiente. Para eso la clave tiene que
+**Se limpian solas, al terminar y al empezar.** Cada script de verificación (y
+de capturas) termina borrando las cuentas de prueba que ha creado, así que una
+verificación que acaba bien no deja ninguna `@ovengtest.dev` en Auth. Y empieza
+borrando las que encuentre, como red de seguridad: lo que dejó una batería
+cortada a mitad se recoge en la siguiente. Para las dos cosas la clave tiene que
 estar exportada en la terminal donde se lanza la batería:
 
 ```bash
 export SUPABASE_SERVICE_ROLE_KEY='sb_secret_…'   # solo en el shell, una vez por terminal
-npm run verify:f46                              # → "Limpieza previa: N cuentas de prueba de antes borradas"
+npm run verify:all     # las verificaciones con un solo build, y al final consulta auth.users
 ```
 
-Sin la clave, la verificación avisa ("Limpieza previa omitida") y sigue igual.
-**No lances dos verificaciones a la vez:** la limpieza de una se llevaría las
-cuentas que la otra está usando.
+`verify:all` falla si alguna verificación falla **o si queda alguna cuenta de
+prueba** en Auth al terminar. Sin la clave, cada verificación avisa ("Limpieza
+previa omitida", "Limpieza final omitida") y sigue igual: limpiar nunca cambia
+su resultado. **No lances dos verificaciones a la vez:** la limpieza de una se
+llevaría las cuentas que la otra está usando.
 
 La herramienta manual queda para emergencias, con simulacro:
 

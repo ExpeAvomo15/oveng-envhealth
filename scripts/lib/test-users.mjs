@@ -3,9 +3,11 @@
  *
  * Lo usan dos sitios:
  *
- * - **Cada script de verificación y de capturas, al empezar** (`preCleanTestUsers`):
- *   antes de crear nada, recoge lo que dejó una batería cortada a mitad. Así
- *   nadie tiene que acordarse de limpiar.
+ * - **Cada script de verificación y de capturas, al terminar** (`finishTestRun`):
+ *   borra lo que ha creado, para que una verificación que acaba bien no deje
+ *   ni una cuenta @ovengtest.dev en Auth.
+ * - **Y al empezar** (`preCleanTestUsers`), como red de seguridad: recoge lo
+ *   que dejó una batería cortada a mitad, que no llegó a su final.
  * - `npm run cleanup:test-users`, la herramienta de emergencia, con simulacro.
  *
  * ## La clave `service_role` sigue viviendo solo en el shell
@@ -80,22 +82,21 @@ export async function deleteTestUser(admin, user) {
 }
 
 /**
- * Limpieza previa de una verificación. Nunca para el proceso: si no puede
- * limpiar, lo dice y deja que la verificación siga.
+ * Borra todas las cuentas de prueba, si hay clave de servicio en el shell.
+ * Nunca para el proceso: si no puede limpiar, lo dice y sigue. Devuelve cuántas
+ * quedan, o `null` si no ha podido mirar.
  */
-export async function preCleanTestUsers() {
+async function sweep(label) {
   const url = process.env.EXPO_PUBLIC_SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const skip = (reason) => {
-    console.log(`⚠ Limpieza previa omitida: ${reason}`);
-    console.log('  Las cuentas de prueba de baterías anteriores siguen en Auth. Para que se recojan');
-    console.log("  solas, exporta la clave en la terminal: export SUPABASE_SERVICE_ROLE_KEY='sb_secret_…'\n");
+    console.log(`⚠ ${label} omitida: ${reason}`);
+    console.log('  Las cuentas de prueba se quedan en Auth. Para que se borren solas, exporta la');
+    console.log("  clave en la terminal: export SUPABASE_SERVICE_ROLE_KEY='sb_secret_…'\n");
+    return null;
   };
 
-  if (serviceKeyInEnvFile()) {
-    skip('hay una SUPABASE_SERVICE_ROLE_KEY en .env, y ahí no puede estar. Quítala.');
-    return;
-  }
+  if (serviceKeyInEnvFile()) return skip('hay una SUPABASE_SERVICE_ROLE_KEY en .env, y ahí no puede estar. Quítala.');
   if (!url) return skip('falta EXPO_PUBLIC_SUPABASE_URL.');
   if (!key) return skip('no hay SUPABASE_SERVICE_ROLE_KEY en el shell.');
   if (describeKey(key).kind === 'public' || key.trim() === process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY?.trim()) {
@@ -105,10 +106,6 @@ export async function preCleanTestUsers() {
   try {
     const admin = adminClient(url, key);
     const users = await listTestUsers(admin);
-    if (users.length === 0) {
-      console.log('· Limpieza previa: no había cuentas de prueba de antes.\n');
-      return;
-    }
     let deleted = 0;
     let files = 0;
     for (const user of users) {
@@ -116,11 +113,32 @@ export async function preCleanTestUsers() {
       if (result.ok) deleted += 1;
       files += result.files;
     }
+    const left = (await listTestUsers(admin)).length;
     console.log(
-      `· Limpieza previa: ${deleted}/${users.length} cuentas de prueba de antes borradas` +
-        (files > 0 ? `, con ${files} archivo(s).\n` : '.\n'),
+      `· ${label}: ${deleted}/${users.length} cuentas de prueba borradas` +
+        (files > 0 ? `, con ${files} archivo(s)` : '') +
+        `; quedan ${left} @ovengtest.dev en Auth.\n`,
     );
+    return left;
   } catch (cause) {
-    skip(cause instanceof Error ? cause.message : String(cause));
+    return skip(cause instanceof Error ? cause.message : String(cause));
   }
+}
+
+/**
+ * Al empezar, antes de crear nada: recoge lo que dejó una batería cortada a
+ * mitad. Es la red de seguridad de `finishTestRun`.
+ */
+export async function preCleanTestUsers() {
+  await sweep('Limpieza previa');
+}
+
+/**
+ * Al terminar, en lugar del `process.exit` final: borra las cuentas que ha
+ * creado la propia verificación, para que una que acaba bien no deje residuo.
+ * Sale con el mismo código que se le pasa: limpiar no cambia el resultado.
+ */
+export async function finishTestRun(code) {
+  await sweep('Limpieza final');
+  process.exit(code);
 }

@@ -20,7 +20,7 @@ import { createClient } from '@supabase/supabase-js';
 
 import { useLocalBrowserLibraries } from './lib/browser.mjs';
 import { serveStatic } from './lib/static-server.mjs';
-import { preCleanTestUsers } from './lib/test-users.mjs';
+import { finishTestRun, preCleanTestUsers } from './lib/test-users.mjs';
 
 useLocalBrowserLibraries();
 const { chromium } = await import('playwright');
@@ -515,7 +515,7 @@ try {
   const { count } = await anon.from('entity_admins').select('*', { count: 'exact', head: true }).eq('user_id', ids.a);
   if (count === 0) ok('oferta, claim, publicaciones y perfiles de prueba eliminados');
   else bad(`quedan ${count} claims de prueba`);
-  info(`quedan 2 usuarios en Authentication → Users: ${accounts.a.email}, ${accounts.b.email}`);
+  info('las cuentas de Auth se borran en la limpieza final');
 } catch (caught) {
   bad(`no se pudo limpiar: ${caught.message}`);
 }
@@ -523,4 +523,5 @@ try {
 console.log('\n' + '─'.repeat(64));
 console.log(failures === 0 ? 'RESULTADO: todo correcto.' : `RESULTADO: ${failures} fallo(s).`);
 console.log('Capturas en docs/verificacion/f44/');
-process.exit(failures === 0 ? 0 : 1);
+// Borra las cuentas de esta verificación (si hay clave de servicio) y sale.
+await finishTestRun(failures === 0 ? 0 : 1);

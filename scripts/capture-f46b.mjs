@@ -20,7 +20,7 @@ import { createClient } from '@supabase/supabase-js';
 
 import { useLocalBrowserLibraries } from './lib/browser.mjs';
 import { serveStatic } from './lib/static-server.mjs';
-import { preCleanTestUsers } from './lib/test-users.mjs';
+import { finishTestRun, preCleanTestUsers } from './lib/test-users.mjs';
 
 useLocalBrowserLibraries();
 const { chromium } = await import('playwright');
@@ -278,4 +278,5 @@ try {
   if (imagePath) await users.a.storage.from('post-images').remove([imagePath]);
 }
 
-console.log(`Cuentas de prueba (${stamp}) en Auth: se recogen solas al empezar la próxima verificación`);
+// Borra las cuentas de esta captura (si hay clave de servicio) y sale.
+await finishTestRun(process.exitCode ?? 0);

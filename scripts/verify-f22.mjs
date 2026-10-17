@@ -20,7 +20,7 @@ import { createClient } from '@supabase/supabase-js';
 
 import { useLocalBrowserLibraries } from './lib/browser.mjs';
 import { serveStatic } from './lib/static-server.mjs';
-import { preCleanTestUsers } from './lib/test-users.mjs';
+import { finishTestRun, preCleanTestUsers } from './lib/test-users.mjs';
 
 useLocalBrowserLibraries();
 const { chromium } = await import('playwright');
@@ -451,7 +451,6 @@ if (failures === 0 && blocked === 0) {
   console.log(`RESULTADO: ${failures} fallo(s)${blocked > 0 ? ` y ${blocked} sin comprobar` : ''}.`);
 }
 console.log(`Capturas en docs/verificacion/f22/`);
-console.log(`\nQueda 1 usuario en Authentication → Users (borrarlo requiere service_role):`);
-console.log(`  ${account.email}`);
 
-process.exit(failures === 0 && blocked === 0 ? 0 : 1);
+// Borra las cuentas de esta verificación (si hay clave de servicio) y sale.
+await finishTestRun(failures === 0 && blocked === 0 ? 0 : 1);

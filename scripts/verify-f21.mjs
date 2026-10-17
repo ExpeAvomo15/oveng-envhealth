@@ -9,7 +9,7 @@
 
 import { createClient } from '@supabase/supabase-js';
 
-import { preCleanTestUsers } from './lib/test-users.mjs';
+import { finishTestRun, preCleanTestUsers } from './lib/test-users.mjs';
 
 // Antes de crear nada: recoge las cuentas de prueba de baterías anteriores.
 await preCleanTestUsers();
@@ -302,4 +302,5 @@ if (authError || !auth.session) {
 
 console.log('\n' + '─'.repeat(64));
 console.log(failures === 0 ? 'RESULTADO: todo correcto.' : `RESULTADO: ${failures} fallo(s).`);
-process.exit(failures === 0 ? 0 : 1);
+// Borra las cuentas de esta verificación (si hay clave de servicio) y sale.
+await finishTestRun(failures === 0 ? 0 : 1);
