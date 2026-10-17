@@ -16,12 +16,17 @@ import { splitByHashtags } from '@/lib/hashtags';
  * publicaciones por etiqueta necesita consultar `posts`, que no está en la capa
  * de datos de F2.2. Anotado en notas-archivo-f0-f2.md.
  */
-export function PostText({ content }: { content: string }) {
+export function PostText({ content, collapsed = false }: { content: string; collapsed?: boolean }) {
   const router = useRouter();
   const segments = splitByHashtags(content);
+  // En el feed, un texto largo se corta a cuatro líneas con "ver más", como en
+  // Instagram (F4.6b). No es un botón aparte: va dentro del cuerpo de la
+  // tarjeta, que ya lleva al detalle, donde se lee entero. Un pulsable dentro
+  // de otro haría que en web el toque navegara además.
+  const clamp = collapsed && content.length > LONG_TEXT;
 
-  return (
-    <Text variant="body">
+  const text = (
+    <Text variant="body" numberOfLines={clamp ? 4 : undefined}>
       {segments.map((segment, index) =>
         // Los trozos no tienen identidad propia: el índice es la única clave
         // posible, y la lista se reconstruye entera cuando cambia el texto.
@@ -44,7 +49,20 @@ export function PostText({ content }: { content: string }) {
       )}
     </Text>
   );
+
+  if (!clamp) return text;
+  return (
+    <>
+      {text}
+      <Text variant="body" color="textSecondary">
+        ver más
+      </Text>
+    </>
+  );
 }
+
+/** A partir de aquí, en el feed, el texto se corta. Unas cuatro líneas en un móvil. */
+const LONG_TEXT = 180;
 
 const styles = StyleSheet.create({
   hashtag: {

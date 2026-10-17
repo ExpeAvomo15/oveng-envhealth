@@ -359,7 +359,9 @@ try {
   if (followersShown?.startsWith('1 ')) ok(`el contador en pantalla dice "${followersShown}"`);
   else bad(`el contador en pantalla dice "${followersShown}", se esperaba 1`);
 
-  await page.getByText('Siguiendo', { exact: true }).first().click();
+  // Por rol y no por texto: desde F4.6b los contadores van en la cabecera, por
+  // encima de los botones, y el primer «Siguiendo» de la página es su etiqueta.
+  await page.getByRole('button', { name: 'Siguiendo', exact: true }).first().click();
   await page.waitForTimeout(2500);
 
   const { count: followersFinal } = await a.client

@@ -5,9 +5,13 @@ import { colors, radius } from '@/theme';
 
 import { Text } from './text';
 
-export type AvatarSize = 'sm' | 'md' | 'lg' | 'xl';
+/**
+ * `xs` acompaña a las burbujas del chat; `list` es la fila de una bandeja de
+ * mensajes, del tamaño de la de Instagram (F4.6b).
+ */
+export type AvatarSize = 'xs' | 'sm' | 'md' | 'list' | 'lg' | 'xl';
 
-const sizes: Record<AvatarSize, number> = { sm: 32, md: 44, lg: 72, xl: 96 };
+const sizes: Record<AvatarSize, number> = { xs: 28, sm: 32, md: 44, list: 56, lg: 72, xl: 96 };
 
 export type AvatarProps = {
   /** Nombre de la cuenta: se usa para las iniciales y para accesibilidad. */
@@ -42,7 +46,9 @@ export function Avatar({ name, uri, size = 'md' }: AvatarProps) {
 
   return (
     <View style={[styles.fallback, shape]} accessible accessibilityLabel={name}>
-      <Text variant={size === 'sm' ? 'label' : size === 'md' ? 'subtitle' : 'display'} color="text">
+      <Text
+        variant={size === 'xs' ? 'micro' : size === 'sm' ? 'label' : size === 'md' || size === 'list' ? 'subtitle' : 'display'}
+        color="text">
         {initials(name)}
       </Text>
     </View>

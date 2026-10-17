@@ -5,7 +5,7 @@ import { ChatButton } from '@/components/chat/chat-button';
 import { Avatar, Button, Text } from '@/components/ui';
 import type { Profile } from '@/lib/database.types';
 import { profileName } from '@/lib/profiles';
-import { colors, radius, spacing } from '@/theme';
+import { colors, spacing } from '@/theme';
 
 export type PersonCardProps = {
   profile: Profile;
@@ -87,12 +87,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.lg,
-    backgroundColor: colors.surface,
-    borderRadius: radius.lg,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.border,
+    paddingVertical: spacing.sm,
   },
   main: {
     flex: 1,

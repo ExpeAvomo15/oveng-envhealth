@@ -451,6 +451,29 @@ y F4.9.
       **Denunciar mensajes y moderación son OBLIGATORIOS** antes de abrir al
       público general (ver backlog): sin ellos, un chat privado es un canal de
       acoso que nadie ve.
+- [x] **F4.6b pasada visual: "Instagram en verde"** — solo presentación:
+      ninguna lógica, ruta ni RLS. De Instagram se copian **patrones** de
+      layout, densidad y jerarquía; colores, tipografía y radios siguen siendo
+      los del design system. Auditoría primero (`docs/verificacion/f46b/antes/`,
+      24 pantallas) y solo se toca lo desalineado: **chat** (filas a sangre con
+      avatar de 56 px, vista previa en una línea y punto verde en lo no leído;
+      burbujas agrupadas por autor con la esquina hacia quien escribe menos
+      redondeada, hora centrada solo al cambiar de bloque —"Hoy 16:45",
+      "Ayer"—, barra de escritura en píldora con "Enviar" activo solo con
+      texto, y lo que llega en tiempo real entra deslizándose), **Solicitudes**
+      con Aceptar/Rechazar en la propia fila, **perfiles** (avatar a la
+      izquierda y contadores en fila, @usuario como título, botones compactos
+      a ancho completo, sin portada), **Buscar** (filas a sangre sobre blanco,
+      chips grises) y el **detalle de publicación** (imagen a sangre); en el
+      feed, "ver más" en los textos largos. Mapa, Turismo Verde, Empleo y
+      perfiles de entidad conservan su estructura y solo heredan filas, chips
+      y botones. Sin renumerar: va con sufijo, como F1.2b o F0.2c.
+      Verificado con las **dieciocho** verificaciones del repositorio en verde
+      —`verify:f46` comprueba además Aceptar y Rechazar en la fila— y con
+      `npm run capture:f46b`, que deja el antes y el después de las mismas 24
+      pantallas en `docs/verificacion/f46b/`. Dos localizadores cambiados, no
+      la app: en `verify:f13` el primer texto «Siguiendo» es ahora la etiqueta
+      del contador, y en `verify:f46` el «Aceptar» visible.
 - [ ] **F4.7 procedencia completa + OpenAQ** — lecturas con fuente, método,
       origen e instante (migración); OpenAQ donde haya estación; etiqueta del
       dato curado. OpenAQ pide clave: depende del criterio de fuentes de F4.3
@@ -486,6 +509,12 @@ se conoce y a la que el autor conoce—; no se puede abrir a desconocidos sin es
 - **Límite de solicitudes** por cuenta y día, contra el envío masivo.
 
 Fuera de esta lista, y sin prisa: imágenes, grupos y notificaciones push.
+
+- **Mensajes de audio en el chat** (grabación con permisos del navegador,
+  subida a Storage con RLS privada de los dos participantes, reproductor en la
+  burbuja). Hipótesis a contrastar en F3, y bloqueada además por denunciar
+  mensajes y moderación: un audio no se puede revisar de un vistazo. Anotada
+  en F4.6b, sin construir.
 
 ### Datos ambientales
 

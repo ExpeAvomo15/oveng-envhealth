@@ -56,6 +56,8 @@ export const typography = {
   bodyStrong: { fontSize: 16, lineHeight: 24, fontWeight: '600' },
   /** 14/20 regular — metadatos, descripciones secundarias. */
   caption: { fontSize: 14, lineHeight: 20, fontWeight: '400' },
+  /** 14/20 semibold — lo no leído en una bandeja de mensajes (F4.6b). */
+  captionStrong: { fontSize: 14, lineHeight: 20, fontWeight: '600' },
   /** 13/16 semibold — badges, etiquetas, pestañas. */
   label: { fontSize: 13, lineHeight: 16, fontWeight: '600' },
   /** 11/14 medium — etiquetas de la barra de navegación. El tamaño mínimo. */

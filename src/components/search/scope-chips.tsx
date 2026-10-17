@@ -37,7 +37,7 @@ export function ScopeChips({ value, onChange }: ScopeChipsProps) {
             accessibilityRole="tab"
             accessibilityState={{ selected }}
             style={[styles.chip, selected && styles.chipSelected]}>
-            <Text variant="label" color={selected ? 'textInverse' : 'textSecondary'}>
+            <Text variant="label" color={selected ? 'textInverse' : 'text'}>
               {scope.label}
             </Text>
           </Pressable>
@@ -57,12 +57,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
     borderRadius: radius.full,
-    backgroundColor: colors.surface,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.border,
+    // Relleno gris sin borde, como los chips de Instagram (F4.6b).
+    backgroundColor: colors.surfaceMuted,
   },
   chipSelected: {
     backgroundColor: colors.accent,
-    borderColor: colors.accent,
   },
 });

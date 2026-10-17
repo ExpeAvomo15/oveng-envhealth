@@ -22,7 +22,9 @@ export type PostCardProps = {
   /**
    * `feed` (F4.4): a sangre, como en el mockup 1 —sin radio, borde ni margen,
    * y la imagen de lado a lado—, para que las publicaciones se encadenen sin
-   * huecos. `card`: la tarjeta de siempre, para el detalle.
+   * huecos; también es el detalle desde F4.6b, con la imagen a sangre como en
+   * Instagram. `card`: la tarjeta con borde, para donde va sola entre otros
+   * bloques.
    */
   variant?: 'feed' | 'card';
 };
@@ -161,7 +163,7 @@ export function PostCard({ post, onPressBody, variant = 'card' }: PostCardProps)
         accessibilityLabel={onPressBody ? 'Ver la publicación' : undefined}
         style={styles.body}>
         <View style={flush && styles.inset}>
-          <PostText content={post.content} />
+          <PostText content={post.content} collapsed={flush && Boolean(onPressBody)} />
         </View>
 
         {post.imageUrl ? (

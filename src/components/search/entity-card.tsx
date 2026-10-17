@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Button, Text } from '@/components/ui';
 import type { EntityResult } from '@/lib/entities';
-import { colors, environmentalCategories, radius, spacing } from '@/theme';
+import { colors, environmentalCategories, spacing } from '@/theme';
 
 import { EntityAvatar } from './entity-avatar';
 import { RatingBadge } from './rating-badge';
@@ -18,7 +18,8 @@ export type EntityCardProps = {
 };
 
 /**
- * Ficha de resultado de una entidad, según la pantalla 2 de los mockups.
+ * Fila de resultado de una entidad, según la pantalla 2 de los mockups. Desde
+ * F4.6b va a sangre, sin tarjeta, como las filas de búsqueda de Instagram.
  *
  * **La fila no es un único Pressable.** El botón Seguir tendría que ir dentro,
  * y un pulsable dentro de otro hace que en web el clic burbujee: seguir a una
@@ -97,12 +98,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.lg,
-    backgroundColor: colors.surface,
-    borderRadius: radius.lg,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.border,
+    paddingVertical: spacing.sm,
   },
   main: {
     flex: 1,

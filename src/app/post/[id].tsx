@@ -7,7 +7,7 @@ import { PostCard } from '@/components/feed';
 import { Button, Screen, Text } from '@/components/ui';
 import { useAuth } from '@/hooks/use-auth';
 import { getPost, type FeedPost } from '@/lib/feed';
-import { colors, radius, spacing } from '@/theme';
+import { colors, radius, screenPadding, spacing } from '@/theme';
 
 /** Detalle de una publicación. Los comentarios llegan después del MVP. */
 export default function PostDetailScreen() {
@@ -82,7 +82,7 @@ export default function PostDetailScreen() {
   }
 
   return (
-    <Screen>
+    <Screen padded={false} background="surface">
       <View style={styles.header}>
         <Pressable
           onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))}
@@ -94,7 +94,7 @@ export default function PostDetailScreen() {
         <Text variant="subtitle">Publicación</Text>
       </View>
 
-      <PostCard post={post} />
+      <PostCard post={post} variant="feed" />
 
       <View style={styles.comments}>
         <View style={styles.commentsIcon}>
@@ -124,16 +124,19 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.md,
-    paddingVertical: spacing.md,
+    gap: spacing.sm,
+    minHeight: 56,
+    paddingHorizontal: screenPadding,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.border,
   },
   back: {
     width: 40,
     height: 40,
+    marginLeft: -spacing.sm,
     borderRadius: radius.full,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.surface,
   },
   pressed: {
     opacity: 0.6,
@@ -141,12 +144,10 @@ const styles = StyleSheet.create({
   comments: {
     alignItems: 'center',
     gap: spacing.sm,
-    marginTop: spacing.lg,
-    padding: spacing.xl,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderStyle: 'dashed',
-    borderColor: colors.border,
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.xxl,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.border,
   },
   commentsIcon: {
     width: 56,

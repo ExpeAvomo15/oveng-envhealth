@@ -6,7 +6,7 @@ import { colors, radius, spacing } from '@/theme';
 
 import { Text } from './text';
 
-export type ButtonVariant = 'primary' | 'secondary' | 'ghost';
+export type ButtonVariant = 'primary' | 'secondary' | 'tonal' | 'ghost';
 /**
  * `sm` es el botón de una fila de lista —Seguir en una ficha de resultado—,
  * donde el de `md` se come el ancho del nombre. Los mockups lo pintan así en la
@@ -17,7 +17,10 @@ export type ButtonSize = 'sm' | 'md' | 'lg';
 export type ButtonProps = {
   label: string;
   onPress?: () => void;
-  /** `primary` verde sólido · `secondary` contorno · `ghost` sin fondo. */
+  /**
+   * `primary` verde sólido · `secondary` contorno · `tonal` relleno gris con
+   * texto oscuro, el botón secundario de Instagram (F4.6b) · `ghost` sin fondo.
+   */
   variant?: ButtonVariant;
   size?: ButtonSize;
   disabled?: boolean;
@@ -40,7 +43,13 @@ export function Button({
   style,
 }: ButtonProps) {
   const isInactive = disabled || loading;
-  const labelColor = isInactive ? 'textMuted' : variant === 'primary' ? 'textInverse' : 'accent';
+  const labelColor = isInactive
+    ? 'textMuted'
+    : variant === 'primary'
+      ? 'textInverse'
+      : variant === 'tonal'
+        ? 'text'
+        : 'accent';
   // El texto acompaña al tamaño: un bodyStrong dentro de un botón compacto lo
   // obliga a crecer y deja de ser compacto.
   const labelVariant = size === 'sm' ? 'label' : 'bodyStrong';
@@ -73,7 +82,15 @@ export function Button({
             <Ionicons
               name={icon}
               size={size === 'sm' ? 16 : 18}
-              color={isInactive ? colors.textMuted : variant === 'primary' ? colors.textInverse : colors.accent}
+              color={
+                isInactive
+                  ? colors.textMuted
+                  : variant === 'primary'
+                    ? colors.textInverse
+                    : variant === 'tonal'
+                      ? colors.text
+                      : colors.accent
+              }
             />
           ) : null}
           <Text variant={labelVariant} color={labelColor} numberOfLines={1}>
@@ -124,6 +141,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.accent,
+  },
+  tonal: {
+    backgroundColor: colors.surfaceMuted,
   },
   ghost: {
     backgroundColor: 'transparent',

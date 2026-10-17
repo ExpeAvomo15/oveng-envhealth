@@ -118,6 +118,7 @@ export default function EditProfileScreen() {
           variant="ghost"
           onPress={handlePickAvatar}
           disabled={uploading || saving}
+          style={styles.centerSelf}
         />
       </View>
 
@@ -204,6 +205,9 @@ const styles = StyleSheet.create({
   },
   pressed: {
     opacity: 0.6,
+  },
+  centerSelf: {
+    alignSelf: 'center',
   },
   avatarBlock: {
     alignItems: 'center',

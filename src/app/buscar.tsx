@@ -289,7 +289,7 @@ export default function SearchScreen() {
   // misma porque fuera de `(tabs)` no la pone nadie.
   return (
     <View style={styles.page}>
-      <Screen>
+      <Screen background="surface">
         <View style={styles.header}>
           <Text variant="display">Buscar</Text>
           <SearchBar value={term} onChange={onChangeTerm} />
@@ -464,13 +464,13 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.lg,
   },
   blocks: {
-    gap: spacing.xl,
+    gap: spacing.lg,
   },
   block: {
-    gap: spacing.md,
+    gap: spacing.xs,
   },
   list: {
-    gap: spacing.sm,
+    gap: 0,
   },
   chips: {
     flexDirection: 'row',

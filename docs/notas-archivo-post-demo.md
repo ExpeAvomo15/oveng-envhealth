@@ -6,6 +6,29 @@ conservan íntegras y no se editan. Se enlaza, **nunca se importa con `@`**.
 
 ---
 
+## 2026-10-04 — F4.5: Turismo Verde por ubicación
+
+**Pantalla propia, no un modo de Buscar.** `/turismo-verde` tiene un buscador
+de ciudades; dentro de Buscar habría dos campos de búsqueda distintos a la
+vez. El chip y el "Ver todo" de Buscar llevan a ella. `verify:f22` comprueba
+ahora el filtro por tipo con Iniciativas.
+
+**Coordenadas comprobadas, no recordadas.** Los 13 lugares nuevos salen de
+OpenStreetMap (Nominatim, pocas consultas espaciadas). Se descartaron los que
+no aparecían o aparecían mal: Arena Blanca, las cascadas de Ilachi, Moraka y
+Utonde, y "Acantilados de Maro", que devolvía un apartamento turístico con ese
+nombre (se usó la reserva natural). Sin métricas: no hay fuente.
+
+**Distancia en línea recta, y se dice así.** Haversine en el cliente, radio de
+150 km. "A X km", no "a X km en coche": la ruta la calcula Google Maps al pulsar
+"Cómo llegar" (`?q=lat,lng`, las coordenadas exactas de la entidad).
+
+**Curación es marca.** Donde no hay lugares no se rellena con OpenStreetMap: se
+dice, se enseñan los tres más cercanos y se invita a proponer (#TurismoVerde en
+el compositor). La propuesta formal es post-F3.
+
+---
+
 ## 2026-10-04 — F4.4: feed denso, Turismo Verde y Empleo
 
 **Modelo LinkedIn adaptado.** Solo hay cuentas de personas; una entidad es una

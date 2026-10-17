@@ -37,6 +37,7 @@ El porqué de cada una, enlazado.
 - Inter se importa por subrutas de peso, no desde el índice del paquete (10 → 5,4 MB). [F2.6]
 - Todo control que no hace nada **avisa**: nada pulsable sin respuesta. [F1.6] [F2.6]
 - El dato ambiental va **entre** publicaciones (tras la tercera), no encabezando el feed. [F2.5]
+- **"Instagram en verde"**: de Instagram, patrones (listas a sangre, chat agrupado, perfil compacto); de OVENG, paleta, Inter y radios. Lo secundario es `tonal`; el verde, la acción principal. [F4.6b]
 
 ### Rutas y despliegue
 
@@ -94,6 +95,104 @@ La lista mantenida es el **backlog de @docs/plan.md**. Fuera de ella, sueltos:
 - El clima (temperatura, lluvia) está a una llamada de Open-Meteo, sin clave, y no se enseña en ningún sitio.
 - Marca: falta el **SVG vectorial** (hoy son PNG), los PNG no van cuantizados y
   el icono y el splash nativos siguen siendo los de Expo.
+
+---
+
+## 2026-10-17 — F4.6b: pasada visual "Instagram en verde"
+
+Solo presentación: ni lógica, ni rutas, ni RLS. De Instagram se toman
+**patrones** —layout, densidad, jerarquía—; los colores, Inter y los radios
+siguen siendo los del design system. Encargo del autor.
+
+### Auditoría antes de tocar nada
+
+`npm run capture:f46b -- antes` recorre 24 pantallas con tres cuentas
+sembradas (un chat con mensajes de ayer y de hoy, una solicitud, una
+publicación con foto) y las deja en `docs/verificacion/f46b/antes/`;
+`-- despues` repite exactamente las mismas en `despues/`.
+
+**Ya seguían el patrón y no se reescriben:** el feed (a sangre desde F4.4,
+cabecera con logo, mensajes y campana), la barra inferior (cinco iconos con
+etiqueta mínima, activo en verde y Crear centrado: quitar las etiquetas iría
+contra los mockups de F0.2c, y el encargo lo dejaba elegir), la bienvenida,
+entrar, registrarse y recuperar contraseña (campos de relleno sin borde,
+etiqueta pequeña, botón a ancho completo), el compositor de Crear y la barra
+de Buscar en píldora con chips deslizables.
+
+**Desalineadas, y es lo que se tocó:**
+
+- **Chat.** Filas dentro de tarjetas, contador numérico, cada burbuja con su
+  hora, las recibidas blancas con borde y sin agrupar, campo rectangular con un
+  botón redondo aparte.
+- **Solicitudes.** Para aceptar había que abrir la conversación.
+- **Perfiles.** Portada verde lisa que ocupaba un tercio de la pantalla, avatar
+  de 96 px solapado y los contadores debajo de los botones.
+- **Buscar.** Cada resultado y cada sugerencia, una tarjeta flotante.
+- **Detalle de publicación.** La tarjeta con borde y la imagen con margen.
+- **Editar perfil.** "Cambiar foto" salía a la izquierda bajo un avatar
+  centrado (`Button` lleva `alignSelf: flex-start`).
+
+**Fuera por diseño:** mapa, Turismo Verde, Empleo y el perfil de entidad no
+tienen equivalente en Instagram; conservan su estructura y solo heredan las
+filas, chips y botones comunes (las ofertas del perfil de entidad son las
+mismas filas que en Buscar).
+
+### Lo que cambió en el sistema
+
+- `Button` gana la variante **`tonal`** (relleno gris, texto oscuro): el botón
+  secundario de Instagram —Editar perfil, Siguiendo, Enviar mensaje,
+  Rechazar—. El verde queda para la acción principal.
+- `Avatar` gana `xs` (28, junto a las burbujas) y `list` (56, la fila de la
+  bandeja).
+- Tipografía: `captionStrong` (14 semibold) para lo no leído. Con Inter el peso
+  es un archivo; un `fontWeight` suelto no cambia nada en nativo.
+- `chatStamp` en `lib/time.ts`: "Hoy 16:45", "Ayer 14:58", "lunes 10:02".
+- `ProfileTopBar`: el @usuario como título del perfil, como en Instagram. El
+  @usuario se sigue viendo, que es lo que comprueban `verify:f13` y `verify:mvp`.
+
+### Decisiones de la conversación
+
+- **Un bloque nuevo cada 20 minutos** de silencio: ahí sale la hora centrada,
+  y ahí se corta también el grupo de burbujas aunque escriba la misma persona.
+- **Esquinas:** 18 px, y 4 en el lado de quien escribe salvo la de arriba del
+  primer mensaje del grupo. Así los seguidos se leen pegados y un mensaje suelto
+  sigue apuntando a su autor.
+- **La hora sale del texto visible pero no se pierde:** cada burbuja tiene
+  nombre accesible "Tú, 16:53: …".
+- **"Visto"** debajo de tu último mensaje, si se ha leído, en vez de en cada
+  burbuja.
+- **Solo lo que llega después de abrir entra deslizándose.** La lista guarda
+  los ids que había al montarse; lo cargado al entrar se pinta quieto.
+- **Aceptar desde la fila lleva a la conversación**; rechazar se queda en la
+  lista con el aviso de siempre ("no se lo diremos"). Es la misma llamada que ya
+  hacía la conversación, no lógica nueva.
+- **Contraste:** blanco sobre verde 5,1:1 en las burbujas propias; el texto
+  oscuro sobre el gris de las ajenas pasa de sobra. "Solicitud enviada" sigue
+  en `warningText` (ámbar #A16207).
+
+### "Ver más" en el feed
+
+Un texto de más de 180 caracteres se corta a cuatro líneas con "ver más"
+**dentro** del cuerpo de la tarjeta, que ya lleva al detalle, donde se lee
+entero. No es un botón aparte: un pulsable dentro de otro hace que en web el
+toque navegue además (la lección de las fichas de Buscar).
+
+### Lo que se vio y no se tocó
+
+- **Editar perfil, abierto con la URL directa**, arranca con el nombre vacío y
+  el aviso "no puede quedar vacío": el formulario se inicializa antes de que
+  llegue el perfil. Es lógica, no presentación; anotado.
+- El perfil sigue sin lista de publicaciones (backlog). La rejilla de Instagram
+  necesita esa consulta, así que espera a que exista.
+
+### Verificación
+
+La lección del texto duplicado volvió por otro lado: los botones Aceptar y
+Rechazar están ahora también en la fila de Solicitudes, y esa lista sigue
+montada debajo de la conversación. `verify:f46` pulsa solo el visible y
+comprueba además que la fila ofrece las dos acciones. Y en `verify:f13`, el
+primer texto «Siguiendo» de la página ya no es el botón sino la etiqueta del
+contador, que ahora va arriba: se busca por rol. Las dieciocho en verde.
 
 ---
 
@@ -190,26 +289,3 @@ esperas por texto miran ahora solo lo visible.
 En la batería completa, `verify:f24` falló una vez esperando el botón
 "Valorar" (30 s) y pasó entero al repetirlo, sin cambios: lentitud de la red,
 no del código. Si se repite, es el primero al que mirar.
-
----
-
-## 2026-10-04 — F4.5: Turismo Verde por ubicación
-
-**Pantalla propia, no un modo de Buscar.** `/turismo-verde` tiene un buscador
-de ciudades; dentro de Buscar habría dos campos de búsqueda distintos a la
-vez. El chip y el "Ver todo" de Buscar llevan a ella. `verify:f22` comprueba
-ahora el filtro por tipo con Iniciativas.
-
-**Coordenadas comprobadas, no recordadas.** Los 13 lugares nuevos salen de
-OpenStreetMap (Nominatim, pocas consultas espaciadas). Se descartaron los que
-no aparecían o aparecían mal: Arena Blanca, las cascadas de Ilachi, Moraka y
-Utonde, y "Acantilados de Maro", que devolvía un apartamento turístico con ese
-nombre (se usó la reserva natural). Sin métricas: no hay fuente.
-
-**Distancia en línea recta, y se dice así.** Haversine en el cliente, radio de
-150 km. "A X km", no "a X km en coche": la ruta la calcula Google Maps al pulsar
-"Cómo llegar" (`?q=lat,lng`, las coordenadas exactas de la entidad).
-
-**Curación es marca.** Donde no hay lugares no se rellena con OpenStreetMap: se
-dice, se enseñan los tres más cercanos y se invita a proponer (#TurismoVerde en
-el compositor). La propuesta formal es post-F3.

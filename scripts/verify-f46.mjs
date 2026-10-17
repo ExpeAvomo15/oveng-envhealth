@@ -216,11 +216,17 @@ try {
     await page.getByRole('tab', { name: /^Solicitudes/ }).click();
     await page.waitForTimeout(1500);
     await shot(page, '02-solicitudes-de-b');
+    if ((await page.getByRole('button', { name: 'Aceptar', exact: true }).filter({ visible: true }).count()) === 1 &&
+        (await page.getByRole('button', { name: 'Rechazar', exact: true }).filter({ visible: true }).count()) === 1) {
+      ok('la fila de la solicitud ofrece Aceptar y Rechazar sin abrirla');
+    } else bad('la fila de la solicitud no ofrece Aceptar y Rechazar');
     await page.getByRole('link', { name: new RegExp(`^Conversación con ${accounts.a.name}`) }).click();
     await page.waitForTimeout(2500);
     await visible(page.getByText('Hola, ¿organizamos una limpieza del Ntem?')).waitFor({ timeout: 8000 });
     ok('B lee el mensaje de la solicitud antes de decidir');
-    await page.getByRole('button', { name: 'Aceptar', exact: true }).click();
+    // Desde F4.6b la fila de Solicitudes también lleva su «Aceptar», y la lista
+    // sigue montada debajo de la conversación: solo vale el visible.
+    await visible(page.getByRole('button', { name: 'Aceptar', exact: true })).click();
     await page.waitForTimeout(2500);
     const { data } = await users.b.from('conversations').select('status').eq('id', conversationId).single();
     if (data?.status === 'accepted') ok('aceptada en la base');

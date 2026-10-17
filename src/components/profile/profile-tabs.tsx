@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Text } from '@/components/ui';
-import { colors, screenPadding, spacing } from '@/theme';
+import { colors, spacing } from '@/theme';
 
 export type ProfileTab = 'publicaciones' | 'guardados';
 
@@ -10,7 +10,7 @@ const TABS: { key: ProfileTab; label: string }[] = [
   { key: 'guardados', label: 'Guardados' },
 ];
 
-/** Pestañas internas del perfil. Subrayado en la activa, sin animación. */
+/** Pestañas internas del perfil, a sangre como en Instagram. Subrayado en la activa. */
 export function ProfileTabs({
   active,
   onChange,
@@ -42,7 +42,10 @@ export function ProfileTabs({
 const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
-    marginHorizontal: screenPadding,
+    marginTop: spacing.md,
+    backgroundColor: colors.surface,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.border,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: colors.border,
   },

@@ -3,7 +3,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 
-import { ProfileCounts, ProfileHeader, ProfileTabs, type ProfileTab } from '@/components/profile';
+import { ProfileHeader, ProfileTabs, ProfileTopBar, type ProfileTab } from '@/components/profile';
 import { Button, Callout, Screen, Text } from '@/components/ui';
 import { useAuth } from '@/hooks/use-auth';
 import type { Profile } from '@/lib/database.types';
@@ -200,24 +200,28 @@ export default function PublicProfileScreen() {
   }
 
   return (
-    <Screen padded={false}>
-      <View style={styles.backRow}>
-        <Pressable
-          onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))}
-          accessibilityRole="button"
-          accessibilityLabel="Volver"
-          style={({ pressed }) => [styles.backButton, pressed && styles.pressed]}>
-          <Ionicons name="arrow-back" size={22} color={colors.text} />
-        </Pressable>
-      </View>
+    <Screen padded={false} background="surface">
+      <ProfileTopBar
+        username={profile.username}
+        left={
+          <Pressable
+            onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))}
+            accessibilityRole="button"
+            accessibilityLabel="Volver"
+            style={({ pressed }) => [styles.backButton, pressed && styles.pressed]}>
+            <Ionicons name="arrow-back" size={22} color={colors.text} />
+          </Pressable>
+        }
+      />
 
-      <ProfileHeader profile={profile} />
+      <ProfileHeader profile={profile} counts={counts} />
 
       <View style={[styles.actions, !isOwnProfile && styles.actionsRow]}>
         {isOwnProfile ? (
           <Button
             label="Editar perfil"
-            variant="secondary"
+            variant="tonal"
+            size="sm"
             fullWidth
             onPress={() => router.push('/editar-perfil')}
           />
@@ -226,7 +230,8 @@ export default function PublicProfileScreen() {
           // pulsar. Mismo patrón que la ficha de entidad.
           <Button
             label="Inicia sesión para seguir"
-            variant="secondary"
+            variant="primary"
+            size="sm"
             fullWidth
             onPress={() => router.push('/welcome')}
             style={styles.half}
@@ -234,7 +239,8 @@ export default function PublicProfileScreen() {
         ) : (
           <Button
             label={following ? 'Siguiendo' : 'Seguir'}
-            variant={following ? 'secondary' : 'primary'}
+            variant={following ? 'tonal' : 'primary'}
+            size="sm"
             fullWidth
             icon={following ? 'checkmark' : 'person-add-outline'}
             loading={busy}
@@ -250,7 +256,8 @@ export default function PublicProfileScreen() {
           <Button
             label="Enviar mensaje"
             icon="chatbubble-ellipses-outline"
-            variant="secondary"
+            variant="tonal"
+            size="sm"
             fullWidth
             loading={opening}
             onPress={openChat}
@@ -265,8 +272,6 @@ export default function PublicProfileScreen() {
           <Callout tone="error">{error}</Callout>
         </View>
       ) : null}
-
-      <ProfileCounts counts={counts} />
 
       <ProfileTabs active={tab} onChange={setTab} />
 
@@ -303,17 +308,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: spacing.md,
   },
-  backRow: {
-    position: 'absolute',
-    top: spacing.md,
-    left: screenPadding,
-    zIndex: 10,
-  },
   backButton: {
     width: 40,
     height: 40,
+    marginLeft: -spacing.sm,
     borderRadius: radius.full,
-    backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -323,7 +322,7 @@ const styles = StyleSheet.create({
   actions: {
     gap: spacing.sm,
     paddingHorizontal: screenPadding,
-    paddingVertical: spacing.lg,
+    paddingTop: spacing.md,
   },
   actionsRow: {
     flexDirection: 'row',
@@ -333,7 +332,7 @@ const styles = StyleSheet.create({
   },
   inset: {
     paddingHorizontal: screenPadding,
-    paddingBottom: spacing.md,
+    paddingTop: spacing.md,
   },
   empty: {
     alignItems: 'center',

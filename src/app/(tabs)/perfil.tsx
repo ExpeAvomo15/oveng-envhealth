@@ -6,9 +6,9 @@ import { Modal, Pressable, StyleSheet, View } from 'react-native';
 import {
   AdministeredPages,
   ImpactCard,
-  ProfileCounts,
   ProfileHeader,
   ProfileTabs,
+  ProfileTopBar,
   type ProfileTab,
 } from '@/components/profile';
 import { Button, Callout, Screen, Text } from '@/components/ui';
@@ -102,26 +102,32 @@ export default function ProfileScreen() {
   }
 
   return (
-    <Screen padded={false}>
-      <ProfileHeader profile={profile} />
+    <Screen padded={false} background="surface">
+      <ProfileTopBar
+        username={profile.username}
+        right={
+          <Pressable
+            onPress={() => setMenuOpen((open) => !open)}
+            accessibilityRole="button"
+            accessibilityLabel="Más opciones"
+            accessibilityState={{ expanded: menuOpen }}
+            style={({ pressed }) => [styles.menuButton, pressed && styles.pressed]}>
+            <Ionicons name="ellipsis-horizontal" size={22} color={colors.text} />
+          </Pressable>
+        }
+      />
+
+      <ProfileHeader profile={profile} counts={counts} countsLoading={countsLoading} />
 
       <View style={styles.actions}>
         <Button
           label="Editar perfil"
-          variant="secondary"
+          variant="tonal"
+          size="sm"
+          fullWidth
           onPress={() => router.push('/editar-perfil')}
           style={styles.editButton}
         />
-
-        <Pressable
-          onPress={() => setMenuOpen((open) => !open)}
-          accessibilityRole="button"
-          accessibilityLabel="Más opciones"
-          accessibilityState={{ expanded: menuOpen }}
-          style={({ pressed }) => [styles.menuButton, pressed && styles.pressed]}>
-          <Ionicons name="ellipsis-horizontal" size={22} color={colors.text} />
-        </Pressable>
-
       </View>
 
       {/*
@@ -157,8 +163,6 @@ export default function ProfileScreen() {
           <Callout tone="error">{error}</Callout>
         </View>
       ) : null}
-
-      <ProfileCounts counts={counts} loading={countsLoading} />
 
       <View style={styles.impact}>
         <ImpactCard
@@ -239,24 +243,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.sm,
     paddingHorizontal: screenPadding,
-    paddingVertical: spacing.lg,
+    paddingTop: spacing.md,
   },
   editButton: {
     flex: 1,
   },
   menuButton: {
-    width: 44,
-    height: 44,
+    width: 40,
+    height: 40,
     borderRadius: radius.full,
-    borderWidth: 1,
-    borderColor: colors.border,
     alignItems: 'center',
     justifyContent: 'center',
   },
   backdrop: {
     flex: 1,
     alignItems: 'flex-end',
-    paddingTop: 96,
+    paddingTop: 56,
     paddingHorizontal: screenPadding,
     backgroundColor: 'rgba(0, 0, 0, 0.15)',
   },

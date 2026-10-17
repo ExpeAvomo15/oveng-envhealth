@@ -1,7 +1,16 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useIsFocused, useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
+import {
+  ActivityIndicator,
+  Animated,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  View,
+} from 'react-native';
 
 import { Avatar, Button, Screen, Text } from '@/components/ui';
 import { showToast } from '@/components/ui/toast';
@@ -17,6 +26,7 @@ import {
   type Message,
 } from '@/lib/messages';
 import { useFontFamily } from '@/hooks/use-fonts';
+import { chatStamp } from '@/lib/time';
 import { colors, noWebFocusRing, radius, screenPadding, spacing, typography } from '@/theme';
 
 type Menu = 'closed' | 'open' | 'confirm-block';
@@ -136,7 +146,7 @@ export default function ConversationScreen() {
   };
 
   return (
-    <Screen padded={false} scroll={false} avoidKeyboard>
+    <Screen padded={false} scroll={false} background="surface" avoidKeyboard>
       <View style={styles.header}>
         <Pressable
           onPress={back}
@@ -151,14 +161,9 @@ export default function ConversationScreen() {
           accessibilityLabel={`Perfil de ${name}`}
           style={({ pressed }) => [styles.person, pressed && styles.pressed]}>
           <Avatar name={name} uri={other.avatar_url} size="sm" />
-          <View style={styles.flex}>
-            <Text variant="bodyStrong" numberOfLines={1}>
-              {name}
-            </Text>
-            <Text variant="micro" color="textSecondary" numberOfLines={1}>
-              @{other.username}
-            </Text>
-          </View>
+          <Text variant="bodyStrong" numberOfLines={1} style={styles.flex}>
+            {name}
+          </Text>
         </Pressable>
         <Pressable
           onPress={() => setMenu(menu === 'closed' ? 'open' : 'closed')}
@@ -208,7 +213,7 @@ export default function ConversationScreen() {
               : 'Todavía no hay mensajes.'}
           </Text>
         ) : (
-          messages.map((message) => <Bubble key={message.id} message={message} mine={message.sender_id === me} />)
+          <MessageList messages={messages} me={me} other={other} name={name} />
         )}
       </ScrollView>
 
@@ -223,13 +228,22 @@ export default function ConversationScreen() {
 
       {incoming && !blocked ? (
         <View style={styles.decide}>
-          <Button label="Aceptar" size="sm" loading={answering} onPress={() => void answer('accepted')} />
+          <Button
+            label="Aceptar"
+            size="sm"
+            fullWidth
+            loading={answering}
+            onPress={() => void answer('accepted')}
+            style={styles.flex}
+          />
           <Button
             label="Rechazar"
-            variant="secondary"
+            variant="tonal"
             size="sm"
+            fullWidth
             disabled={answering}
             onPress={() => void answer('declined')}
+            style={styles.flex}
           />
         </View>
       ) : null}
@@ -241,63 +255,175 @@ export default function ConversationScreen() {
       ) : null}
 
       {canWrite ? (
-        <View style={styles.composer}>
-          <TextInput
-            value={draft}
-            onChangeText={setDraft}
-            placeholder="Escribe un mensaje"
-            placeholderTextColor={colors.textMuted}
-            accessibilityLabel="Escribe un mensaje"
-            multiline
-            maxLength={MESSAGE_MAX}
-            onKeyPress={(event) => {
-              // En web, Intro envía y Mayús+Intro salta de línea, como en
-              // cualquier chat de escritorio.
-              const native = event.nativeEvent as { key: string; shiftKey?: boolean };
-              if (native.key === 'Enter' && !native.shiftKey) {
-                (event as unknown as { preventDefault?: () => void }).preventDefault?.();
-                void send();
-              }
-            }}
-            style={[styles.input, noWebFocusRing, { fontFamily: fontFamily('400') }]}
-          />
-          <Pressable
-            onPress={() => void send()}
-            disabled={sending || draft.trim().length === 0}
-            accessibilityRole="button"
-            accessibilityLabel="Enviar"
-            accessibilityState={{ disabled: sending || draft.trim().length === 0 }}
-            style={({ pressed }) => [
-              styles.send,
-              (sending || draft.trim().length === 0) && styles.sendInactive,
-              pressed && styles.pressed,
-            ]}>
-            {sending ? (
-              <ActivityIndicator size="small" color={colors.textInverse} />
-            ) : (
-              <Ionicons name="send" size={18} color={colors.textInverse} />
-            )}
-          </Pressable>
+        <View style={styles.composerBar}>
+          <View style={styles.composer}>
+            <TextInput
+              value={draft}
+              onChangeText={setDraft}
+              placeholder="Escribe un mensaje…"
+              placeholderTextColor={colors.textMuted}
+              accessibilityLabel="Escribe un mensaje"
+              multiline
+              // En web, `multiline` es un textarea que nace con dos filas: una
+              // basta, y crece con lo que se escribe.
+              numberOfLines={1}
+              maxLength={MESSAGE_MAX}
+              // Con el teclado abierto, el último mensaje tiene que seguir a la vista.
+              onFocus={() => setTimeout(() => scroll.current?.scrollToEnd({ animated: true }), 300)}
+              onKeyPress={(event) => {
+                // En web, Intro envía y Mayús+Intro salta de línea, como en
+                // cualquier chat de escritorio.
+                const native = event.nativeEvent as { key: string; shiftKey?: boolean };
+                if (native.key === 'Enter' && !native.shiftKey) {
+                  (event as unknown as { preventDefault?: () => void }).preventDefault?.();
+                  void send();
+                }
+              }}
+              style={[styles.input, noWebFocusRing, { fontFamily: fontFamily('400') }]}
+            />
+            <Pressable
+              onPress={() => void send()}
+              disabled={sending || draft.trim().length === 0}
+              accessibilityRole="button"
+              accessibilityLabel="Enviar"
+              accessibilityState={{ disabled: sending || draft.trim().length === 0 }}
+              hitSlop={8}
+              style={({ pressed }) => [styles.send, pressed && styles.pressed]}>
+              {sending ? (
+                <ActivityIndicator size="small" color={colors.accent} />
+              ) : (
+                <Text variant="bodyStrong" color={draft.trim().length === 0 ? 'textMuted' : 'accent'}>
+                  Enviar
+                </Text>
+              )}
+            </Pressable>
+          </View>
         </View>
       ) : null}
     </Screen>
   );
 }
 
-function Bubble({ message, mine }: { message: Message; mine: boolean }) {
+/** Mensajes a menos de este tiempo del anterior van en el mismo bloque, sin marca de hora. */
+const BLOCK_GAP_MS = 20 * 60 * 1000;
+
+/**
+ * Los mensajes con el patrón de Instagram (F4.6b): los seguidos de una misma
+ * persona se agrupan —esquinas pegadas, avatar solo en el último de lo
+ * recibido— y la hora sale centrada solo al empezar un bloque nuevo.
+ *
+ * Se monta cuando la conversación ya ha cargado, así que lo que había al abrir
+ * se pinta quieto y solo lo que llega después entra deslizándose desde abajo.
+ */
+function MessageList({
+  messages,
+  me,
+  other,
+  name,
+}: {
+  messages: Message[];
+  me: string;
+  other: { avatar_url: string | null };
+  name: string;
+}) {
+  const [initial] = useState(() => new Set(messages.map((m) => m.id)));
+  const lastMine = [...messages].reverse().find((m) => m.sender_id === me);
+
+  return (
+    <>
+      {messages.map((message, index) => {
+        const previous = messages[index - 1];
+        const next = messages[index + 1];
+        const time = new Date(message.created_at).getTime();
+        const newBlock = !previous || time - new Date(previous.created_at).getTime() > BLOCK_GAP_MS;
+        const nextNewBlock = !next || new Date(next.created_at).getTime() - time > BLOCK_GAP_MS;
+        const first = newBlock || previous.sender_id !== message.sender_id;
+        const last = nextNewBlock || next.sender_id !== message.sender_id;
+        const mine = message.sender_id === me;
+        return (
+          <View key={message.id}>
+            {newBlock ? (
+              <Text variant="micro" color="textSecondary" style={styles.stamp}>
+                {chatStamp(message.created_at)}
+              </Text>
+            ) : null}
+            <Bubble
+              message={message}
+              mine={mine}
+              first={first}
+              last={last}
+              author={mine ? 'Tú' : name}
+              avatar={!mine && last ? <Avatar name={name} uri={other.avatar_url} size="xs" /> : null}
+              animate={!initial.has(message.id)}
+            />
+            {mine && message.id === lastMine?.id && message.read_at ? (
+              <Text variant="micro" color="textSecondary" style={styles.seen}>
+                Visto
+              </Text>
+            ) : null}
+          </View>
+        );
+      })}
+    </>
+  );
+}
+
+function Bubble({
+  message,
+  mine,
+  first,
+  last,
+  author,
+  avatar,
+  animate,
+}: {
+  message: Message;
+  mine: boolean;
+  first: boolean;
+  last: boolean;
+  author: string;
+  avatar: ReactNode;
+  animate: boolean;
+}) {
+  const [progress] = useState(() => new Animated.Value(animate ? 0 : 1));
+  useEffect(() => {
+    if (!animate) return;
+    Animated.timing(progress, {
+      toValue: 1,
+      duration: 220,
+      useNativeDriver: Platform.OS !== 'web',
+    }).start();
+  }, [animate, progress]);
+
   const time = new Intl.DateTimeFormat('es-ES', { hour: '2-digit', minute: '2-digit' }).format(
     new Date(message.created_at),
   );
+  // La esquina hacia quien escribe va menos redondeada; la de arriba solo en
+  // el primero del grupo, para que los seguidos se lean pegados.
+  const corners = mine
+    ? { borderTopRightRadius: first ? BUBBLE_RADIUS : BUBBLE_JOINED, borderBottomRightRadius: BUBBLE_JOINED }
+    : { borderTopLeftRadius: first ? BUBBLE_RADIUS : BUBBLE_JOINED, borderBottomLeftRadius: BUBBLE_JOINED };
+
   return (
-    <View style={[styles.bubble, mine ? styles.bubbleMine : styles.bubbleOther]}>
-      <Text variant="body" color={mine ? 'textInverse' : 'text'}>
-        {message.body}
-      </Text>
-      <Text variant="micro" color={mine ? 'textInverse' : 'textSecondary'} style={styles.time}>
-        {time}
-        {mine && message.read_at ? ' · Visto' : ''}
-      </Text>
-    </View>
+    <Animated.View
+      style={[
+        styles.bubbleRow,
+        mine ? styles.bubbleRowMine : styles.bubbleRowOther,
+        last && styles.bubbleRowLast,
+        {
+          opacity: progress,
+          transform: [{ translateY: progress.interpolate({ inputRange: [0, 1], outputRange: [16, 0] }) }],
+        },
+      ]}>
+      {mine ? null : <View style={styles.avatarSlot}>{avatar}</View>}
+      <View
+        accessibilityLabel={`${author}, ${time}: ${message.body}`}
+        style={[styles.bubble, mine ? styles.bubbleMine : styles.bubbleOther, corners]}>
+        <Text variant="body" color={mine ? 'textInverse' : 'text'}>
+          {message.body}
+        </Text>
+      </View>
+    </Animated.View>
   );
 }
 
@@ -338,6 +464,9 @@ function StatusBanner({
   );
 }
 
+const BUBBLE_RADIUS = 18;
+const BUBBLE_JOINED = 4;
+
 const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
@@ -376,35 +505,53 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   messages: {
-    padding: screenPadding,
-    gap: spacing.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
     flexGrow: 1,
     justifyContent: 'flex-end',
   },
   centered: {
     textAlign: 'center',
   },
+  stamp: {
+    textAlign: 'center',
+    marginTop: spacing.lg,
+    marginBottom: spacing.sm,
+  },
+  seen: {
+    textAlign: 'right',
+    marginTop: 2,
+    marginRight: spacing.xs,
+  },
+  bubbleRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: spacing.sm,
+    marginTop: 2,
+  },
+  bubbleRowMine: {
+    justifyContent: 'flex-end',
+  },
+  bubbleRowOther: {
+    justifyContent: 'flex-start',
+  },
+  bubbleRowLast: {
+    marginBottom: spacing.sm,
+  },
+  avatarSlot: {
+    width: 28,
+  },
   bubble: {
-    maxWidth: '80%',
-    paddingHorizontal: spacing.md,
+    maxWidth: '75%',
+    paddingHorizontal: 14,
     paddingVertical: spacing.sm,
-    borderRadius: radius.lg,
+    borderRadius: BUBBLE_RADIUS,
   },
   bubbleMine: {
-    alignSelf: 'flex-end',
     backgroundColor: colors.accent,
-    borderBottomRightRadius: radius.sm,
   },
   bubbleOther: {
-    alignSelf: 'flex-start',
-    backgroundColor: colors.surface,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.border,
-    borderBottomLeftRadius: radius.sm,
-  },
-  time: {
-    alignSelf: 'flex-end',
-    opacity: 0.8,
+    backgroundColor: colors.surfaceMuted,
   },
   banner: {
     flexDirection: 'row',
@@ -412,7 +559,9 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     paddingHorizontal: screenPadding,
     paddingVertical: spacing.sm,
-    backgroundColor: colors.surfaceMuted,
+    backgroundColor: colors.surface,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.border,
   },
   decide: {
     flexDirection: 'row',
@@ -421,38 +570,34 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     backgroundColor: colors.surface,
   },
+  composerBar: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    backgroundColor: colors.surface,
+  },
   composer: {
     flexDirection: 'row',
     alignItems: 'flex-end',
     gap: spacing.sm,
-    paddingHorizontal: screenPadding,
-    paddingVertical: spacing.sm,
+    minHeight: 44,
+    paddingLeft: spacing.lg,
+    paddingRight: spacing.md,
+    borderRadius: 22,
+    borderWidth: 1,
+    borderColor: colors.border,
     backgroundColor: colors.surface,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.border,
   },
   input: {
     fontSize: typography.body.fontSize,
     lineHeight: typography.body.lineHeight,
     flex: 1,
     maxHeight: 120,
-    minHeight: 40,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderRadius: radius.lg,
-    backgroundColor: colors.surfaceMuted,
+    paddingVertical: 10,
     color: colors.text,
   },
   send: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
+    height: 42,
     justifyContent: 'center',
-    backgroundColor: colors.accent,
-  },
-  sendInactive: {
-    opacity: 0.4,
   },
   notFound: {
     flex: 1,
