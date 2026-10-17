@@ -6,6 +6,104 @@ conservan íntegras y no se editan. Se enlaza, **nunca se importa con `@`**.
 
 ---
 
+## 2026-10-17 — F4.6b: pasada visual "Instagram en verde"
+
+Solo presentación: ni lógica, ni rutas, ni RLS. De Instagram se toman
+**patrones** —layout, densidad, jerarquía—; los colores, Inter y los radios
+siguen siendo los del design system. Encargo del autor.
+
+### Auditoría antes de tocar nada
+
+`npm run capture:f46b -- antes` recorre 24 pantallas con tres cuentas
+sembradas (un chat con mensajes de ayer y de hoy, una solicitud, una
+publicación con foto) y las deja en `docs/verificacion/f46b/antes/`;
+`-- despues` repite exactamente las mismas en `despues/`.
+
+**Ya seguían el patrón y no se reescriben:** el feed (a sangre desde F4.4,
+cabecera con logo, mensajes y campana), la barra inferior (cinco iconos con
+etiqueta mínima, activo en verde y Crear centrado: quitar las etiquetas iría
+contra los mockups de F0.2c, y el encargo lo dejaba elegir), la bienvenida,
+entrar, registrarse y recuperar contraseña (campos de relleno sin borde,
+etiqueta pequeña, botón a ancho completo), el compositor de Crear y la barra
+de Buscar en píldora con chips deslizables.
+
+**Desalineadas, y es lo que se tocó:**
+
+- **Chat.** Filas dentro de tarjetas, contador numérico, cada burbuja con su
+  hora, las recibidas blancas con borde y sin agrupar, campo rectangular con un
+  botón redondo aparte.
+- **Solicitudes.** Para aceptar había que abrir la conversación.
+- **Perfiles.** Portada verde lisa que ocupaba un tercio de la pantalla, avatar
+  de 96 px solapado y los contadores debajo de los botones.
+- **Buscar.** Cada resultado y cada sugerencia, una tarjeta flotante.
+- **Detalle de publicación.** La tarjeta con borde y la imagen con margen.
+- **Editar perfil.** "Cambiar foto" salía a la izquierda bajo un avatar
+  centrado (`Button` lleva `alignSelf: flex-start`).
+
+**Fuera por diseño:** mapa, Turismo Verde, Empleo y el perfil de entidad no
+tienen equivalente en Instagram; conservan su estructura y solo heredan las
+filas, chips y botones comunes (las ofertas del perfil de entidad son las
+mismas filas que en Buscar).
+
+### Lo que cambió en el sistema
+
+- `Button` gana la variante **`tonal`** (relleno gris, texto oscuro): el botón
+  secundario de Instagram —Editar perfil, Siguiendo, Enviar mensaje,
+  Rechazar—. El verde queda para la acción principal.
+- `Avatar` gana `xs` (28, junto a las burbujas) y `list` (56, la fila de la
+  bandeja).
+- Tipografía: `captionStrong` (14 semibold) para lo no leído. Con Inter el peso
+  es un archivo; un `fontWeight` suelto no cambia nada en nativo.
+- `chatStamp` en `lib/time.ts`: "Hoy 16:45", "Ayer 14:58", "lunes 10:02".
+- `ProfileTopBar`: el @usuario como título del perfil, como en Instagram. El
+  @usuario se sigue viendo, que es lo que comprueban `verify:f13` y `verify:mvp`.
+
+### Decisiones de la conversación
+
+- **Un bloque nuevo cada 20 minutos** de silencio: ahí sale la hora centrada,
+  y ahí se corta también el grupo de burbujas aunque escriba la misma persona.
+- **Esquinas:** 18 px, y 4 en el lado de quien escribe salvo la de arriba del
+  primer mensaje del grupo. Así los seguidos se leen pegados y un mensaje suelto
+  sigue apuntando a su autor.
+- **La hora sale del texto visible pero no se pierde:** cada burbuja tiene
+  nombre accesible "Tú, 16:53: …".
+- **"Visto"** debajo de tu último mensaje, si se ha leído, en vez de en cada
+  burbuja.
+- **Solo lo que llega después de abrir entra deslizándose.** La lista guarda
+  los ids que había al montarse; lo cargado al entrar se pinta quieto.
+- **Aceptar desde la fila lleva a la conversación**; rechazar se queda en la
+  lista con el aviso de siempre ("no se lo diremos"). Es la misma llamada que ya
+  hacía la conversación, no lógica nueva.
+- **Contraste:** blanco sobre verde 5,1:1 en las burbujas propias; el texto
+  oscuro sobre el gris de las ajenas pasa de sobra. "Solicitud enviada" sigue
+  en `warningText` (ámbar #A16207).
+
+### "Ver más" en el feed
+
+Un texto de más de 180 caracteres se corta a cuatro líneas con "ver más"
+**dentro** del cuerpo de la tarjeta, que ya lleva al detalle, donde se lee
+entero. No es un botón aparte: un pulsable dentro de otro hace que en web el
+toque navegue además (la lección de las fichas de Buscar).
+
+### Lo que se vio y no se tocó
+
+- **Editar perfil, abierto con la URL directa**, arranca con el nombre vacío y
+  el aviso "no puede quedar vacío": el formulario se inicializa antes de que
+  llegue el perfil. Es lógica, no presentación; anotado.
+- El perfil sigue sin lista de publicaciones (backlog). La rejilla de Instagram
+  necesita esa consulta, así que espera a que exista.
+
+### Verificación
+
+La lección del texto duplicado volvió por otro lado: los botones Aceptar y
+Rechazar están ahora también en la fila de Solicitudes, y esa lista sigue
+montada debajo de la conversación. `verify:f46` pulsa solo el visible y
+comprueba además que la fila ofrece las dos acciones. Y en `verify:f13`, el
+primer texto «Siguiendo» de la página ya no es el botón sino la etiqueta del
+contador, que ahora va arriba: se busca por rol. Las dieciocho en verde.
+
+---
+
 ## 2026-10-06 — F4.6: chat 1 a 1
 
 Mensajes privados entre dos personas: texto, solicitud, bloqueo, no leídos y

@@ -279,7 +279,7 @@ mismo y no un dato de ejemplo.
       antes de cualquier lanzamiento.
 - [ ] **F3.2 lanzamiento concentrado** — con la comunidad *beachhead*.
 - [ ] **F3.3 motor de contenido y tarjetas compartibles**. Las tarjetas se
-      construyen en **F4.9**; aquí va el ritmo de publicación que las usa.
+      construyen en **F4.10**; aquí va el ritmo de publicación que las usa.
 
 El orden no es negociable: F3.1 sirve para confirmar o tumbar la tesis de
 producto mientras cambiarla es barato, y adelantar F3.2 la convierte en una
@@ -311,6 +311,9 @@ F4.7 y F4.8.
 
 **Y una cuarta** al entrar F4.6 (chat 1 a 1, el 2026-10-06): pasan a F4.7, F4.8
 y F4.9.
+
+**Y una quinta** al entrar F4.7 (comentarios y compartir, el 2026-10-17):
+procedencia + OpenAQ, cron y compartir con marca pasan a F4.8, F4.9 y F4.10.
 
 - [x] **F4.1 pieza mínima** — aire en vivo de Open-Meteo (modelo CAMS de
       Copernicus) en la tarjeta de zona del feed, en el mapa —el **centro del
@@ -451,37 +454,36 @@ y F4.9.
       **Denunciar mensajes y moderación son OBLIGATORIOS** antes de abrir al
       público general (ver backlog): sin ellos, un chat privado es un canal de
       acoso que nadie ve.
-- [x] **F4.6b pasada visual: "Instagram en verde"** — solo presentación:
-      ninguna lógica, ruta ni RLS. De Instagram se copian **patrones** de
-      layout, densidad y jerarquía; colores, tipografía y radios siguen siendo
-      los del design system. Auditoría primero (`docs/verificacion/f46b/antes/`,
-      24 pantallas) y solo se toca lo desalineado: **chat** (filas a sangre con
-      avatar de 56 px, vista previa en una línea y punto verde en lo no leído;
-      burbujas agrupadas por autor con la esquina hacia quien escribe menos
-      redondeada, hora centrada solo al cambiar de bloque —"Hoy 16:45",
-      "Ayer"—, barra de escritura en píldora con "Enviar" activo solo con
-      texto, y lo que llega en tiempo real entra deslizándose), **Solicitudes**
-      con Aceptar/Rechazar en la propia fila, **perfiles** (avatar a la
-      izquierda y contadores en fila, @usuario como título, botones compactos
-      a ancho completo, sin portada), **Buscar** (filas a sangre sobre blanco,
-      chips grises) y el **detalle de publicación** (imagen a sangre); en el
-      feed, "ver más" en los textos largos. Mapa, Turismo Verde, Empleo y
-      perfiles de entidad conservan su estructura y solo heredan filas, chips
-      y botones. Sin renumerar: va con sufijo, como F1.2b o F0.2c.
-      Verificado con las **dieciocho** verificaciones del repositorio en verde
-      —`verify:f46` comprueba además Aceptar y Rechazar en la fila— y con
-      `npm run capture:f46b`, que deja el antes y el después de las mismas 24
-      pantallas en `docs/verificacion/f46b/`. Dos localizadores cambiados, no
-      la app: en `verify:f13` el primer texto «Siguiendo» es ahora la etiqueta
-      del contador, y en `verify:f46` el «Aceptar» visible.
-- [ ] **F4.7 procedencia completa + OpenAQ** — lecturas con fuente, método,
+- [x] **F4.6b pasada visual: "Instagram en verde"** — solo presentación,
+      sin lógica, rutas ni RLS: patrones de Instagram con la paleta, Inter y
+      radios de OVENG. Auditoría de 24 pantallas antes y después
+      (`npm run capture:f46b`, `docs/verificacion/f46b/`); se tocó solo lo
+      desalineado: chat y Solicitudes, perfiles, Buscar y el detalle de
+      publicación. Mapa, Turismo Verde, Empleo y entidades conservan su
+      estructura. Las dieciocho verificaciones en verde. Detalle en el
+      [archivo de notas](notas-archivo-post-demo.md#2026-10-17--f46b-pasada-visual-instagram-en-verde).
+- [ ] **F4.7 comentarios y compartir** — migración **`009`**: `comments`
+      (lectura libre, comentar en nombre propio, borra su autor o el de la
+      publicación, nadie edita; el número es un agregado como los "me gusta")
+      y `messages.shared_post_id`. La publicación vive en
+      **`/publicacion/[id]`**, pública y en frío por el `404.html` (`/post/`
+      redirige): comentarios cronológicos, barra "Añade un comentario…" con
+      publicación optimista, "···" para borrar. En el feed, el 💬 con el número
+      real y "Ver los N comentarios". Compartir abre una hoja: **enviar por
+      mensaje** a una conversación aceptada (mini-tarjeta tocable), Web Share
+      donde existe y "Copiar enlace". Sin tiempo real en comentarios y OG tags
+      solo genéricas (decisiones en notas). Sin la `009` la app no se rompe:
+      `verify:f15`, `f46`, `mvp` y `demo` en verde sin ella.
+      **Pendiente:** aplicar la `009`, pasar `npm run verify:f47` (capturas en
+      `docs/verificacion/f47/`) y la batería entera.
+- [ ] **F4.8 procedencia completa + OpenAQ** — lecturas con fuente, método,
       origen e instante (migración); OpenAQ donde haya estación; etiqueta del
       dato curado. OpenAQ pide clave: depende del criterio de fuentes de F4.3
-      y del servidor de F4.8.
-- [ ] **F4.8 cron en Railway** — lecturas horarias en Supabase: histórico, la
+      y del servidor de F4.9.
+- [ ] **F4.9 cron en Railway** — lecturas horarias en Supabase: histórico, la
       clave de OpenAQ fuera del cliente y sin gastar una llamada por visita.
       Desbloquea la gráfica de evolución.
-- [ ] **F4.9 compartir con marca** — todo lo que sale de la plataforma lleva
+- [ ] **F4.10 compartir con marca** — todo lo que sale de la plataforma lleva
       marca y camino de vuelta; dentro, el contenido queda limpio. Tarjetas 9:16
       para estados de WhatsApp (contenido, logo, dato y URL), marca de agua con
       la tortuga-O blanca **solo** al descargar o compartir una imagen como
@@ -525,7 +527,7 @@ Fuera de esta lista, y sin prisa: imágenes, grupos y notificaciones push.
   no tiene. Probablemente PostGIS: `location` de `posts` es hoy texto libre.
 - **Series temporales y la gráfica de "Evolución de la calidad ambiental"**
   (mockup 1). `entity_metrics` guarda un valor por métrica con su `updated_at`,
-  no un histórico. Llega con el cron de **F4.8**, que acumula lecturas reales;
+  no un histórico. Llega con el cron de **F4.9**, que acumula lecturas reales;
   dibujar cinco puntos inventados sería lo contrario de la trazabilidad que
   costó conseguir en F2.1.
 - **Proveedor de teselas propio.** Las de openstreetmap.org son un servicio
@@ -546,8 +548,11 @@ Fuera de esta lista, y sin prisa: imágenes, grupos y notificaciones push.
   contador real pero la lista dice "Todavía no hay publicaciones": nunca se
   construyó. Con el perfil ajeno ya público y enlazable, el contrasentido se ve
   más; es lo primero del producto social.
-- **Comentarios en las publicaciones.** El detalle ya les reserva el sitio y el
-  icono avisa de que llegan.
+- ~~**Comentarios en las publicaciones.**~~ **Hechos en F4.7.** Quedan, para
+  después de F3: **respuestas anidadas** y **"me gusta" en comentarios**.
+- **Reenviar una publicación a varias conversaciones a la vez** (hoy se envía
+  una a una desde la hoja de compartir), y a alguien con quien aún no hablas.
+  Post-F3, como las respuestas anidadas.
 - **Buscar publicaciones por etiqueta.** Hoy tocar una etiqueta busca en el
   **directorio** de entidades y personas, no publicaciones con esa etiqueta:
   eso es consultar `posts`, que no está en la capa de datos de Buscar.

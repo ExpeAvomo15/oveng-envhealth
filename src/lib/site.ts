@@ -55,9 +55,9 @@ export function passwordResetUrl(currentRoutePath: string): string {
   return shareUrl('/restablecer', currentRoutePath);
 }
 
-/** URL pública de una publicación. */
+/** URL pública de una publicación, con sus comentarios (F4.7). */
 export function postUrl(postId: string, currentRoutePath: string): string {
-  return shareUrl(`/post/${postId}`, currentRoutePath);
+  return shareUrl(`/publicacion/${postId}`, currentRoutePath);
 }
 
 /** URL pública de una entidad. */

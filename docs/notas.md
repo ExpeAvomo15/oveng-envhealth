@@ -28,6 +28,7 @@ El porqué de cada una, enlazado.
 - Seis categorías (unión de los mockups) con color fijo; una guarda de tipos rompe la compilación si base y theme divergen. [F2.1]
 - Migraciones a mano en el SQL Editor, `begin…commit`, no re-ejecutables. Una preferencia de vista no justifica una migración. [F0.3] [F2.5]
 - Feed: `select` anidado y cursor por `created_at`; sin lector no se pide `my_like`. [F1.5] [F2.6]
+- Comentarios: lectura libre; borra su autor **o el de la publicación**; nadie edita. El número es un agregado, como los "me gusta", no una columna. [F4.7]
 - Mensajes: lo **único privado**. RLS dice quién y `grant update (columna)` dice qué; Realtime aplica la misma RLS. Solicitud antes de conversar; denunciar y moderar, obligatorios antes de abrir al público. [F4.6]
 - "Tu zona" es **elegida**, no detectada, y una zona es un recuadro de coordenadas, no un país. [F2.5]
 
@@ -36,6 +37,7 @@ El porqué de cada una, enlazado.
 - Tokens semánticos y solo modo claro. Azul y amarillo no son color de texto: `warningText` y `danger` para eso. [F0.2] [F1.4]
 - Inter se importa por subrutas de peso, no desde el índice del paquete (10 → 5,4 MB). [F2.6]
 - Todo control que no hace nada **avisa**: nada pulsable sin respuesta. [F1.6] [F2.6]
+- Una publicación se comparte por **`/publicacion/[id]`** (pública, en frío por el `404.html`) o **por mensaje** como mini-tarjeta. OG tags solo genéricas mientras no haya servidor. [F4.7]
 - El dato ambiental va **entre** publicaciones (tras la tercera), no encabezando el feed. [F2.5]
 - **"Instagram en verde"**: de Instagram, patrones (listas a sangre, chat agrupado, perfil compacto); de OVENG, paleta, Inter y radios. Lo secundario es `tonal`; el verde, la acción principal. [F4.6b]
 
@@ -69,7 +71,7 @@ El porqué de cada una, enlazado.
 - **Procedencia siempre visible**: 🛰️ estimación, 📡 estación, 📋 curado. Nunca un dato sin su origen. @docs/08_DATOS_EN_VIVO.md
 - Aire en **AQI europeo**, seis tramos oficiales; el curado de los mockups es otra escala y no se mezcla.
 - **Ubicación solo con permiso, pedido por un gesto**; vive en memoria, nunca en base ni dispositivo, y sale a dos decimales.
-- Una API externa caída **no rompe** nada: se cae al dato curado con su etiqueta. Claves de API, nunca en el bundle (F4.8).
+- Una API externa caída **no rompe** nada: se cae al dato curado con su etiqueta. Claves de API, nunca en el bundle (F4.9).
 
 - La leyenda del mapa **elige una capa** y la tarjeta enseña su dato; energía y residuos solo cuentan entidades.
 - **Lenguaje para 12 años** (AGENTS.md): palabra primero, cifra después, ⓘ al lado y nunca dentro de otro pulsable.
@@ -97,6 +99,69 @@ La lista mantenida es el **backlog de @docs/plan.md**. Fuera de ella, sueltos:
 - El clima (temperatura, lluvia) está a una llamada de Open-Meteo, sin clave, y no se enseña en ningún sitio.
 - Marca: falta el **SVG vectorial** (hoy son PNG), los PNG no van cuantizados y
   el icono y el splash nativos siguen siendo los de Expo.
+
+---
+
+## 2026-10-17 — F4.7: comentarios y compartir
+
+Encargo del autor: completar el vocabulario de Instagram del feed reutilizando
+lo que ya funcionaba (likes optimistas, RLS de posts, el chat, la pasada
+visual de F4.6b). Renumerado: lo que era F4.7–F4.9 pasa a F4.8–F4.10.
+
+### Decisiones
+
+- **El número de comentarios no es una columna.** El encargo pedía columna con
+  trigger "o lo que ya funcione"; lo que funciona son los "me gusta", contados
+  con un agregado de PostgREST en la misma consulta. Se hace igual: sin
+  trigger que mantener ni número que se pueda desincronizar.
+- **Sin tiempo real en comentarios.** El canal del chat es genérico, pero
+  reutilizarlo no sale gratis: obliga a meter una tabla **pública** en la
+  publicación de Realtime y a abrir un canal por cada visitante que lee, con
+  cuenta o sin ella. Se cargan al abrir y lo propio aparece al instante. Si los
+  comentarios se convierten en conversación, se replantea.
+- **La ruta es `/publicacion/[id]`** y `/post/[id]` redirige: los enlaces que
+  ya se compartieron siguen funcionando. El detalle y el enlace compartido son
+  la misma pantalla —la publicación con sus comentarios—.
+- **Borrar, con confirmación en la fila** ("···" → "Sí, borrar"), no con un
+  diálogo del sistema, que en web no existe. Lo ofrece la app a quien RLS deja:
+  autor del comentario o de la publicación.
+- **Compartir abre una hoja**, como Instagram: dentro, "Enviar por mensaje" a
+  las conversaciones **aceptadas** (una a una; varias a la vez, al backlog);
+  fuera, "Compartir en otras apps" solo si el navegador tiene Web Share —en un
+  escritorio no la hay y el botón no se enseña— y "Copiar enlace" siempre.
+- **La publicación compartida es un mensaje con texto.** El `check` de
+  `messages` exige cuerpo, así que lleva "Publicación compartida" y
+  `shared_post_id`: la bandeja enseña ese texto de vista previa, la burbuja la
+  mini-tarjeta, y si la publicación se borra (`on delete set null`) queda el
+  texto. La mini-tarjeta es blanca con borde en los dos lados: es contenido,
+  no lo que escribe quien la envía.
+- **Sin la `009` no se rompe nada**, como el feed sin la `007`: cada consulta
+  que la necesita lo detecta por el error de PostgREST y se repite sin ella.
+  Con dos migraciones opcionales en el feed ya no vale cualquier `PGRST200`:
+  se mira **qué** relación falta.
+
+### OG tags
+
+Genéricas de OVENG en `+html.tsx` y en `public/404.html`, por donde entra en
+Pages el enlace de una publicación. Por publicación (su texto y su foto) **no
+se puede en Pages**: los rastreadores no ejecutan JavaScript y la ruta no
+tiene HTML propio. Llega con un servidor (F4.9 o una función en el borde;
+@docs/07_CRECIMIENTO.md).
+
+### Verificación
+
+`verify:f47` está escrito y **no se ha pasado**: necesita la `009`, que se
+aplica a mano. Sin ella, `verify:f15`, `verify:f46`, `verify:mvp` y
+`verify:demo` en verde, y probado en el navegador lo que no la necesita: el
+enlace en frío sin cuenta (entra por el 404 y aterriza en la publicación), la
+hoja sin cuenta, "Copiar enlace" con su aviso, el id que no existe y la
+redirección de `/post/`. Tres verificaciones cambian de localizador, no de
+intención: el detalle ya no dice "Los comentarios llegan pronto" sino
+"Comentarios", y la ruta es `/publicacion/`.
+
+De paso: `verify:mvp` deja su publicación en el feed público hasta que corre la
+limpieza con la clave (borra el perfil, y la publicación cae en cascada). Sin
+la clave exportada, se queda a la vista.
 
 ---
 
@@ -167,101 +232,3 @@ Probado sin clave (avisa y pasa), con la clave pública (avisa y pasa) y con un
 cliente simulado de 450 usuarios en tres páginas: lista los 150 de prueba, no
 toca ninguno real, vacía su storage y se niega a borrar un correo ajeno. El
 borrado contra Supabase real necesita la clave, que esta sesión no tiene.
-
----
-
-## 2026-10-17 — F4.6b: pasada visual "Instagram en verde"
-
-Solo presentación: ni lógica, ni rutas, ni RLS. De Instagram se toman
-**patrones** —layout, densidad, jerarquía—; los colores, Inter y los radios
-siguen siendo los del design system. Encargo del autor.
-
-### Auditoría antes de tocar nada
-
-`npm run capture:f46b -- antes` recorre 24 pantallas con tres cuentas
-sembradas (un chat con mensajes de ayer y de hoy, una solicitud, una
-publicación con foto) y las deja en `docs/verificacion/f46b/antes/`;
-`-- despues` repite exactamente las mismas en `despues/`.
-
-**Ya seguían el patrón y no se reescriben:** el feed (a sangre desde F4.4,
-cabecera con logo, mensajes y campana), la barra inferior (cinco iconos con
-etiqueta mínima, activo en verde y Crear centrado: quitar las etiquetas iría
-contra los mockups de F0.2c, y el encargo lo dejaba elegir), la bienvenida,
-entrar, registrarse y recuperar contraseña (campos de relleno sin borde,
-etiqueta pequeña, botón a ancho completo), el compositor de Crear y la barra
-de Buscar en píldora con chips deslizables.
-
-**Desalineadas, y es lo que se tocó:**
-
-- **Chat.** Filas dentro de tarjetas, contador numérico, cada burbuja con su
-  hora, las recibidas blancas con borde y sin agrupar, campo rectangular con un
-  botón redondo aparte.
-- **Solicitudes.** Para aceptar había que abrir la conversación.
-- **Perfiles.** Portada verde lisa que ocupaba un tercio de la pantalla, avatar
-  de 96 px solapado y los contadores debajo de los botones.
-- **Buscar.** Cada resultado y cada sugerencia, una tarjeta flotante.
-- **Detalle de publicación.** La tarjeta con borde y la imagen con margen.
-- **Editar perfil.** "Cambiar foto" salía a la izquierda bajo un avatar
-  centrado (`Button` lleva `alignSelf: flex-start`).
-
-**Fuera por diseño:** mapa, Turismo Verde, Empleo y el perfil de entidad no
-tienen equivalente en Instagram; conservan su estructura y solo heredan las
-filas, chips y botones comunes (las ofertas del perfil de entidad son las
-mismas filas que en Buscar).
-
-### Lo que cambió en el sistema
-
-- `Button` gana la variante **`tonal`** (relleno gris, texto oscuro): el botón
-  secundario de Instagram —Editar perfil, Siguiendo, Enviar mensaje,
-  Rechazar—. El verde queda para la acción principal.
-- `Avatar` gana `xs` (28, junto a las burbujas) y `list` (56, la fila de la
-  bandeja).
-- Tipografía: `captionStrong` (14 semibold) para lo no leído. Con Inter el peso
-  es un archivo; un `fontWeight` suelto no cambia nada en nativo.
-- `chatStamp` en `lib/time.ts`: "Hoy 16:45", "Ayer 14:58", "lunes 10:02".
-- `ProfileTopBar`: el @usuario como título del perfil, como en Instagram. El
-  @usuario se sigue viendo, que es lo que comprueban `verify:f13` y `verify:mvp`.
-
-### Decisiones de la conversación
-
-- **Un bloque nuevo cada 20 minutos** de silencio: ahí sale la hora centrada,
-  y ahí se corta también el grupo de burbujas aunque escriba la misma persona.
-- **Esquinas:** 18 px, y 4 en el lado de quien escribe salvo la de arriba del
-  primer mensaje del grupo. Así los seguidos se leen pegados y un mensaje suelto
-  sigue apuntando a su autor.
-- **La hora sale del texto visible pero no se pierde:** cada burbuja tiene
-  nombre accesible "Tú, 16:53: …".
-- **"Visto"** debajo de tu último mensaje, si se ha leído, en vez de en cada
-  burbuja.
-- **Solo lo que llega después de abrir entra deslizándose.** La lista guarda
-  los ids que había al montarse; lo cargado al entrar se pinta quieto.
-- **Aceptar desde la fila lleva a la conversación**; rechazar se queda en la
-  lista con el aviso de siempre ("no se lo diremos"). Es la misma llamada que ya
-  hacía la conversación, no lógica nueva.
-- **Contraste:** blanco sobre verde 5,1:1 en las burbujas propias; el texto
-  oscuro sobre el gris de las ajenas pasa de sobra. "Solicitud enviada" sigue
-  en `warningText` (ámbar #A16207).
-
-### "Ver más" en el feed
-
-Un texto de más de 180 caracteres se corta a cuatro líneas con "ver más"
-**dentro** del cuerpo de la tarjeta, que ya lleva al detalle, donde se lee
-entero. No es un botón aparte: un pulsable dentro de otro hace que en web el
-toque navegue además (la lección de las fichas de Buscar).
-
-### Lo que se vio y no se tocó
-
-- **Editar perfil, abierto con la URL directa**, arranca con el nombre vacío y
-  el aviso "no puede quedar vacío": el formulario se inicializa antes de que
-  llegue el perfil. Es lógica, no presentación; anotado.
-- El perfil sigue sin lista de publicaciones (backlog). La rejilla de Instagram
-  necesita esa consulta, así que espera a que exista.
-
-### Verificación
-
-La lección del texto duplicado volvió por otro lado: los botones Aceptar y
-Rechazar están ahora también en la fila de Solicitudes, y esa lista sigue
-montada debajo de la conversación. `verify:f46` pulsa solo el visible y
-comprueba además que la fila ofrece las dos acciones. Y en `verify:f13`, el
-primer texto «Siguiendo» de la página ya no es el botón sino la etiqueta del
-contador, que ahora va arriba: se busca por rol. Las dieciocho en verde.

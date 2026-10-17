@@ -108,7 +108,7 @@ export default function HomeScreen() {
                 <PostCard
                   post={item.post}
                   variant="feed"
-                  onPressBody={() => router.push(`/post/${item.post.id}`)}
+                  onPressBody={() => router.push({ pathname: '/publicacion/[id]', params: { id: item.post.id } })}
                 />
               );
             case 'zone':

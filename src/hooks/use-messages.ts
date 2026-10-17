@@ -7,6 +7,7 @@ import { showToast } from '@/components/ui/toast';
 import {
   getConversation,
   getInboxCounts,
+  getMessage,
   haveIBlocked,
   isBlockedBetween,
   listConversations,
@@ -208,10 +209,14 @@ export function useConversation(conversationId: string): ConversationState {
       setLoaded((previous) => {
         if (!previous || previous.key !== key) return previous;
         const index = previous.messages.findIndex((m) => m.id === message.id);
+        // Lo que llega por Realtime no trae la publicación compartida: si ya la
+        // teníamos (el mensaje propio, recién enviado), se conserva.
+        const merged = (old: Message) =>
+          message.shared_post === undefined && old.shared_post ? { ...message, shared_post: old.shared_post } : message;
         const messages =
           index === -1
             ? [...previous.messages, message]
-            : previous.messages.map((m, i) => (i === index ? message : m));
+            : previous.messages.map((m, i) => (i === index ? merged(m) : m));
         return { ...previous, messages };
       }),
     [key],
@@ -246,7 +251,16 @@ export function useConversation(conversationId: string): ConversationState {
     ],
     (table, payload) => {
       if (payload.eventType === 'DELETE') return;
-      if (table === 'messages') append(payload.new as unknown as Message);
+      if (table === 'messages') {
+        const message = payload.new as unknown as Message;
+        append(message);
+        // Una publicación compartida llega sin su mini-tarjeta: se pide.
+        if (message.shared_post_id && !message.shared_post) {
+          getMessage(message.id)
+            .then((full) => full && append(full))
+            .catch(() => undefined);
+        }
+      }
       else setStatus((payload.new as { status: Conversation['status'] }).status);
     },
   );

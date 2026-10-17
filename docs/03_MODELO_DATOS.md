@@ -18,6 +18,8 @@ erDiagram
     profiles   ||--o{ follows  : "sigue a"
     profiles   ||--o{ likes    : valora
     posts      ||--o{ likes    : "recibe"
+    posts      ||--o{ comments : "recibe (F4.7)"
+    profiles   ||--o{ comments : comenta
 
     auth_users {
         uuid id PK "gestionado por Supabase Auth"
@@ -312,9 +314,30 @@ llega a quien puede leerlo.
 **Sin DELETE** en conversaciones ni mensajes, todavía. Denunciar y moderar son
 obligatorios antes de abrir al público general (@docs/plan.md).
 
+### Comentarios (F4.7, migración `009`)
+
+| Columna | Tipo | Notas |
+| ------- | ---- | ----- |
+| `id` | `uuid` PK | `gen_random_uuid()`. |
+| `post_id` | `uuid` | FK a `posts`, `on delete cascade`: borrar la publicación borra sus comentarios. |
+| `user_id` | `uuid` | FK a `profiles`, `on delete cascade`. |
+| `content` | `text` | De 1 a 500 caracteres tras quitar espacios (`comments_content_length`). |
+| `created_at` | `timestamptz` | |
+
+Índices `(post_id, created_at)` —la única consulta— y `user_id`. Se leen sin
+cuenta; se comenta en nombre propio; **borran** quien lo escribió y quien
+escribió la publicación (subconsulta a `posts`); **nadie edita**. El número no
+es una columna: es un agregado, `comments(count)`, como los "me gusta".
+
+### `messages.shared_post_id` (F4.7, migración `009`)
+
+Una publicación enviada por mensaje. Nullable, `on delete set null`: si se
+borra, el mensaje queda con su texto ("Publicación compartida"). **La RLS de
+`messages` no cambia**, y el UPDATE sigue limitado a `read_at`.
+
 ## Políticas RLS
 
-Dos patrones. En las diez tablas públicas, **cualquiera lee**; lo que escribe la
+Dos patrones. En las once tablas públicas, **cualquiera lee**; lo que escribe la
 gente solo lo escribe su propietario, y el contenido curado (`entities`,
 `entity_metrics`) no lo escribe nadie desde la app. En las tres del chat
 (`blocks`, `conversations`, `messages`) **solo leen las personas implicadas**, y
@@ -332,6 +355,7 @@ ningún anónimo lee nada.
 | `entity_follows` | público (`true`) | `auth.uid() = user_id` | — sin política               | `auth.uid() = user_id`       |
 | `entity_admins` | público (`true`) | propio, `role = admin`, `status = approved` | — sin política | `auth.uid() = user_id` |
 | `jobs` | activas, o propias | propio **y** admin aprobado de la entidad | ídem | ídem |
+| `comments` | público (`true`) | `auth.uid() = user_id` | — sin política | su autor **o** el de la publicación |
 | `blocks` | solo quien bloquea | `auth.uid() = blocker_id` | — sin política | `auth.uid() = blocker_id` |
 | `conversations` | las dos personas | quien pide, siendo parte, `pending` y sin bloqueo | solo el destinatario, a `accepted`/`declined`; solo `status` | — sin política |
 | `messages` | las dos personas | propio, en conversación aceptada (o pendiente si la pediste) y sin bloqueo | solo el destinatario; solo `read_at` | — sin política |
@@ -474,6 +498,7 @@ Viven en `supabase/migrations/`:
 | `006_jobs.sql` | Ofertas de empleo: enumerado `job_type`, `jobs` y sus políticas (F4.4). |
 | `007_post_entities.sql` | Lugar etiquetado en una publicación: `posts.entity_id` e índice (F4.4). |
 | `008_messages.sql` | Mensajes 1 a 1: `blocks`, `conversations`, `messages`, la función `is_blocked_between`, el trigger `touch_conversation` y la publicación de Realtime (F4.6). |
+| `009_comments.sql` | Comentarios (`comments` y sus políticas) y `messages.shared_post_id` para enviar una publicación por mensaje (F4.7). |
 
 Cada una va envuelta en `begin; … commit;`: si algo falla a mitad, no queda nada
 aplicado a medias.
@@ -502,6 +527,10 @@ medias, pero tampoco aplica la mitad buena.
     `conversations` a la publicación `supabase_realtime`; para comprobarlo,
     **Database → Publications → supabase_realtime** debe listar las dos (o
     ver el paso 10 de la verificación).
+11. Repetir con `009_comments.sql` —**después** de `008`: añade una columna a
+    `messages`—. Hasta aplicarla, la app sigue funcionando: el feed cuenta 0
+    comentarios, el chat lee sin la columna y la publicación dice "Los
+    comentarios todavía no están disponibles". Después, `npm run verify:f47`.
 
 Si el paso 4 devuelve un error de permisos al crear políticas sobre
 `storage.objects`, crear las mismas reglas desde **Storage → Policies** en el
@@ -586,7 +615,7 @@ npm run verify:f44    # 005-007: claims, ofertas y su RLS, lugares etiquetados
 Lo de abajo es la comprobación a mano, en el **SQL Editor**, para cuando algo
 falla y hay que ver por qué.
 
-### 1. RLS activado en las trece tablas
+### 1. RLS activado en las catorce tablas
 
 ```sql
 select relname as tabla, relrowsecurity as rls_activado
@@ -595,9 +624,9 @@ where relnamespace = 'public'::regnamespace and relkind = 'r'
 order by relname;
 ```
 
-Las trece deben dar `true`: `profiles`, `posts`, `follows`, `likes`, `entities`,
+Las catorce deben dar `true`: `profiles`, `posts`, `follows`, `likes`, `entities`,
 `entity_metrics`, `entity_ratings`, `entity_follows`, `entity_admins`, `jobs`,
-`blocks`, `conversations` y `messages`. Una sola en `false` es una tabla
+`comments`, `blocks`, `conversations` y `messages`. Una sola en `false` es una tabla
 abierta a internet — y en las tres del chat, conversaciones privadas a la vista
 de cualquiera.
 
@@ -613,7 +642,7 @@ where schemaname = 'public'
 order by tablename, cmd;
 ```
 
-Esperado, 39 en total:
+Esperado, 42 en total:
 
 | Tabla | Políticas | |
 | ----- | --------- | - |
@@ -627,6 +656,7 @@ Esperado, 39 en total:
 | `entity_follows` | 3 | sin UPDATE: una fila de seguimiento no se actualiza |
 | `entity_admins` | 3 | sin UPDATE: hoy nadie cambia un rol |
 | `jobs` | 4 | escribir, solo administradores aprobados de la entidad |
+| `comments` | 3 | sin UPDATE: un comentario no se edita |
 | `blocks` | 3 | sin UPDATE |
 | `conversations` | 3 | sin DELETE |
 | `messages` | 3 | sin DELETE |
@@ -856,6 +886,20 @@ begin;
   set local role anon;
   select count(*) from public.messages;       -- 0
   select count(*) from public.conversations;  -- 0
+rollback;
+```
+
+### 11. Comentarios (migración 009)
+
+**Lo rápido:** `npm run verify:f47` (RLS en negativo y el recorrido entero).
+A mano, que un anónimo lee pero no escribe:
+
+```sql
+begin;
+  set local role anon;
+  select count(*) from public.comments;          -- responde, sin error
+  insert into public.comments (post_id, user_id, content)
+  select id, author_id, 'intruso' from public.posts limit 1;  -- debe FALLAR
 rollback;
 ```
 

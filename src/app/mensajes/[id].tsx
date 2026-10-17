@@ -1,4 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { Image } from 'expo-image';
 import { useIsFocused, useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import {
@@ -24,7 +25,9 @@ import {
   sendMessage,
   unblock,
   type Message,
+  type SharedPostPreview,
 } from '@/lib/messages';
+import { shareSnippet } from '@/lib/share';
 import { useFontFamily } from '@/hooks/use-fonts';
 import { chatStamp } from '@/lib/time';
 import { colors, noWebFocusRing, radius, screenPadding, spacing, typography } from '@/theme';
@@ -416,14 +419,66 @@ function Bubble({
         },
       ]}>
       {mine ? null : <View style={styles.avatarSlot}>{avatar}</View>}
-      <View
-        accessibilityLabel={`${author}, ${time}: ${message.body}`}
-        style={[styles.bubble, mine ? styles.bubbleMine : styles.bubbleOther, corners]}>
-        <Text variant="body" color={mine ? 'textInverse' : 'text'}>
-          {message.body}
+      {message.shared_post ? (
+        <SharedPostBubble post={message.shared_post} author={author} time={time} corners={corners} />
+      ) : (
+        <View
+          accessibilityLabel={`${author}, ${time}: ${message.body}`}
+          style={[styles.bubble, mine ? styles.bubbleMine : styles.bubbleOther, corners]}>
+          <Text variant="body" color={mine ? 'textInverse' : 'text'}>
+            {message.body}
+          </Text>
+        </View>
+      )}
+    </Animated.View>
+  );
+}
+
+/**
+ * Una publicación enviada por mensaje (F4.7): mini-tarjeta con la imagen
+ * pequeña, el autor y el inicio del texto, que lleva a la publicación. Blanca
+ * con borde en los dos lados de la conversación: es contenido, no texto de
+ * quien la envía.
+ */
+function SharedPostBubble({
+  post,
+  author,
+  time,
+  corners,
+}: {
+  post: SharedPostPreview;
+  author: string;
+  time: string;
+  corners: object;
+}) {
+  const router = useRouter();
+  const by = post.author?.username ?? 'alguien';
+  const snippet = shareSnippet(post.content, 90);
+
+  return (
+    <Pressable
+      onPress={() => router.push({ pathname: '/publicacion/[id]', params: { id: post.id } })}
+      accessibilityRole="link"
+      accessibilityLabel={`${author}, ${time}: publicación de @${by}: ${snippet}. Abrir la publicación`}
+      style={({ pressed }) => [styles.bubble, styles.sharedPost, corners, pressed && styles.pressed]}>
+      <View style={styles.sharedAuthor}>
+        <Avatar name={post.author?.display_name ?? by} uri={post.author?.avatar_url ?? null} size="xs" />
+        <Text variant="captionStrong" numberOfLines={1} style={styles.flex}>
+          {by}
         </Text>
       </View>
-    </Animated.View>
+      <View style={styles.sharedBody}>
+        {post.image_url ? (
+          <Image source={{ uri: post.image_url }} style={styles.sharedImage} contentFit="cover" />
+        ) : null}
+        <Text variant="caption" numberOfLines={3} style={styles.flex}>
+          {snippet}
+        </Text>
+      </View>
+      <Text variant="micro" color="textSecondary">
+        Ver publicación
+      </Text>
+    </Pressable>
   );
 }
 
@@ -551,6 +606,30 @@ const styles = StyleSheet.create({
     backgroundColor: colors.accent,
   },
   bubbleOther: {
+    backgroundColor: colors.surfaceMuted,
+  },
+  sharedPost: {
+    width: 260,
+    gap: spacing.sm,
+    paddingVertical: spacing.md,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  sharedAuthor: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  sharedBody: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.sm,
+  },
+  sharedImage: {
+    width: 56,
+    height: 56,
+    borderRadius: radius.sm,
     backgroundColor: colors.surfaceMuted,
   },
   banner: {

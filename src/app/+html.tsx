@@ -25,6 +25,22 @@ export default function Root({ children }: PropsWithChildren) {
         <title>OVENG EnvHealth</title>
 
         {/*
+          Vista previa de un enlace en WhatsApp, Telegram o X (F4.7). Genérica
+          para toda la app: los rastreadores no ejecutan JavaScript, y en Pages
+          una publicación entra por el 404.html, así que no hay HTML propio por
+          ruta donde poner su título y su foto. Eso llega con un servidor
+          (notas, F4.7). Van también en public/404.html.
+        */}
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="OVENG EnvHealth" />
+        <meta property="og:title" content="OVENG EnvHealth · la red social ambiental" />
+        <meta property="og:description" content={SHARE_DESCRIPTION} />
+        <meta property="og:image" content={`${SITE_URL}/icon-512.png`} />
+        <meta property="og:image:alt" content="Logo de OVENG EnvHealth" />
+        <meta property="og:locale" content="es_ES" />
+        <meta name="twitter:card" content="summary" />
+
+        {/*
           Icono de la webapp (el favicon lo pone Expo desde `web.favicon`).
           Fondo blanco y margen: iOS rellena de negro lo transparente.
         */}
@@ -55,6 +71,12 @@ export default function Root({ children }: PropsWithChildren) {
  * cuatro están atados al nombre del repositorio.
  */
 const BASE_PATH = '/oveng-envhealth';
+
+/** Dónde vive la demo: las etiquetas OG necesitan URLs absolutas. */
+const SITE_URL = `https://expeavomo15.github.io${BASE_PATH}`;
+
+const SHARE_DESCRIPTION =
+  'Cómo está el aire, el agua y la naturaleza donde vives, y quién está haciendo algo por cuidarlos.';
 
 const backgroundStyle = `
 body {

@@ -29,6 +29,8 @@ export type ButtonProps = {
   /** Icono delante del texto, para que la acción se reconozca sin leer. */
   icon?: ComponentProps<typeof Ionicons>['name'];
   style?: ViewStyle;
+  /** Nombre accesible cuando el texto solo no basta: "Enviar" en una lista de personas. */
+  accessibilityLabel?: string;
 };
 
 export function Button({
@@ -41,6 +43,7 @@ export function Button({
   fullWidth = false,
   icon,
   style,
+  accessibilityLabel,
 }: ButtonProps) {
   const isInactive = disabled || loading;
   const labelColor = isInactive
@@ -60,7 +63,7 @@ export function Button({
       disabled={isInactive}
       accessibilityRole="button"
       // El nombre es el texto: el glifo del icono no debe leerse.
-      accessibilityLabel={icon ? label : undefined}
+      accessibilityLabel={accessibilityLabel ?? (icon ? label : undefined)}
       accessibilityState={{ disabled: isInactive, busy: loading }}
       style={({ pressed }) => [
         styles.base,

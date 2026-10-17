@@ -257,7 +257,7 @@ try {
   await visitor.getByRole('link', { name: 'Ver la publicación' }).first().click();
   await visitor.waitForTimeout(2500);
   const postRoute = route(visitor);
-  if (postRoute.startsWith('/post/')) ok(`el detalle se abre sin cuenta (${postRoute})`);
+  if (postRoute.startsWith('/publicacion/')) ok(`el detalle se abre sin cuenta (${postRoute})`);
   else bad(`el detalle de una publicación lleva a ${postRoute}`);
 
   // Recargar es lo que hace quien abre el enlace en WhatsApp: entra en frío.

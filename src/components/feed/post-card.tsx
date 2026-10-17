@@ -1,19 +1,19 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image } from 'expo-image';
-import { usePathname, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Platform, Pressable, Share, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { ChatButton } from '@/components/chat/chat-button';
 import { Avatar, Text } from '@/components/ui';
 import { showToast } from '@/components/ui/toast';
 import { useAuth } from '@/hooks/use-auth';
 import { likePost, unlikePost, type FeedPost } from '@/lib/feed';
-import { postUrl } from '@/lib/site';
 import { relativeTime } from '@/lib/time';
 import { colors, radius, screenPadding, spacing } from '@/theme';
 
 import { PostText } from './post-text';
+import { ShareSheet } from './share-sheet';
 
 export type PostCardProps = {
   post: FeedPost;
@@ -27,14 +27,22 @@ export type PostCardProps = {
    * bloques.
    */
   variant?: 'feed' | 'card';
+  /**
+   * Qué hace el 💬. Por defecto abre la publicación con sus comentarios; el
+   * propio detalle lo usa para llevar al campo de escribir.
+   */
+  onPressComments?: () => void;
 };
 
-export function PostCard({ post, onPressBody, variant = 'card' }: PostCardProps) {
+export function PostCard({ post, onPressBody, variant = 'card', onPressComments }: PostCardProps) {
   const flush = variant === 'feed';
   const router = useRouter();
-  // La raíz de la app se deduce de la ruta actual; ver lib/site.ts.
-  const pathname = usePathname();
   const { profile } = useAuth();
+  const [sharing, setSharing] = useState(false);
+
+  const openComments =
+    onPressComments ?? (() => router.push({ pathname: '/publicacion/[id]', params: { id: post.id } }));
+  const comments = post.commentsCount;
 
   /**
    * Estado optimista del "me gusta", con la publicación a la que pertenece.
@@ -86,22 +94,6 @@ export function PostCard({ post, onPressBody, variant = 'card' }: PostCardProps)
       showToast('No se ha podido guardar tu "me gusta".');
     } finally {
       setBusy(false);
-    }
-  }
-
-  async function share() {
-    const url = postUrl(post.id, pathname);
-
-    if (Platform.OS !== 'web') {
-      await Share.share({ message: `${post.content}\n\n${url}` });
-      return;
-    }
-
-    try {
-      await navigator.clipboard.writeText(url);
-      showToast('Enlace copiado al portapapeles.');
-    } catch {
-      showToast('No se ha podido copiar el enlace.');
     }
   }
 
@@ -188,19 +180,38 @@ export function PostCard({ post, onPressBody, variant = 'card' }: PostCardProps)
 
         <Action
           icon="chatbubble-outline"
-          color={colors.textMuted}
-          label="0"
-          accessibilityLabel="Comentarios (próximamente)"
-          onPress={() => showToast('Los comentarios llegan pronto.')}
+          color={colors.textSecondary}
+          label={String(comments)}
+          accessibilityLabel={comments === 0 ? 'Comentar' : `Comentarios, ${comments}`}
+          onPress={openComments}
         />
 
         <Action
           icon="share-outline"
           color={colors.textSecondary}
           accessibilityLabel="Compartir"
-          onPress={share}
+          onPress={() => setSharing(true)}
         />
       </View>
+
+      {/*
+        En el feed, "Ver los N comentarios" bajo las acciones, como Instagram.
+        En el detalle no hace falta: los comentarios están justo debajo.
+      */}
+      {onPressBody && comments > 0 ? (
+        <Pressable
+          onPress={openComments}
+          accessibilityRole="link"
+          accessibilityLabel={comments === 1 ? 'Ver el comentario' : `Ver los ${comments} comentarios`}
+          style={({ pressed }) => [styles.commentsLink, flush && styles.inset, pressed && styles.pressed]}>
+          <Text variant="caption" color="textSecondary">
+            {comments === 1 ? 'Ver 1 comentario' : `Ver los ${comments} comentarios`}
+          </Text>
+        </Pressable>
+      ) : null}
+
+      {/* Montada solo al abrirla: dentro carga tus conversaciones. */}
+      {sharing ? <ShareSheet post={post} visible onClose={() => setSharing(false)} /> : null}
     </View>
   );
 }
@@ -304,6 +315,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.xxl,
     paddingTop: spacing.xs,
+  },
+  commentsLink: {
+    marginTop: -spacing.xs,
   },
   action: {
     flexDirection: 'row',

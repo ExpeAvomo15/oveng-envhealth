@@ -215,7 +215,7 @@ try {
   await shot('07-feed-scroll');
 
   if (postA) {
-    await go(`/post/${postA.id}`);
+    await go(`/publicacion/${postA.id}`);
     await shot('08-detalle-publicacion');
   }
   await go('/crear');

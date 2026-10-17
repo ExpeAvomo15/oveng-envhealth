@@ -436,7 +436,7 @@ try {
 
   await page.getByLabel('Ver la publicación').first().click();
   await page.waitForTimeout(3000);
-  await expectVisible('Los comentarios llegan pronto', 'el detalle reserva el sitio de comentarios');
+  await expectVisible(/^Comentarios( \(\d+\))?$/, 'el detalle tiene su sección de comentarios');
   await shot('detalle');
 
   // --- 8. Cerrar sesión y volver ---------------------------------------------

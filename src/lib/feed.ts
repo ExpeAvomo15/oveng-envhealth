@@ -46,6 +46,8 @@ export type FeedPost = {
   place: FeedPlace | null;
   likesCount: number;
   likedByViewer: boolean;
+  /** Comentarios (F4.7). Cero mientras no esté la migración `009`. */
+  commentsCount: number;
 };
 
 /** Forma cruda que devuelve PostgREST para el select de abajo. */
@@ -58,6 +60,8 @@ type RawFeedRow = {
   author: FeedAuthor | null;
   place: FeedPlace | null;
   likes_count: { count: number }[];
+  /** Ausente sin la migración 009. */
+  comments_count?: { count: number }[];
   /** Ausente en el select anónimo: sin lector no hay "mi me gusta". */
   my_like?: { user_id: string }[];
 };
@@ -69,12 +73,15 @@ type RawFeedRow = {
  * aplicar la migración a mano —que ya pasó con `entity_follows` en F2.2—.
  */
 let placesAvailable = true;
+/** Lo mismo para `comments` (migración `009`, F4.7). */
+let commentsAvailable = true;
 
 function baseSelect(): string {
   return `
   id, content, image_url, hashtags, created_at,
   author:profiles!posts_author_id_fkey ( id, username, display_name, avatar_url, verified ),
   ${placesAvailable ? 'place:entities!posts_entity_id_fkey ( id, slug, name ),' : ''}
+  ${commentsAvailable ? 'comments_count:comments!comments_post_id_fkey ( count ),' : ''}
   likes_count:likes!likes_post_id_fkey ( count )
 `;
 }
@@ -91,13 +98,28 @@ function feedSelect(withViewer: boolean): string {
   return withViewer ? `${baseSelect()},\n  my_like:likes!likes_post_id_fkey ( user_id )\n` : baseSelect();
 }
 
-/** Lo que responde PostgREST cuando la relación o la columna aún no existen. */
-function isMissingPlace(error: { code?: string; message?: string } | null): boolean {
+type QueryError = { code?: string; message?: string; details?: string };
+
+/**
+ * Lo que responde PostgREST cuando la relación o la columna aún no existen.
+ * Se mira **qué** falta: con dos migraciones opcionales, un `PGRST200` a secas
+ * no dice cuál de las dos es.
+ */
+function missingRelation(error: QueryError | null, pattern: RegExp): boolean {
   if (!error) return false;
-  return error.code === 'PGRST200' || error.code === '42703' || /entity_id/.test(error.message ?? '');
+  if (error.code !== 'PGRST200' && error.code !== '42703') return false;
+  return pattern.test(`${error.message ?? ''} ${error.details ?? ''}`);
 }
 
-type QueryResult = { data: unknown; error: { code?: string; message?: string } | null };
+function isMissingPlace(error: QueryError | null): boolean {
+  return missingRelation(error, /entit/);
+}
+
+function isMissingComments(error: QueryError | null): boolean {
+  return missingRelation(error, /comments/);
+}
+
+type QueryResult = { data: unknown; error: QueryError | null };
 
 /**
  * Ejecuta una consulta del feed y la repite sin el lugar si falta la migración.
@@ -108,13 +130,21 @@ type QueryResult = { data: unknown; error: { code?: string; message?: string } |
  * se quedaba en "No se ha podido cargar". Lo cazó `verify:f15`.
  */
 async function runFeedQuery(build: (select: string) => PromiseLike<QueryResult>, withViewer: boolean) {
-  const triedPlaces = placesAvailable;
-  let result = await build(feedSelect(withViewer));
-  if (triedPlaces && isMissingPlace(result.error)) {
-    placesAvailable = false;
-    result = await build(feedSelect(withViewer));
+  // Como mucho un reintento por cada migración que pueda faltar.
+  for (let attempt = 0; ; attempt += 1) {
+    const triedPlaces = placesAvailable;
+    const triedComments = commentsAvailable;
+    const result = await build(feedSelect(withViewer));
+    if (attempt < 2 && triedPlaces && isMissingPlace(result.error)) {
+      placesAvailable = false;
+      continue;
+    }
+    if (attempt < 2 && triedComments && isMissingComments(result.error)) {
+      commentsAvailable = false;
+      continue;
+    }
+    return result;
   }
-  return result;
 }
 
 function toFeedPost(row: RawFeedRow): FeedPost | null {
@@ -132,6 +162,7 @@ function toFeedPost(row: RawFeedRow): FeedPost | null {
     place: row.place ?? null,
     likesCount: row.likes_count[0]?.count ?? 0,
     likedByViewer: (row.my_like?.length ?? 0) > 0,
+    commentsCount: row.comments_count?.[0]?.count ?? 0,
   };
 }
 

@@ -101,6 +101,11 @@ function RootNavigator() {
       <Stack.Screen name="mapa" />
       <Stack.Screen name="entidad/[slug]" />
       <Stack.Screen name="user/[username]" />
+      {/*
+        La publicación con sus comentarios (F4.7): es el enlace que se comparte.
+        `post/[id]` queda solo para redirigir los enlaces de antes.
+      */}
+      <Stack.Screen name="publicacion/[id]" />
       <Stack.Screen name="post/[id]" />
       {/*
         Adonde lleva el email de recuperación (F4.3). Pública porque se llega

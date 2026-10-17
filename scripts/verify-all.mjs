@@ -26,7 +26,7 @@ const ROOT = process.cwd();
 // (verify-auth tomaría el argumento por un correo).
 const SUITE = [
   'auth', 'ui', 'f13', 'f14', 'f15', 'mvp', 'f21', 'f22', 'f23', 'f24',
-  'f25', 'f41', 'f42', 'f43', 'f44', 'f45', 'f46', 'demo',
+  'f25', 'f41', 'f42', 'f43', 'f44', 'f45', 'f46', 'f47', 'demo',
 ];
 const NO_BUILD = new Set(['auth', 'f21']);
 

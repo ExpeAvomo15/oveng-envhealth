@@ -33,6 +33,14 @@ export type ConversationSummary = Conversation & {
   unread: number;
 };
 
+/** Lo que enseña la mini-tarjeta de una publicación enviada por mensaje (F4.7). */
+export type SharedPostPreview = {
+  id: string;
+  content: string;
+  image_url: string | null;
+  author: Pick<Profile, 'username' | 'display_name' | 'avatar_url'> | null;
+};
+
 export type Message = {
   id: string;
   conversation_id: string;
@@ -40,7 +48,49 @@ export type Message = {
   body: string;
   created_at: string;
   read_at: string | null;
+  /** Publicación compartida (migración `009`). Ausente sin ella. */
+  shared_post_id?: string | null;
+  shared_post?: SharedPostPreview | null;
 };
+
+/**
+ * El texto de un mensaje que comparte una publicación. Es lo que se ve en la
+ * vista previa de la bandeja y lo que queda si la publicación se borra; la
+ * burbuja enseña la mini-tarjeta en su lugar.
+ */
+export const SHARED_POST_BODY = 'Publicación compartida';
+
+const MESSAGE_SELECT = `*,
+  shared_post:posts!messages_shared_post_id_fkey (
+    id, content, image_url,
+    author:profiles!posts_author_id_fkey ( username, display_name, avatar_url )
+  )`;
+
+/**
+ * ¿Está la columna `shared_post_id`? Se supone que sí y, si la base dice que no,
+ * se pide sin ella y se recuerda: el chat no se cae entre desplegar y aplicar
+ * la `009`, como el feed con la `007`.
+ */
+let sharedPostsAvailable = true;
+
+function isMissingSharedPost(error: { code?: string; message?: string; details?: string } | null): boolean {
+  if (!error) return false;
+  return (
+    (error.code === 'PGRST200' || error.code === '42703') &&
+    /shared_post|messages_shared_post_id_fkey|'messages' and 'posts'/.test(`${error.message} ${error.details}`)
+  );
+}
+
+async function selectMessages<T>(
+  build: (select: string) => PromiseLike<{ data: T | null; error: { code?: string; message?: string } | null }>,
+) {
+  if (sharedPostsAvailable) {
+    const result = await build(MESSAGE_SELECT);
+    if (!isMissingSharedPost(result.error)) return result;
+    sharedPostsAvailable = false;
+  }
+  return build('*');
+}
 
 /** Límite de un mensaje, por debajo del `check` de 2.000 de la tabla. */
 export const MESSAGE_MAX = 2000;
@@ -181,14 +231,22 @@ export function isChat(conversation: Conversation, me: string): boolean {
 
 /** Los mensajes de una conversación, del más antiguo al más nuevo. */
 export async function listMessages(conversationId: string): Promise<Message[]> {
-  const { data, error } = await db
-    .from('messages')
-    .select('*')
-    .eq('conversation_id', conversationId)
-    .order('created_at', { ascending: true })
-    .limit(500);
+  const { data, error } = await selectMessages((select) =>
+    db
+      .from('messages')
+      .select(select)
+      .eq('conversation_id', conversationId)
+      .order('created_at', { ascending: true })
+      .limit(500),
+  );
   if (error) throw error;
   return (data ?? []) as unknown as Message[];
+}
+
+/** Un mensaje con su publicación compartida: lo que llega por Realtime viene sin ella. */
+export async function getMessage(id: string): Promise<Message | null> {
+  const { data } = await selectMessages((select) => db.from('messages').select(select).eq('id', id).maybeSingle());
+  return (data ?? null) as unknown as Message | null;
 }
 
 export async function sendMessage(conversationId: string, me: string, body: string): Promise<Message> {
@@ -200,6 +258,24 @@ export async function sendMessage(conversationId: string, me: string, body: stri
     .select('*')
     .single();
   if (error) throw error;
+  return data as unknown as Message;
+}
+
+/**
+ * Envía una publicación por mensaje (F4.7): un mensaje con
+ * `SHARED_POST_BODY` y `shared_post_id`. Las mismas reglas de RLS que cualquier
+ * mensaje: solo en una conversación propia, aceptada y sin bloqueo.
+ */
+export async function sendSharedPost(conversationId: string, me: string, postId: string): Promise<Message> {
+  const { data, error } = await db
+    .from('messages')
+    .insert({ conversation_id: conversationId, sender_id: me, body: SHARED_POST_BODY, shared_post_id: postId })
+    .select(MESSAGE_SELECT)
+    .single();
+  if (error) {
+    if (isMissingSharedPost(error)) throw new MessagesUnavailable();
+    throw error;
+  }
   return data as unknown as Message;
 }
 

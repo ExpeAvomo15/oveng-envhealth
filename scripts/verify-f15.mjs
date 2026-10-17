@@ -299,11 +299,12 @@ try {
   await page.getByLabel('Ver la publicación').first().click();
   await page.waitForTimeout(3000);
 
-  if (new URL(page.url()).pathname.includes('/post/')) ok('el cuerpo de la tarjeta lleva al detalle');
+  if (new URL(page.url()).pathname.includes('/publicacion/')) ok('el cuerpo de la tarjeta lleva al detalle');
   else bad(`el cuerpo llevó a ${new URL(page.url()).pathname}`);
 
-  if (await visible('Los comentarios llegan pronto')) ok('el detalle reserva el sitio de comentarios');
-  else bad('el detalle no muestra el aviso de comentarios');
+  // Desde F4.7 el detalle lleva sus comentarios; el título cuenta los que hay.
+  if (await visible(/^Comentarios( \(\d+\))?$/)) ok('el detalle tiene su sección de comentarios');
+  else bad('el detalle no muestra la sección de comentarios');
 
   await shot('25-detalle-post');
 } catch (error) {
