@@ -1,6 +1,6 @@
 /**
- * Verificación de F4.7: comentarios y compartir (fuera con el enlace, dentro
- * por mensaje).
+ * Verificación de F4.7: comentarios, compartir (fuera con el enlace, dentro
+ * por mensaje) y la campana de notificaciones.
  *
  *   npm run verify:f47                  # construye y verifica
  *   npm run verify:f47 -- --skip-build  # reutiliza dist/
@@ -57,13 +57,17 @@ step('1. Migración 009 aplicada');
   // GET y no HEAD: una consulta HEAD a una tabla que no existe no da error.
   const comments = await anon.from('comments').select('*').limit(1);
   const shared = await anon.from('messages').select('shared_post_id').limit(1);
-  if (comments.error || shared.error) {
+  const notes = await anon.from('notifications').select('id').limit(1);
+  if (comments.error || shared.error || notes.error) {
     if (comments.error) bad(`comments no responde (${comments.error.code}): falta la migración 009`);
     if (shared.error) bad(`messages.shared_post_id no existe (${shared.error.code}): falta la migración 009`);
+    if (notes.error) bad(`notifications no responde (${notes.error.code}): falta la migración 009`);
     console.log('\nRESULTADO: la base no está lista. Aplica la migración 009 (docs/03_MODELO_DATOS.md).');
     process.exit(1);
   }
-  ok('comments y messages.shared_post_id existen');
+  ok('comments, notifications y messages.shared_post_id existen');
+  if ((notes.data ?? []).length === 0) ok('sin cuenta no se lee ninguna notificación');
+  else bad('un anónimo lee notificaciones');
 }
 
 // --- 2. Cuentas y datos ------------------------------------------------------------------
@@ -159,6 +163,57 @@ let cComment = null;
   const { data: bDeletes } = await users.b.from('comments').delete().eq('id', cComment).select();
   if (!bDeletes || bDeletes.length === 0) ok('B no puede borrar el comentario de C en la publicación de A');
   else bad('B ha borrado un comentario ajeno');
+}
+
+// --- 3b. Notificaciones ---------------------------------------------------------------
+step('3b. Notificaciones: las crea la base, y solo las ve su destinataria');
+const notificationsOf = async (key) =>
+  (await users[key].from('notifications').select('type, actor_id, post_id, read').eq('user_id', ids[key])).data ?? [];
+{
+  await users.c.from('follows').insert({ follower_id: ids.c, following_id: ids.a });
+  // Dar, quitar y volver a dar "me gusta": una sola notificación (dedupe).
+  await users.b.from('likes').insert({ user_id: ids.b, post_id: post.id });
+  await users.b.from('likes').delete().eq('user_id', ids.b).eq('post_id', post.id);
+  await users.b.from('likes').insert({ user_id: ids.b, post_id: post.id });
+  // A con lo suyo: nunca se notifica a uno mismo.
+  await users.a.from('likes').insert({ user_id: ids.a, post_id: post.id });
+  const { data: own } = await users.a
+    .from('comments')
+    .insert({ post_id: post.id, user_id: ids.a, content: 'Mi propio comentario' })
+    .select('id')
+    .single();
+
+  const mine = await notificationsOf('a');
+  const has = (type, actor) => mine.filter((n) => n.type === type && n.actor_id === ids[actor]).length;
+  if (has('follow', 'c') === 1) ok('C sigue a A → «empezó a seguirte»');
+  else bad(`notificaciones de seguir: ${has('follow', 'c')}`);
+  if (has('like', 'b') === 1) ok('B da, quita y vuelve a dar «me gusta» → una sola notificación');
+  else bad(`notificaciones de «me gusta» de B: ${has('like', 'b')}`);
+  if (has('comment', 'c') === 1) ok('C comenta → «comentó»');
+  else bad(`notificaciones de comentario de C: ${has('comment', 'c')}`);
+  if (mine.every((n) => n.actor_id !== ids.a)) ok('A no se notifica a sí misma (su «me gusta» y su comentario)');
+  else bad('A tiene notificaciones suyas');
+  if (mine.length === 3) ok('ni el mensaje de chat de B va a la campana: 3 notificaciones en total');
+  else bad(`A tiene ${mine.length} notificaciones, se esperaban 3: ${JSON.stringify(mine.map((n) => n.type))}`);
+  if (own) await users.a.from('comments').delete().eq('id', own.id);
+
+  const { data: peek } = await users.c.from('notifications').select('id').eq('user_id', ids.a);
+  if ((peek ?? []).length === 0) ok('C no lee las notificaciones de A');
+  else bad('C lee las notificaciones de A');
+  const forge = await users.c.from('notifications').insert({ user_id: ids.a, actor_id: ids.b, type: 'follow' });
+  if (forge.error) ok('nadie crea notificaciones desde la app (sin política de INSERT)');
+  else bad('C ha creado una notificación para A');
+  const rpc = await users.c.rpc('notify', {
+    p_recipient: ids.a, p_actor: ids.b, p_kind: 'follow', p_post: null, p_comment: null, p_dedupe: '1 second',
+  });
+  if (rpc.error) ok('ni llamando a la función de la base por RPC');
+  else bad('C ha fabricado una notificación por RPC');
+  const { data: marked } = await users.c.from('notifications').update({ read: true }).eq('user_id', ids.a).select();
+  if (!marked || marked.length === 0) ok('C no marca como leídas las de A');
+  else bad('C ha marcado notificaciones de A');
+  const retype = await users.a.from('notifications').update({ type: 'like' }).eq('user_id', ids.a);
+  if (retype.error) ok('A solo puede cambiar `read` (permiso de columna)');
+  else bad('A ha cambiado el tipo de una notificación');
 }
 
 // --- 4. Build ------------------------------------------------------------------------------
@@ -379,6 +434,41 @@ try {
   const a = await session('a');
   {
     const { page, errors } = a;
+    const unread = (await notificationsOf('a')).filter((n) => !n.read);
+    const types = unread.map((n) => n.type).sort().join(',');
+    if (types === 'comment,follow,like,share_to_chat') ok('A tiene cuatro sin leer: seguir, «me gusta», comentario y envío');
+    else bad(`no leídas de A: ${types}`);
+    if (await waitVisible(page.getByRole('button', { name: `Notificaciones, ${unread.length} sin leer` }))) {
+      ok(`la campana lo dice: «Notificaciones, ${unread.length} sin leer»`);
+    } else {
+      bad('la campana no cuenta las no leídas');
+    }
+    await shot(page, '08a-campana');
+    await visible(page.getByRole('button', { name: /^Notificaciones/ })).click();
+    await page.waitForTimeout(2500);
+    if (route(page) === '/notificaciones') ok('la campana abre /notificaciones');
+    else bad(`la campana lleva a ${route(page)}`);
+    for (const [label, pattern] of [
+      ['seguir', 'empezó a seguirte'],
+      ['«me gusta»', 'le gustó tu publicación'],
+      ['comentario', `comentó: «Comentario de C ${stamp}»`],
+      ['envío por mensaje', 'envió tu publicación por mensaje'],
+    ]) {
+      if (await waitVisible(page.getByRole('link', { name: new RegExp(pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')) }), 3000)) {
+        ok(`fila de ${label}: «${pattern}»`);
+      } else {
+        bad(`no aparece la fila de ${label}`);
+      }
+    }
+    await shot(page, '08b-notificaciones');
+    await page.waitForTimeout(1000);
+    if ((await notificationsOf('a')).every((n) => n.read)) ok('al abrirla quedan todas leídas');
+    else bad('siguen notificaciones sin leer tras abrir la pantalla');
+    await page.goto(`${origin}/`, { waitUntil: 'networkidle' });
+    await page.waitForTimeout(3000);
+    if (await waitVisible(page.getByRole('button', { name: 'Notificaciones', exact: true }))) ok('y el contador de la campana baja a cero');
+    else bad('el contador de la campana no baja');
+
     await page.goto(`${origin}/mensajes/${convo.id}`, { waitUntil: 'networkidle' });
     await page.waitForTimeout(3000);
     const card = page.getByRole('link', { name: /publicación de @.*Abrir la publicación/ });
@@ -422,6 +512,14 @@ try {
       bad('sin conversaciones no hay un estado honesto');
     }
     await shot(page, '11-sin-conversaciones');
+    await page.goto(`${origin}/notificaciones`, { waitUntil: 'networkidle' });
+    await page.waitForTimeout(2500);
+    if (await waitVisible(page.getByText('Aquí verás la actividad: me gusta, comentarios y nuevos seguidores.'))) {
+      ok('sin notificaciones, la campana lo explica en llano');
+    } else {
+      bad('la pantalla vacía de notificaciones no se explica');
+    }
+    await shot(page, '12-sin-notificaciones');
     await c.context.close();
   }
 } catch (caught) {

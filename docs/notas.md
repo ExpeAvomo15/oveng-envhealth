@@ -28,6 +28,7 @@ El porqué de cada una, enlazado.
 - Seis categorías (unión de los mockups) con color fijo; una guarda de tipos rompe la compilación si base y theme divergen. [F2.1]
 - Migraciones a mano en el SQL Editor, `begin…commit`, no re-ejecutables. Una preferencia de vista no justifica una migración. [F0.3] [F2.5]
 - Feed: `select` anidado y cursor por `created_at`; sin lector no se pide `my_like`. [F1.5] [F2.6]
+- Notificaciones: las crean **triggers** (sin INSERT desde la app, `notify()` sin EXECUTE para `anon`/`authenticated`); solo las lee su destinatario; los chats no van a la campana. [F4.7]
 - Comentarios: lectura libre; borra su autor **o el de la publicación**; nadie edita. El número es un agregado, como los "me gusta", no una columna. [F4.7]
 - Mensajes: lo **único privado**. RLS dice quién y `grant update (columna)` dice qué; Realtime aplica la misma RLS. Solicitud antes de conversar; denunciar y moderar, obligatorios antes de abrir al público. [F4.6]
 - "Tu zona" es **elegida**, no detectada, y una zona es un recuadro de coordenadas, no un país. [F2.5]
@@ -140,6 +141,31 @@ visual de F4.6b). Renumerado: lo que era F4.7–F4.9 pasa a F4.8–F4.10.
   Con dos migraciones opcionales en el feed ya no vale cualquier `PGRST200`:
   se mira **qué** relación falta.
 
+### Notificaciones: la campana
+
+Encargo añadido a la misma tarea, y en la misma `009` (no estaba aplicada).
+
+- **Las escribe la base, no la app.** Un trigger por acción (seguir, "me
+  gusta", comentar, enviar una publicación por mensaje) llama a `notify()`.
+  Si las creara el cliente, cualquiera podría fabricarlas con la clave
+  anónima; sin política de INSERT, no hay por dónde.
+- **`notify()` sin EXECUTE para `anon` ni `authenticated`.** Supabase lo da por
+  defecto a toda función nueva de `public`: con un `revoke … from public` a
+  secas, cualquiera la habría llamado por RPC y notificado a quien quisiera.
+  `verify:f47` lo prueba.
+- **Dedupe:** el mismo actor, tipo y publicación no se repite en 24 h; en
+  comentarios, 10 minutos —cada uno es contenido nuevo, pero una ráfaga se lee
+  como una—. Tampoco se notifica con un bloqueo de por medio.
+- **Compartir avisa al autor de la publicación**, sin decirle a quién se
+  envió: la conversación es privada.
+- **Tiempo real, aquí sí:** reutiliza el canal del chat, y la tabla es privada
+  —Realtime aplica su RLS—, así que no abre nada a quien lee sin cuenta. Es lo
+  que en los comentarios no salía barato.
+- **Abrir la pantalla las marca todas leídas**; las filas guardan cómo
+  llegaron, para que "Nuevas" se vea en esa visita.
+- Los mensajes **no** van a la campana: tienen su bocadillo. Push reales, al
+  backlog (post-F3).
+
 ### OG tags
 
 Genéricas de OVENG en `+html.tsx` y en `public/404.html`, por donde entra en
@@ -150,7 +176,8 @@ tiene HTML propio. Llega con un servidor (F4.9 o una función en el borde;
 
 ### Verificación
 
-`verify:f47` está escrito y **no se ha pasado**: necesita la `009`, que se
+`verify:f47` está escrito —comentarios, compartir y notificaciones— y **no se
+ha pasado**: necesita la `009`, que se
 aplica a mano. Sin ella, `verify:f15`, `verify:f46`, `verify:mvp` y
 `verify:demo` en verde, y probado en el navegador lo que no la necesita: el
 enlace en frío sin cuenta (entra por el 404 y aterriza en la publicación), la

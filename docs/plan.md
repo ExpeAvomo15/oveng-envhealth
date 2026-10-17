@@ -383,77 +383,30 @@ procedencia + OpenAQ, cron y compartir con marca pasan a F4.8, F4.9 y F4.10.
       no se envía en la prueba para no gastar el cupo. Capturas en
       `docs/verificacion/f43/`. Las quince verificaciones del repositorio en
       verde.
-- [x] **F4.4 feed denso, Turismo Verde y Empleo** — modelo LinkedIn adaptado:
-      solo hay cuentas de personas, y las entidades son **páginas** que
-      gestionan personas. "¿Trabajas aquí? Gestionar esta página" deja como
-      administrador **al instante** (aprobación automática por ahora, y la
-      página lo dice). Quien administra publica, edita y cierra **ofertas de
-      empleo**; el chip "Empresas" de Buscar pasa a **Empleo** (las empresas
-      siguen en "Todo"). "Lugares" pasa a **Turismo Verde** en toda la interfaz,
-      con publicaciones etiquetadas en el lugar, "Para tu visita" hacia el mapa
-      y descripciones en tono de visitante. El feed va **a sangre**, sin huecos
-      entre publicaciones. Migraciones `005` (administradores), `006` (ofertas)
-      y `007` (lugar en publicaciones), y `npm run seed:jobs` con ofertas **de
-      ejemplo** marcadas como tales.
-      Verificado contra la base real con `npm run verify:f44`, con las
-      migraciones aplicadas y los dos seeds cargados: RLS en los dos sentidos
-      (nadie se da `super_admin` ni otro `status`, nadie reclama en nombre de
-      otro, quien no administra no publica, sin cuenta no se publica, nadie
-      edita la oferta de otro), el claim al instante y persistente, publicar /
-      editar / cerrar una oferta y que deje de verse, Empleo y su detalle sin
-      cuenta con el aviso de salida, las ofertas de ejemplo marcadas y sin
-      aplicar, "Páginas que administras", la publicación etiquetada en el
-      perfil de Monte Alén, "Para tu visita" en el mapa, el pin del feed, y el
-      feed a sangre en móvil y escritorio. Capturas en `docs/verificacion/f44/`
-      (y el antes, en `f44-antes/`).
-      Las dieciséis verificaciones del repositorio en verde.
-- [x] **F4.5 Turismo Verde orientado a ubicación** — pantalla propia,
-      `/turismo-verde` (el chip de Buscar lleva a ella: su buscador es de
-      ciudades y no cabía junto al de entidades): "🌿 ¿Dónde quieres disfrutar
-      de la naturaleza?", buscador con la geocodificación de F4.2 y chips de un
-      toque —"Cerca de mí" con el permiso de F4.2 y las zonas **que tienen
-      lugares**, calculadas—. Los lugares del directorio salen **ordenados por
-      distancia** (haversine en el cliente, radio de 150 km) con "a X km", su
-      "qué disfrutar", la valoración y **"Cómo llegar"**, que abre Google Maps en
-      las coordenadas exactas (también en el perfil del lugar). Sin lugares en
-      radio: "Aún no tenemos rincones verdes en [zona] 🌱", los tres más
-      cercanos fuera de radio y "Proponer un rincón verde", que abre el
-      compositor con el texto empezado y #TurismoVerde. **13 lugares nuevos**
-      en el seed (8 en Andalucía, 5 en Guinea Ecuatorial) con coordenadas
-      comprobadas en OpenStreetMap y sin métricas.
-      Verificado contra la base real con `npm run verify:f45`: los 13 lugares
-      en su país y sin métricas, "Málaga" con sus 8 rincones ordenados por
-      distancia contra el cálculo real, "Cómo llegar" con la URL exacta, la
-      tarjeta y el perfil, "Cerca de mí" con la posición simulada, Lisboa con el
-      vacío honesto y los tres más cercanos, y proponer sin y con cuenta.
-      Capturas en `docs/verificacion/f45/`. Las diecisiete verificaciones del
-      repositorio en verde.
-- [x] **F4.6 chat 1 a 1** — mensajes privados entre dos personas, **solo
-      texto**, con **solicitud** como Instagram: el primer mensaje llega a
-      "Solicitudes" y quien lo recibe lo lee y decide —Aceptar o Rechazar, sin
-      que se le diga a quien lo pidió que se ha rechazado— antes de poder
-      responder. **Bloqueo** en los dos sentidos, **no leídos** en la cabecera
-      de Inicio y en la lista, y **tiempo real** con Supabase Realtime.
-      **Se ve que se puede chatear, como en cualquier red social:** un
-      bocadillo 💬 en la cabecera de Inicio (también sin cuenta), otro junto al
-      autor de cada publicación y en cada persona de Buscar, y "Enviar mensaje"
-      con su icono al lado de "Seguir" en el perfil. Sin cuenta, llevan a
-      entrar. Migración **`008`** (`blocks`, `conversations`,
-      `messages`): toda la privacidad la impone RLS —solo las dos personas leen,
-      solo el destinatario acepta y marca como leído, nadie escribe con un
-      bloqueo de por medio—, y Realtime respeta esas mismas políticas.
-      **Sin imágenes, grupos ni notificaciones push** en esta versión.
-      Verificado contra la base real, con la `008` aplicada, con
-      `npm run verify:f46`: un tercero no lee ni escribe (tampoco por enlace
-      directo), nadie escribe en nombre de otro ni acepta su propia solicitud,
-      solicitud → aceptación, **tiempo real entre dos sesiones abiertas (0,8 s)**,
-      no leídos en la cabecera y en la lista que se marcan al abrir, y el
-      bloqueado que ya no puede escribir. Realtime no pidió nada en el
-      dashboard. Capturas en `docs/verificacion/f46/`. Las dieciocho
-      verificaciones del repositorio en verde.
+- [x] **F4.4 feed denso, Turismo Verde y Empleo** — modelo LinkedIn: solo
+      hay cuentas de personas y las entidades son **páginas** que administran
+      (claim al instante, por ahora). Ofertas de empleo con el chip **Empleo**,
+      "Lugares" pasa a **Turismo Verde**, publicaciones etiquetadas en un
+      lugar y feed a sangre. Migraciones `005`–`007` y `seed:jobs` (ofertas de
+      ejemplo, marcadas). Verificado con `npm run verify:f44` contra la base
+      real, RLS en los dos sentidos incluida. Detalle en el
+      [archivo de notas](notas-archivo-post-demo.md#2026-10-04--f44-feed-denso-turismo-verde-y-empleo).
+- [x] **F4.5 Turismo Verde orientado a ubicación** — `/turismo-verde`: "¿Dónde
+      quieres disfrutar de la naturaleza?", lugares **por distancia** (150 km)
+      con "Cómo llegar" a Google Maps, "Cerca de mí" y un vacío honesto que
+      invita a proponer un rincón. 13 lugares nuevos en el seed, sin métricas.
+      Verificado con `npm run verify:f45`. Detalle en el
+      [archivo de notas](notas-archivo-post-demo.md#2026-10-04--f45-turismo-verde-por-ubicación).
+- [x] **F4.6 chat 1 a 1** — solo texto, con **solicitud** como Instagram
+      (Aceptar o Rechazar, sin avisar del rechazo), **bloqueo** en los dos
+      sentidos, **no leídos** y **tiempo real**. El bocadillo 💬 en la cabecera,
+      junto a cada autor y en cada perfil. Migración **`008`**: toda la
+      privacidad la impone RLS, y Realtime respeta esas políticas. Verificado
+      con `npm run verify:f46` (un tercero no lee ni escribe, tiempo real entre
+      dos sesiones en 0,8 s). Detalle en el
+      [archivo de notas](notas-archivo-post-demo.md#2026-10-06--f46-chat-1-a-1).
       **Denunciar mensajes y moderación son OBLIGATORIOS** antes de abrir al
-      público general (ver backlog): sin ellos, un chat privado es un canal de
-      acoso que nadie ve.
+      público general (ver backlog).
 - [x] **F4.6b pasada visual: "Instagram en verde"** — solo presentación,
       sin lógica, rutas ni RLS: patrones de Instagram con la paleta, Inter y
       radios de OVENG. Auditoría de 24 pantallas antes y después
@@ -474,6 +427,12 @@ procedencia + OpenAQ, cron y compartir con marca pasan a F4.8, F4.9 y F4.10.
       donde existe y "Copiar enlace". Sin tiempo real en comentarios y OG tags
       solo genéricas (decisiones en notas). Sin la `009` la app no se rompe:
       `verify:f15`, `f46`, `mvp` y `demo` en verde sin ella.
+      **Notificaciones** (en la misma `009`): la campana de la cabecera, con
+      contador en tiempo real, y `/notificaciones` con filas a lo Instagram
+      ("Nuevas" y "Anteriores", miniatura de la publicación). Las crean
+      triggers al seguir, dar "me gusta", comentar o enviar una publicación
+      por mensaje: nunca a uno mismo, ni con un bloqueo, ni repetidas. Solo
+      las lee y las marca su destinatario. Los chats siguen en su bocadillo.
       **Pendiente:** aplicar la `009`, pasar `npm run verify:f47` (capturas en
       `docs/verificacion/f47/`) y la batería entera.
 - [ ] **F4.8 procedencia completa + OpenAQ** — lecturas con fuente, método,
@@ -510,7 +469,11 @@ se conoce y a la que el autor conoce—; no se puede abrir a desconocidos sin es
   llegue a ojos de alguien.
 - **Límite de solicitudes** por cuenta y día, contra el envío masivo.
 
-Fuera de esta lista, y sin prisa: imágenes, grupos y notificaciones push.
+Fuera de esta lista, y sin prisa: imágenes y grupos.
+
+- **Notificaciones push de verdad** (post-F3): service worker, un servidor
+  que las envíe y, en iOS, la PWA instalada. Hipótesis a contrastar en F3:
+  ¿la gente vuelve sin que la empujen? Si vuelve, la campana basta.
 
 - **Mensajes de audio en el chat** (grabación con permisos del navegador,
   subida a Storage con RLS privada de los dos participantes, reproductor en la
@@ -556,7 +519,7 @@ Fuera de esta lista, y sin prisa: imágenes, grupos y notificaciones push.
 - **Buscar publicaciones por etiqueta.** Hoy tocar una etiqueta busca en el
   **directorio** de entidades y personas, no publicaciones con esa etiqueta:
   eso es consultar `posts`, que no está en la capa de datos de Buscar.
-- **Notificaciones.** La campana avisa de que no las hay todavía.
+- ~~**Notificaciones.**~~ **La campana, hecha en F4.7.** Las push, arriba.
 - **Fila de historias** en Inicio, que aparece en los dos mockups.
 - **Filtros avanzados en Buscar.** El icono está y avisa.
 - **Verificación real de cuentas:** hoy `verified` lo puede cambiar su dueño.

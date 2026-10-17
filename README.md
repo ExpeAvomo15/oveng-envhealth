@@ -155,7 +155,7 @@ npm run verify:mvp     # recorrido completo en Chromium, con capturas
 | `verify:f44` | Feed denso, Turismo Verde con publicaciones etiquetadas, reclamar una página y publicar ofertas, y su RLS. Necesita las migraciones 005–007 y `seed:jobs`. |
 | `verify:f45` | Turismo Verde por ubicación: distancia, "Cómo llegar", "Cerca de mí" y el vacío honesto. |
 | `verify:f46` | Chat 1 a 1: solicitud y aceptación, tiempo real entre dos sesiones, no leídos, bloqueo, y que una tercera cuenta no ve nada. Necesita la migración 008. |
-| `verify:f47` | Comentarios y compartir: comentar, borrar como autora de la publicación, RLS en negativo, contador, Web Share y copiar enlace, enviar a un chat, y el enlace abierto en frío sin cuenta. Necesita la migración 009. |
+| `verify:f47` | Comentarios, compartir y notificaciones (triggers, RLS, dedupe, la campana que baja al abrir): comentar, borrar como autora de la publicación, RLS en negativo, contador, Web Share y copiar enlace, enviar a un chat, y el enlace abierto en frío sin cuenta. Necesita la migración 009. |
 | `verify:mvp` | El recorrido social de punta a punta (F1). |
 | `verify:all` | **La batería entera** con un solo build, y comprueba al final que no queda ninguna cuenta `@ovengtest.dev` en Auth (con la clave exportada). |
 | `verify:demo` | **La demo completa**: el recorrido de un visitante, sin cuenta y con ella, incluido abrir una publicación, un perfil ajeno y Buscar sin cuenta. |

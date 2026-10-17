@@ -43,10 +43,13 @@ export function refreshInbox(): void {
 // mismo nombre compartirían canal y se lo cerrarían la una a la otra.
 let channelSeq = 0;
 
-type Change = { table: 'messages' | 'conversations'; filter?: string };
+type Change = { table: 'messages' | 'conversations' | 'notifications'; filter?: string };
 
-/** Escucha cambios de las tablas del chat mientras `enabled`; `onChange` recibe cada uno. */
-function useChatChanges(
+/**
+ * Escucha cambios de tablas de Realtime mientras `enabled`; `onChange` recibe
+ * cada uno. Nació para el chat y lo usa también la campana (F4.7).
+ */
+export function useChatChanges(
   enabled: boolean,
   changes: Change[],
   onChange: (table: Change['table'], payload: RealtimePostgresChangesPayload<Record<string, unknown>>) => void,

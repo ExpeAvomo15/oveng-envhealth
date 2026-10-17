@@ -335,12 +335,29 @@ Una publicación enviada por mensaje. Nullable, `on delete set null`: si se
 borra, el mensaje queda con su texto ("Publicación compartida"). **La RLS de
 `messages` no cambia**, y el UPDATE sigue limitado a `read_at`.
 
+### notifications (F4.7, migración `009`)
+
+La campana. `user_id` (destinatario), `actor_id`, `type` (enumerado
+`notification_type`: `follow`, `like`, `comment`, `share_to_chat`),
+`post_id` y `comment_id` según el tipo (un `check` lo impone), `read` y
+`created_at`. Índices `(user_id, created_at desc)` y parcial de no leídas.
+
+**Las escriben triggers**, no la app (sin política de INSERT ni DELETE): en
+`follows`, `likes`, `comments` y `messages` con `shared_post_id`, a través de
+`public.notify()`, `security definer`. Nunca a uno mismo, nunca con un bloqueo
+de por medio y sin repetir el mismo actor, tipo y publicación en 24 h (10 min
+en comentarios). **`notify()` no se puede llamar por RPC**: Supabase da
+EXECUTE a `anon` y `authenticated` en cada función nueva, y la migración se lo
+quita a los dos. Solo el destinatario lee y cambia `read` (`grant update
+(read)`). Caen en cascada con lo que las originó. En la publicación de
+Realtime: la campana se actualiza sola.
+
 ## Políticas RLS
 
 Dos patrones. En las once tablas públicas, **cualquiera lee**; lo que escribe la
 gente solo lo escribe su propietario, y el contenido curado (`entities`,
 `entity_metrics`) no lo escribe nadie desde la app. En las tres del chat
-(`blocks`, `conversations`, `messages`) **solo leen las personas implicadas**, y
+(`blocks`, `conversations`, `messages`) y en `notifications` **solo leen las personas implicadas**, y
 ningún anónimo lee nada.
 
 | Tabla      | SELECT            | INSERT                       | UPDATE                       | DELETE                       |
@@ -356,6 +373,7 @@ ningún anónimo lee nada.
 | `entity_admins` | público (`true`) | propio, `role = admin`, `status = approved` | — sin política | `auth.uid() = user_id` |
 | `jobs` | activas, o propias | propio **y** admin aprobado de la entidad | ídem | ídem |
 | `comments` | público (`true`) | `auth.uid() = user_id` | — sin política | su autor **o** el de la publicación |
+| `notifications` | solo su destinatario | — **ninguna** (triggers) | su destinatario; solo `read` | — sin política |
 | `blocks` | solo quien bloquea | `auth.uid() = blocker_id` | — sin política | `auth.uid() = blocker_id` |
 | `conversations` | las dos personas | quien pide, siendo parte, `pending` y sin bloqueo | solo el destinatario, a `accepted`/`declined`; solo `status` | — sin política |
 | `messages` | las dos personas | propio, en conversación aceptada (o pendiente si la pediste) y sin bloqueo | solo el destinatario; solo `read_at` | — sin política |
@@ -498,7 +516,7 @@ Viven en `supabase/migrations/`:
 | `006_jobs.sql` | Ofertas de empleo: enumerado `job_type`, `jobs` y sus políticas (F4.4). |
 | `007_post_entities.sql` | Lugar etiquetado en una publicación: `posts.entity_id` e índice (F4.4). |
 | `008_messages.sql` | Mensajes 1 a 1: `blocks`, `conversations`, `messages`, la función `is_blocked_between`, el trigger `touch_conversation` y la publicación de Realtime (F4.6). |
-| `009_comments.sql` | Comentarios (`comments` y sus políticas) y `messages.shared_post_id` para enviar una publicación por mensaje (F4.7). |
+| `009_comments.sql` | Comentarios, `messages.shared_post_id` para enviar una publicación por mensaje y `notifications` con sus triggers (F4.7). |
 
 Cada una va envuelta en `begin; … commit;`: si algo falla a mitad, no queda nada
 aplicado a medias.
@@ -615,7 +633,7 @@ npm run verify:f44    # 005-007: claims, ofertas y su RLS, lugares etiquetados
 Lo de abajo es la comprobación a mano, en el **SQL Editor**, para cuando algo
 falla y hay que ver por qué.
 
-### 1. RLS activado en las catorce tablas
+### 1. RLS activado en las quince tablas
 
 ```sql
 select relname as tabla, relrowsecurity as rls_activado
@@ -624,9 +642,9 @@ where relnamespace = 'public'::regnamespace and relkind = 'r'
 order by relname;
 ```
 
-Las catorce deben dar `true`: `profiles`, `posts`, `follows`, `likes`, `entities`,
+Las quince deben dar `true`: `profiles`, `posts`, `follows`, `likes`, `entities`,
 `entity_metrics`, `entity_ratings`, `entity_follows`, `entity_admins`, `jobs`,
-`comments`, `blocks`, `conversations` y `messages`. Una sola en `false` es una tabla
+`comments`, `notifications`, `blocks`, `conversations` y `messages`. Una sola en `false` es una tabla
 abierta a internet — y en las tres del chat, conversaciones privadas a la vista
 de cualquiera.
 
@@ -642,7 +660,7 @@ where schemaname = 'public'
 order by tablename, cmd;
 ```
 
-Esperado, 42 en total:
+Esperado, 44 en total:
 
 | Tabla | Políticas | |
 | ----- | --------- | - |
@@ -657,6 +675,7 @@ Esperado, 42 en total:
 | `entity_admins` | 3 | sin UPDATE: hoy nadie cambia un rol |
 | `jobs` | 4 | escribir, solo administradores aprobados de la entidad |
 | `comments` | 3 | sin UPDATE: un comentario no se edita |
+| `notifications` | 2 | SELECT y UPDATE del destinatario; las crean triggers |
 | `blocks` | 3 | sin UPDATE |
 | `conversations` | 3 | sin DELETE |
 | `messages` | 3 | sin DELETE |

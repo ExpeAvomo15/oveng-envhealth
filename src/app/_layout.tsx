@@ -65,6 +65,8 @@ function RootNavigator() {
         */}
         <Stack.Screen name="mensajes/index" />
         <Stack.Screen name="mensajes/[id]" />
+        {/* La campana (F4.7): lo que otros hacen con lo tuyo. Privada, como los mensajes. */}
+        <Stack.Screen name="notificaciones" />
       </Stack.Protected>
 
       {/*

@@ -4,17 +4,18 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Logo } from '@/components/brand/logo';
 import { Avatar, Text } from '@/components/ui';
-import { showToast } from '@/components/ui/toast';
 import { colors, screenPadding, spacing } from '@/theme';
 
 import { useAuth } from '@/hooks/use-auth';
 import { useInboxCounts } from '@/hooks/use-messages';
+import { useUnreadNotifications } from '@/hooks/use-notifications';
 import { inboxLabel } from '@/lib/messages';
+import { bellLabel } from '@/lib/notifications';
 
 /**
- * Cabecera de Inicio: marca a la izquierda, notificaciones y cuenta a la
- * derecha. La campana todavía no hace nada — las notificaciones no son parte
- * del MVP — pero ocupa su sitio para que la cabecera sea la definitiva.
+ * Cabecera de Inicio: marca a la izquierda; mensajes, notificaciones y cuenta a
+ * la derecha. Dos iconos, dos mundos, como en Instagram: el bocadillo es lo que
+ * te escriben, la campana lo que hacen con lo tuyo (F4.7).
  */
 export function HomeHeader() {
   const router = useRouter();
@@ -23,18 +24,13 @@ export function HomeHeader() {
   const name = profile?.display_name ?? profile?.username ?? user?.email ?? 'Tu cuenta';
   const inbox = useInboxCounts();
   const pending = inbox.unread + inbox.requests;
+  const unreadNotifications = useUnreadNotifications();
 
   return (
     <View style={styles.header}>
       <Logo variant="inline" />
 
       <View style={styles.actions}>
-        {/*
-          La campana avisa de que no hay notificaciones todavía, en vez de no
-          responder. Era el único control de la app sin acción: se ve pulsable,
-          y un botón que no hace nada se lee como una avería. Mismo criterio que
-          los comentarios y los filtros de Buscar.
-        */}
         {/*
           Mensajes (F4.6). El número suma lo sin leer y las
           solicitudes nuevas; el nombre accesible dice cuánto es cada cosa.
@@ -55,12 +51,20 @@ export function HomeHeader() {
           ) : null}
         </Pressable>
 
+        {/* Notificaciones (F4.7): seguidores, "me gusta", comentarios y envíos. */}
         <Pressable
-          onPress={() => showToast('Las notificaciones llegan después de la demo.')}
+          onPress={() => router.push(session === null ? '/welcome' : '/notificaciones')}
           accessibilityRole="button"
-          accessibilityLabel="Notificaciones"
+          accessibilityLabel={bellLabel(unreadNotifications)}
           style={({ pressed }) => [styles.iconButton, pressed && styles.pressed]}>
           <Ionicons name="notifications-outline" size={24} color={colors.text} />
+          {unreadNotifications > 0 ? (
+            <View style={styles.badge}>
+              <Text variant="micro" color="textInverse">
+                {unreadNotifications > 9 ? '9+' : unreadNotifications}
+              </Text>
+            </View>
+          ) : null}
         </Pressable>
 
         {/*
