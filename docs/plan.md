@@ -297,23 +297,8 @@ arquitectura híbrida y principios en **@docs/08_DATOS_EN_VIVO.md**.
 quien escucha, y no un dato de ejemplo, cambia las conversaciones. Por la misma
 razón el autor adelantó también F4.2 y F4.3.
 
-**Renumerado el 2026-10-04:** la búsqueda mundial y "Mi ubicación" pasan a
-F4.2 (absorbiendo la geolocalización, que era F4.4), los datos por categoría a
-F4.3, y procedencia + OpenAQ, cron y compartir con marca se desplazan a F4.4,
-F4.5 y F4.6.
-
-**Renumerado otra vez el mismo día** al entrar F4.4 (feed denso, Turismo Verde
-y Empleo): procedencia + OpenAQ, cron y compartir con marca pasan a F4.5, F4.6 y
-F4.7.
-
-**Y una tercera** al entrar F4.5 (Turismo Verde por ubicación): pasan a F4.6,
-F4.7 y F4.8.
-
-**Y una cuarta** al entrar F4.6 (chat 1 a 1, el 2026-10-06): pasan a F4.7, F4.8
-y F4.9.
-
-**Y una quinta** al entrar F4.7 (comentarios y compartir, el 2026-10-17):
-procedencia + OpenAQ, cron y compartir con marca pasan a F4.8, F4.9 y F4.10.
+**Renumerada cinco veces** (2026-10-04 a 2026-10-17) al entrar F4.4–F4.7:
+procedencia + OpenAQ, cron y compartir con marca son hoy F4.8, F4.9 y F4.10.
 
 - [x] **F4.1 pieza mínima** — aire en vivo de Open-Meteo (modelo CAMS de
       Copernicus) en la tarjeta de zona del feed, en el mapa —el **centro del
@@ -473,6 +458,22 @@ funcionalidad nueva.
       **todavía no es v1** (red vacía, denunciar y moderar, `010`, SMTP con
       dominio propio). Pendiente de pulido: arranque en red lenta (fuentes TTF).
 
+- [x] **F5.1 perfil a nivel Instagram e iniciativas de la comunidad** —
+      **Perfil:** el fallo era que la app marcaba "Subiendo…" *antes* de abrir
+      la galería; si el navegador no avisa de que se cerró sin elegir
+      (integrados como WhatsApp, iOS antiguos), se quedaba así y bloqueaba
+      Guardar: ni foto ni bio. Reproducido en la demo publicada. Ahora tocar el
+      avatar lo cambia, la foto se recorta cuadrada, y la bio cuenta hasta 150.
+      **Iniciativas:** "Crea tu iniciativa" en Buscar y en el perfil (nombre,
+      qué hacéis, tema, zona con el buscador de lugares, foto), con
+      «Creada por la comunidad», "Editar página" para quien la administra y
+      **"Quiero participar"**, que abre una solicitud de chat con el mensaje
+      precargado. Migración **`011`** (solo iniciativas, en nombre propio, tres
+      al día, sin enlaces, administradora automática, no se reclaman)
+      **escrita, sin aplicar**; probada con las anteriores en un Postgres en
+      memoria. `verify:f51`: perfil en verde contra Supabase real; las
+      iniciativas, **pendientes de aplicar la 011**.
+
 ## Backlog post-demo
 
 Todo lo que se dejó fuera **a propósito**, agrupado y sin repetir. Nada de esto
@@ -490,6 +491,9 @@ se conoce y a la que el autor conoce—; no se puede abrir a desconocidos sin es
   lo que se quiere—, así que la denuncia es la **única** forma de que un abuso
   llegue a ojos de alguien.
 - **Límite de solicitudes** por cuenta y día, contra el envío masivo.
+
+- **Reportar páginas** (F5.1): con iniciativas creadas por cualquiera, una
+  página falsa o abusiva tiene que poder denunciarse y retirarse.
 
 Fuera de esta lista, y sin prisa: imágenes y grupos.
 
@@ -558,8 +562,11 @@ Lo que F4.4 dejó a propósito para después de validar con la comunidad:
 - **Roles diferenciados:** Super Admin (gestiona administradores) y Content
   Admin (publica). La columna `role` ya existe; las políticas solo admiten
   `admin`.
-- **Crear entidades nuevas desde la app.** Hoy solo existen las catorce del
-  seed: una empresa que no está no puede darse de alta.
+- ~~**Crear entidades nuevas desde la app.**~~ **Iniciativas, hechas en
+  F5.1.** Empresas y lugares siguen curados.
+- **Lista formal de participantes** de una iniciativa (hoy "Quiero
+  participar" abre un chat), **borrar una iniciativa** y **pasar su
+  administración** a otra persona. Post-F3.
 - **Publicar como entidad.** Las publicaciones son siempre de una persona; una
   página no publica en el feed con su nombre.
 - **Editar la ficha** (descripción, web, imagen) para quien administra.

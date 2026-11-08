@@ -32,6 +32,9 @@ export function PageAdmin({ entity, admin, hasSession }: PageAdminProps) {
   const [busy, setBusy] = useState(false);
 
   if (admin.isAdmin === null && hasSession) return null;
+  // Una iniciativa de la comunidad ya tiene dueña: no se reclama (F5.1, y la
+  // `011` lo impone en RLS). Solo la ve quien la administra, para gestionarla.
+  if (entity.created_by && !admin.isAdmin) return null;
 
   async function confirm() {
     setBusy(true);
@@ -64,11 +67,22 @@ export function PageAdmin({ entity, admin, hasSession }: PageAdminProps) {
           administradores llegará pronto.
         </Text>
         <View style={styles.actions}>
+          {/* Una iniciativa de la comunidad la edita quien la administra (F5.1). */}
+          {entity.created_by ? (
+            <Button
+              label="Editar página"
+              size="sm"
+              variant="secondary"
+              onPress={() => router.push(`/iniciativa?entidad=${entity.slug}`)}
+            />
+          ) : null}
           <Button
-            label="Publicar oferta"
+            label={entity.type === 'iniciativa' ? 'Publicar oferta o voluntariado' : 'Publicar oferta'}
             size="sm"
             onPress={() => router.push(`/oferta?entidad=${entity.slug}`)}
           />
+{/* Quien creó una iniciativa no la abandona: nadie más podría reclamarla. */}
+          {entity.created_by ? null : (
           <Button
             label="Dejar de administrar"
             size="sm"
@@ -77,6 +91,7 @@ export function PageAdmin({ entity, admin, hasSession }: PageAdminProps) {
               void admin.leave().then(() => showToast('Ya no administras esta página.'));
             }}
           />
+          )}
         </View>
       </View>
     );

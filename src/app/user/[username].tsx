@@ -216,7 +216,11 @@ export default function PublicProfileScreen() {
         }
       />
 
-      <ProfileHeader profile={profile} counts={counts} />
+      <ProfileHeader
+        profile={profile}
+        counts={counts}
+        onPressAvatar={isOwnProfile ? () => router.push('/editar-perfil') : undefined}
+      />
 
       <View style={[styles.actions, !isOwnProfile && styles.actionsRow]}>
         {isOwnProfile ? (

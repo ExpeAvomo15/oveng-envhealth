@@ -602,3 +602,37 @@ Probado sin clave (avisa y pasa), con la clave pública (avisa y pasa) y con un
 cliente simulado de 450 usuarios en tres páginas: lista los 150 de prueba, no
 toca ninguno real, vacía su storage y se niega a borrar un correo ajeno. El
 borrado contra Supabase real necesita la clave, que esta sesión no tiene.
+
+---
+
+## 2026-11-08 — Incidente: registro roto en el proyecto de Supabase nuevo
+
+**Causa.** El proyecto de Supabase se reconstruyó desde cero y el nuevo trae
+**"Confirm email" activado por defecto**. El anterior lo tenía desactivado
+desde F1. Las migraciones y los seeds reconstruyen el esquema y los datos, pero
+**no** la configuración de Auth, que vive en el dashboard. Con la confirmación
+activada, el registro no devuelve sesión y el correo integrado solo entrega al
+equipo del proyecto.
+
+**Remedio.** El autor la desactivó en el dashboard.
+
+**Para que no se repita.** Checklist de Auth (Confirm email OFF, Site URL y
+Redirect URLs, y `verify:auth` para comprobarlo) en
+[01_ARQUITECTURA.md](01_ARQUITECTURA.md#checklist-de-auth-al-crear-o-reconstruir-el-proyecto-de-supabase).
+Se repasa entera cada vez que se crea o se rehace un proyecto.
+
+**La batería tras la reconstrucción.** Con "Confirm email" activado, 1 de 19;
+desactivado, 17 de 19 en la pasada del autor y 18 de 19 en la siguiente. El
+único fallo que se repitió es de la **prueba**, no de la app: `verify:f42`
+exigía que «monte» devolviera lugares de España, Francia o EE. UU., y
+Open-Meteo ha cambiado su orden (ahora Colombia, México, Uruguay). Ahora
+comprueba la forma —«nombre, región, país»— y no el país. El segundo fallo de
+la pasada del autor no se reprodujo.
+
+**El deploy, pendiente.** Cambiar las *Variables* del repositorio no
+redespliega: Pages siguió sirviendo un bundle con el proyecto viejo
+(`xkglhfeqfpxjzkxrolom`) y la demo daba "no hay conexión". Se arregla con
+cualquier push a `main` o `gh workflow run deploy.yml`, y se comprueba en el
+bundle publicado. **Va en la checklist**: tras cambiar las Variables, redesplegar.
+
+---

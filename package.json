@@ -74,7 +74,8 @@
     "brand:derivatives": "node scripts/brand-derivatives.mjs",
     "capture:f50": "node --env-file=.env scripts/capture-f50.mjs",
     "journey:f50": "node --env-file=.env scripts/journey-f50.mjs",
-    "postinstall": "node scripts/vendor-maplibre.mjs"
+    "postinstall": "node scripts/vendor-maplibre.mjs",
+    "verify:f51": "node --env-file=.env scripts/verify-f51.mjs"
   },
   "private": true
 }

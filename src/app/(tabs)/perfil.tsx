@@ -13,6 +13,7 @@ import {
   type ProfileTab,
 } from '@/components/profile';
 
+import { CreateInitiativeCta } from '@/components/search/create-initiative-cta';
 import { Button, Callout, Screen, Text } from '@/components/ui';
 import { useAuth } from '@/hooks/use-auth';
 import { EMPTY_COUNTS, getProfileCounts, type ProfileCounts as Counts } from '@/lib/profiles';
@@ -119,7 +120,12 @@ export default function ProfileScreen() {
         }
       />
 
-      <ProfileHeader profile={profile} counts={counts} countsLoading={countsLoading} />
+      <ProfileHeader
+        profile={profile}
+        counts={counts}
+        countsLoading={countsLoading}
+        onPressAvatar={() => router.push('/editar-perfil')}
+      />
 
       <View style={styles.actions}>
         <Button
@@ -184,6 +190,9 @@ export default function ProfileScreen() {
 
       {/* Las páginas que gestiona esta persona (F4.4). */}
       {userId ? <AdministeredPages userId={userId} /> : null}
+      <View style={styles.inset}>
+        <CreateInitiativeCta />
+      </View>
 
       <ProfileTabs active={tab} onChange={setTab} />
 

@@ -13,8 +13,8 @@
 --    perfil desde la app —que no la envía— no tenga ningún caso nuevo que
 --    tratar.
 --
--- 2. Los textos del perfil no tenían tope en la base (solo la biografía, 160,
---    y solo en la interfaz). Mismos topes que `PROFILE_LIMITS` en
+-- 2. Los textos del perfil no tenían tope en la base (solo la biografía, y solo en
+--    la interfaz; F5.1 la baja a 150, como Instagram). Mismos topes que `PROFILE_LIMITS` en
 --    src/lib/profiles.ts. Ojo: un `display_name` de más de 60 en los metadatos
 --    del registro hace fallar el alta entera, como ya pasa con un username
 --    inválido; la app no deja escribir más.
@@ -58,7 +58,7 @@ create trigger profiles_protect_verified
 
 alter table public.profiles
   add constraint profiles_display_name_length check (display_name is null or char_length(display_name) <= 60),
-  add constraint profiles_bio_length check (bio is null or char_length(bio) <= 160),
+  add constraint profiles_bio_length check (bio is null or char_length(bio) <= 150),
   add constraint profiles_location_length check (location is null or char_length(location) <= 80),
   add constraint profiles_avatar_url_length check (avatar_url is null or char_length(avatar_url) <= 500);
 

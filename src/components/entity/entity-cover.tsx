@@ -1,4 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Pressable, StyleSheet, View } from 'react-native';
 
@@ -14,6 +15,8 @@ export type EntityCoverProps = {
   onShare: () => void;
   /** Valorar: es lo que promete la píldora cuando todavía no hay opiniones. */
   onRate: () => void;
+  /** Foto propia (F5.1: la sube quien crea una iniciativa). Sin ella, el degradado. */
+  imageUrl?: string | null;
 };
 
 /**
@@ -36,6 +39,7 @@ export function EntityCover({
   onBack,
   onShare,
   onRate,
+  imageUrl = null,
 }: EntityCoverProps) {
   const style = environmentalCategories[category];
 
@@ -49,6 +53,13 @@ export function EntityCover({
       />
 
       <Ionicons name={style.icon} size={104} color="rgba(255,255,255,0.28)" style={styles.mark} />
+      {imageUrl ? (
+        <>
+          <Image source={{ uri: imageUrl }} style={styles.fill} contentFit="cover" transition={150} accessibilityLabel="Foto de portada" />
+          {/* Un velo abajo y arriba: los botones y la píldora se leen sobre cualquier foto. */}
+          <LinearGradient colors={['rgba(0,0,0,0.35)', 'rgba(0,0,0,0)', 'rgba(0,0,0,0.45)']} style={styles.fill} />
+        </>
+      ) : null}
 
       <View style={styles.topRow}>
         <CoverButton icon="arrow-back" label="Volver" onPress={onBack} />

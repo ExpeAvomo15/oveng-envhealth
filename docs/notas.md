@@ -34,6 +34,7 @@ El porqué de cada una, enlazado.
 - Mensajes: lo **único privado**. RLS dice quién y `grant update (columna)` dice qué; Realtime aplica la misma RLS. Solicitud antes de conversar; denunciar y moderar, obligatorios antes de abrir al público. [F4.6]
 - "Tu zona" es **elegida**, no detectada, y una zona es un recuadro de coordenadas, no un país. [F2.5]
 - `verified` solo desde el servidor y topes en los textos de `profiles`: migración `010`, **pendiente de aplicar**. [F5.0]
+- Iniciativas de la comunidad: solo tipo iniciativa, en nombre propio, tres al día, administradora automática, no se reclaman: `011`, **pendiente de aplicar**. [F5.1]
 
 ### Interfaz
 
@@ -68,7 +69,7 @@ El porqué de cada una, enlazado.
 - Cada verificación **termina** borrando sus cuentas de prueba y **empieza** borrando las que queden (red de seguridad), si la clave está exportada en el shell; sin ella avisa y sigue. `verify:all` falla si queda residuo. Nunca dos baterías a la vez. [cierre-1017]
 - **Latido anti-pausa**: `keepalive.yml` lee una entidad cada dos días; el plan gratuito de Supabase pausa a los ~7 días sin actividad. [cierre-1017]
 - Supabase: URL base sin `/rest/v1`; "Confirm email" desactivado (reactivarlo exige SMTP propio); rechaza `@example.com`. [verif-f11]
-- **Un proyecto de Supabase nuevo no hereda la config de Auth**: se repasa la checklist de @docs/01_ARQUITECTURA.md (Confirm email OFF, Site URL, Redirect URLs). [incidente-1108]
+- **Un proyecto de Supabase nuevo no hereda la config de Auth**: se repasa la checklist de @docs/01_ARQUITECTURA.md (Confirm email OFF, Site URL, Redirect URLs). [incidente-1108, archivo]
 - Chromium usa librerías de `~/.local/chromium-deps`; un `git push` con `HTTP 408` se arregla con `http.postBuffer` y HTTP/1.1. [verif-f11] [F2.4]
 
 - Chromium sin interfaz necesita Noto Color Emoji en `~/.local/share/fonts` para pintar 🛰️ y 📋.
@@ -107,6 +108,43 @@ La lista mantenida es el **backlog de @docs/plan.md**. Fuera de ella, sueltos:
   el icono y el splash nativos siguen siendo los de Expo.
 
 ---
+
+## 2026-11-08 — F5.1: perfil a nivel Instagram e iniciativas de la comunidad
+
+### Por qué no se podía poner foto ni bio
+
+**Causa.** `handlePickAvatar` ponía "Subiendo…" **antes** de abrir la galería.
+En web, `expo-image-picker` solo se entera de que la galería se cerró sin elegir
+si el navegador emite `cancel`, y los navegadores integrados (WhatsApp,
+Instagram) y los iOS antiguos no lo emiten: la promesa no se resolvía nunca, el
+botón se quedaba en "Subiendo…" y, como Guardar espera a la subida, **tampoco se
+podía guardar la bio**. La única cuenta real del proyecto nuevo no tenía ni bio,
+ni avatar, ni un solo archivo en Storage. Storage estaba bien (buckets de la 002
+correctos, la subida funcionaba en Chromium).
+
+**Remedio.** La galería se abre sin marcar nada; "Subiendo…" solo durante la
+subida. `verify:f51` lo prueba y, pasado contra la demo publicada con el código
+viejo, **falla** en ese punto: la prueba caza el fallo.
+
+### Decisiones
+
+- **Tocar el avatar lo cambia**, en el perfil propio y en la edición (con su
+  insignia de cámara, o un "+" si no hay foto). La foto se **recorta cuadrada**
+  al centro: en web la galería no recorta.
+- **Bio de 150, como Instagram**, con contador siempre visible. La `010` (aún
+  sin aplicar) baja de 160 a 150 a juego.
+- **Iniciativas: solo eso.** Lugares y empresas siguen curados, y lo impone la
+  política, no la app. Tres al día, sin enlaces, sin verificar.
+- **Quien la crea la administra, y no se reclama.** Con el claim abierto de
+  F4.4, cualquiera podría quedarse con una iniciativa ajena. Tampoco puede
+  dejar de administrarla: se quedaría huérfana sin que nadie pudiera
+  reclamarla.
+- **"Quiero participar" es un chat, no una lista.** Abre (o reutiliza) la
+  conversación con quien la administra desde hace más tiempo, con el mensaje
+  **precargado y sin enviar**. Sin administradora no se enseña.
+- **Sin la `011`, la app no ofrece crear** (comprueba la columna una vez). Se
+  probó la cadena 001→011 en PGlite (Postgres en memoria, solo en el
+  scratchpad) con 20 casos de RLS antes de entregarla.
 
 ## 2026-11-08 — F5.0: auditoría senior pre-v1
 
@@ -148,35 +186,3 @@ y su estado es `docs/auditoria-v1.md`; aquí solo las decisiones.
 - **Ningún botón se llama igual que el central de la barra.** "Crear
   publicación" en el feed vacío chocaba con él: confunde al lector de pantalla
   y tumbaba `verify:ui` y `verify:f14` con la base vacía.
-
-## 2026-11-08 — Incidente: registro roto en el proyecto de Supabase nuevo
-
-**Causa.** El proyecto de Supabase se reconstruyó desde cero y el nuevo trae
-**"Confirm email" activado por defecto**. El anterior lo tenía desactivado
-desde F1. Las migraciones y los seeds reconstruyen el esquema y los datos, pero
-**no** la configuración de Auth, que vive en el dashboard. Con la confirmación
-activada, el registro no devuelve sesión y el correo integrado solo entrega al
-equipo del proyecto.
-
-**Remedio.** El autor la desactivó en el dashboard.
-
-**Para que no se repita.** Checklist de Auth (Confirm email OFF, Site URL y
-Redirect URLs, y `verify:auth` para comprobarlo) en
-[01_ARQUITECTURA.md](01_ARQUITECTURA.md#checklist-de-auth-al-crear-o-reconstruir-el-proyecto-de-supabase).
-Se repasa entera cada vez que se crea o se rehace un proyecto.
-
-**La batería tras la reconstrucción.** Con "Confirm email" activado, 1 de 19;
-desactivado, 17 de 19 en la pasada del autor y 18 de 19 en la siguiente. El
-único fallo que se repitió es de la **prueba**, no de la app: `verify:f42`
-exigía que «monte» devolviera lugares de España, Francia o EE. UU., y
-Open-Meteo ha cambiado su orden (ahora Colombia, México, Uruguay). Ahora
-comprueba la forma —«nombre, región, país»— y no el país. El segundo fallo de
-la pasada del autor no se reprodujo.
-
-**El deploy, pendiente.** Cambiar las *Variables* del repositorio no
-redespliega: Pages siguió sirviendo un bundle con el proyecto viejo
-(`xkglhfeqfpxjzkxrolom`) y la demo daba "no hay conexión". Se arregla con
-cualquier push a `main` o `gh workflow run deploy.yml`, y se comprueba en el
-bundle publicado. **Va en la checklist**: tras cambiar las Variables, redesplegar.
-
----

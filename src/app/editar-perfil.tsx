@@ -57,13 +57,28 @@ function EditProfileForm({ profile }: { profile: Profile }) {
   const canSave = !nameEmpty && !bioTooLong && !saving && !uploading;
 
   async function handlePickAvatar() {
+    if (uploading) return;
     setError(null);
-    setUploading(true);
 
+    /*
+     * La galería se abre **sin** marcar "Subiendo…" (F5.1). Antes se marcaba
+     * antes de abrirla, y en web la app solo se entera de que se cerró sin
+     * elegir si el navegador emite `cancel`, que los navegadores integrados
+     * (WhatsApp, Instagram) y los iOS antiguos no emiten: el botón se quedaba
+     * en "Subiendo…" para siempre y, como Guardar espera a la subida, tampoco
+     * se podía guardar la biografía. Ni foto ni bio: lo que reportó el autor.
+     */
+    let image;
     try {
-      const image = await pickAvatarImage();
-      if (!image) return;
+      image = await pickAvatarImage();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'No se ha podido abrir la galería.');
+      return;
+    }
+    if (!image) return;
 
+    setUploading(true);
+    try {
       // Se sube antes de guardar el resto: si falla, no se toca el perfil.
       const url = await uploadAvatar(profile.id, image, avatarUrl);
       await updateProfile(profile.id, { avatar_url: url });
@@ -118,14 +133,25 @@ function EditProfileForm({ profile }: { profile: Profile }) {
       </View>
 
       <View style={styles.avatarBlock}>
-        <View style={styles.avatarWrap}>
-          <Avatar name={profileName(profile)} uri={avatarUrl} size="xl" />
-          {uploading ? (
-            <View style={styles.avatarOverlay}>
-              <ActivityIndicator color={colors.textInverse} />
-            </View>
-          ) : null}
-        </View>
+        {/* Tocar la foto también la cambia, como en Instagram (F5.1). */}
+        <Pressable
+          onPress={handlePickAvatar}
+          disabled={uploading || saving}
+          accessibilityRole="button"
+          accessibilityLabel="Cambiar la foto de perfil"
+          style={({ pressed }) => pressed && styles.pressed}>
+          <View style={styles.avatarWrap}>
+            <Avatar name={profileName(profile)} uri={avatarUrl} size="xl" />
+            {uploading ? (
+              <View style={styles.avatarOverlay}>
+                <ActivityIndicator color={colors.textInverse} />
+              </View>
+            ) : null}
+          </View>
+          <View style={styles.cameraBadge}>
+            <Ionicons name="camera" size={16} color={colors.textInverse} />
+          </View>
+        </Pressable>
 
         <Button
           label={uploading ? 'Subiendo…' : 'Cambiar foto'}
@@ -158,10 +184,12 @@ function EditProfileForm({ profile }: { profile: Profile }) {
             setError(null);
           }}
           placeholder="Cuenta en una línea qué te mueve"
+          maxLength={BIO_MAX_LENGTH}
           multiline
           numberOfLines={3}
           error={bioTooLong ? `Te pasas por ${bio.length - BIO_MAX_LENGTH} caracteres.` : null}
           hint={bioTooLong ? null : `${bio.length}/${BIO_MAX_LENGTH}`}
+          accessibilityHint={`Hasta ${BIO_MAX_LENGTH} caracteres`}
         />
 
         <TextField
@@ -234,6 +262,19 @@ const styles = StyleSheet.create({
   avatarWrap: {
     borderRadius: radius.full,
     overflow: 'hidden',
+  },
+  cameraBadge: {
+    position: 'absolute',
+    right: 0,
+    bottom: 0,
+    width: 32,
+    height: 32,
+    borderRadius: radius.full,
+    backgroundColor: colors.accent,
+    borderWidth: 2,
+    borderColor: colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   avatarOverlay: {
     position: 'absolute',

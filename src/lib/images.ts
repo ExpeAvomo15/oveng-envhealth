@@ -73,12 +73,35 @@ export function base64ToBytes(base64: string): Uint8Array {
 /** Reduce al tamaño máximo por el lado mayor y recodifica a JPEG. */
 export async function shrinkToJpeg(
   image: PickedImage,
-  { maxSize, quality }: { maxSize: number; quality: number },
+  { maxSize, quality, square = false }: { maxSize: number; quality: number; square?: boolean },
 ): Promise<Uint8Array> {
+  // Un navegador que no sabe leer el formato (HEIC del iPhone en Chrome de
+  // escritorio, por ejemplo) devuelve 0 × 0: se dice qué hacer, en vez de un
+  // error de lienzo que nadie entiende (F5.1).
+  if (image.width <= 0 || image.height <= 0) {
+    throw new Error('Este navegador no puede leer esa foto. Prueba con una JPG o PNG.');
+  }
+
   const context = ImageManipulator.ImageManipulator.manipulate(image.uri);
 
-  if (Math.max(image.width, image.height) > maxSize) {
-    context.resize(image.width >= image.height ? { width: maxSize } : { height: maxSize });
+  // Recorte cuadrado centrado (F5.1). En web la galería no ofrece recortar, y
+  // un avatar apaisado salía aplastado en el círculo.
+  let width = image.width;
+  let height = image.height;
+  if (square && width !== height) {
+    const side = Math.min(width, height);
+    context.crop({
+      originX: Math.round((width - side) / 2),
+      originY: Math.round((height - side) / 2),
+      width: side,
+      height: side,
+    });
+    width = side;
+    height = side;
+  }
+
+  if (Math.max(width, height) > maxSize) {
+    context.resize(width >= height ? { width: maxSize } : { height: maxSize });
   }
 
   const rendered = await context.renderAsync();

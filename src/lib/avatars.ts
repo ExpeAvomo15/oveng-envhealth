@@ -35,7 +35,7 @@ export async function uploadAvatar(
   image: PickedImage,
   previousAvatarUrl: string | null,
 ): Promise<string> {
-  const bytes = await shrinkToJpeg(image, { maxSize: MAX_SIZE, quality: JPEG_QUALITY });
+  const bytes = await shrinkToJpeg(image, { maxSize: MAX_SIZE, quality: JPEG_QUALITY, square: true });
   const path = `${userId}/avatar-${Date.now()}.jpg`;
   const url = await uploadImage(BUCKET, path, bytes);
 

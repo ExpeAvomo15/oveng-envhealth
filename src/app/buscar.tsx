@@ -18,6 +18,7 @@ import {
 import { TabBar } from '@/components/navigation/tab-bar';
 import { Callout, Screen, Text } from '@/components/ui';
 import { showToast } from '@/components/ui/toast';
+import { CreateInitiativeCta } from '@/components/search/create-initiative-cta';
 import { useAuth } from '@/hooks/use-auth';
 import type { EnvironmentalCategoryName, Profile } from '@/lib/database.types';
 import {
@@ -296,6 +297,8 @@ export default function SearchScreen() {
           <Text variant="display">Buscar</Text>
           <SearchBar value={term} onChange={onChangeTerm} />
           <ScopeChips value={scope} onChange={chooseScope} />
+          {/* Traer tu causa (F5.1): sin búsqueda, o mirando iniciativas. */}
+          {!active || scope === 'iniciativa' ? <CreateInitiativeCta /> : null}
         </View>
 
         {error ? (

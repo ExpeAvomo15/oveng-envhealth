@@ -153,6 +153,8 @@ export type Database = {
           website: string | null;
           verified: boolean;
           created_at: string;
+          /** F5.1, migración 011: quién la creó. Sin la 011 no llega (undefined). */
+          created_by?: string | null;
         };
         Insert: {
           id?: string;
@@ -169,6 +171,7 @@ export type Database = {
           website?: string | null;
           verified?: boolean;
           created_at?: string;
+          created_by?: string | null;
         };
         Update: {
           id?: string;
@@ -185,6 +188,7 @@ export type Database = {
           website?: string | null;
           verified?: boolean;
           created_at?: string;
+          created_by?: string | null;
         };
         Relationships: [];
       };

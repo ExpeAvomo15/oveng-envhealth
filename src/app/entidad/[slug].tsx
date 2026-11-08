@@ -24,6 +24,8 @@ import { showToast } from '@/components/ui/toast';
 import { NotFoundState } from '@/components/ui/not-found-state';
 import { useAuth } from '@/hooks/use-auth';
 import { useEntityAdmin } from '@/hooks/use-entity-admin';
+import { getEntityAdminIds } from '@/lib/entity-admins';
+import { openConversationWith } from '@/lib/messages';
 import type { EntityMetric } from '@/lib/database.types';
 import {
   EntityFollowsUnavailable,
@@ -158,6 +160,48 @@ export default function EntityScreen() {
   const grouped = useMemo(() => groupMetrics(current?.metrics ?? []), [current?.metrics]);
   // ¿Administra quien mira esta página? (F4.4)
   const admin = useEntityAdmin(entity?.id ?? null);
+
+  /**
+   * "Quiero participar" (F5.1): a quién se escribe. Solo en iniciativas, y
+   * solo si alguien la administra; si no, no hay nadie al otro lado y el botón
+   * no se enseña (queda "Gestionar esta página").
+   */
+  const [admins, setAdmins] = useState<{ entityId: string; ids: string[] } | null>(null);
+  const [joining, setJoining] = useState(false);
+  useEffect(() => {
+    if (!entity || entity.type !== 'iniciativa') return;
+    let live = true;
+    getEntityAdminIds(entity.id)
+      .then((ids) => live && setAdmins({ entityId: entity.id, ids }))
+      .catch(() => live && setAdmins({ entityId: entity.id, ids: [] }));
+    return () => {
+      live = false;
+    };
+  }, [entity]);
+  const adminIds = admins?.entityId === entity?.id ? (admins?.ids ?? []) : [];
+  const contact = adminIds.find((id) => id !== viewerId) ?? null;
+  const canJoin = entity?.type === 'iniciativa' && contact !== null && admin.isAdmin !== true;
+
+  async function join() {
+    if (!entity || !contact) return;
+    if (!viewerId) {
+      router.push('/welcome');
+      return;
+    }
+    setJoining(true);
+    try {
+      const id = await openConversationWith(viewerId, contact);
+      // El mensaje va precargado, no enviado: quien participa lo puede cambiar.
+      router.push({
+        pathname: '/mensajes/[id]',
+        params: { id, borrador: `Hola, quiero participar en ${entity.name}.` },
+      });
+    } catch {
+      showToast('No se ha podido abrir el chat. Prueba otra vez.');
+    } finally {
+      setJoining(false);
+    }
+  }
 
   async function toggleFollow() {
     if (!entity || !viewerId || busy) return;
@@ -299,6 +343,7 @@ export default function EntityScreen() {
         // La píldora dice "Sé el primero en valorar": que lleve a valorar, en
         // vez de avisar de que hay que bajar. Sin sesión, a la bienvenida.
         onRate={() => (session === null ? router.push('/welcome') : setSheetOpen(true))}
+        imageUrl={entity.cover_image_url}
       />
 
       <View style={styles.body}>
@@ -313,6 +358,10 @@ export default function EntityScreen() {
             {/* El estado general del mockup 2 ("Muy bueno"), si lo hay. */}
             {grouped.general?.label ? (
               <Badge label={grouped.general.label} tone="info" />
+            ) : null}
+            {/* Sutil y sin desmerecerla: dice de dónde sale, como la procedencia de un dato (F5.1). */}
+            {entity.created_by ? (
+              <Badge label="Creada por la comunidad" tone="neutral" icon="people-circle-outline" />
             ) : null}
             {entity.verified ? (
               <Ionicons
@@ -366,6 +415,18 @@ export default function EntityScreen() {
             />
           </View>
         )}
+
+        {canJoin ? (
+          // Junto a Seguir: participar es lo que se viene a hacer a una
+          // iniciativa. Abre una solicitud de chat con quien la administra.
+          <Button
+            label={session === null ? 'Inicia sesión para participar' : 'Quiero participar'}
+            icon="hand-left-outline"
+            fullWidth
+            loading={joining}
+            onPress={join}
+          />
+        ) : null}
 
         {entity.description ? <Text variant="body">{entity.description}</Text> : null}
 

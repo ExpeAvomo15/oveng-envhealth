@@ -58,6 +58,8 @@ function RootNavigator() {
         <Stack.Screen name="editar-perfil" options={{ presentation: 'modal' }} />
         {/* Publicar o editar una oferta: escribir pide cuenta (F4.4). */}
         <Stack.Screen name="oferta" />
+        {/* Crear o editar una iniciativa de la comunidad (F5.1): escribir pide cuenta. */}
+        <Stack.Screen name="iniciativa" />
         {/*
           Mensajes 1 a 1 (F4.6). Privados por naturaleza: no son una vista de
           lectura pública, son lo propio. RLS es la garantía de que solo las dos

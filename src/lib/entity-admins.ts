@@ -53,6 +53,25 @@ export async function getEntityAdminCount(entityId: string): Promise<number> {
 }
 
 /**
+ * Quiénes administran la página (F5.1): a quién escribe "Quiero participar".
+ * La lista es pública, como el claim. Sin la tabla, nadie.
+ */
+export async function getEntityAdminIds(entityId: string): Promise<string[]> {
+  const { data, error } = await supabase
+    .from('entity_admins')
+    .select('user_id, created_at')
+    .eq('entity_id', entityId)
+    .eq('status', 'approved')
+    .order('created_at', { ascending: true });
+
+  if (error) {
+    if (isMissingTableError(error)) return [];
+    throw error;
+  }
+  return (data ?? []).map((row) => row.user_id);
+}
+
+/**
  * Reclamar la página. Idempotente: si ya la administra, la clave primaria
  * choca (`23505`) y se trata como éxito, porque el estado final es el pedido.
  */

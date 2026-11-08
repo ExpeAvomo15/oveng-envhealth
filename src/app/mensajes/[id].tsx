@@ -46,13 +46,15 @@ type Menu = 'closed' | 'open' | 'confirm-block';
 export default function ConversationScreen() {
   const router = useRouter();
   const focused = useIsFocused();
-  const { id } = useLocalSearchParams<{ id: string }>();
+  // `borrador` (F5.1): un mensaje precargado, como "Quiero participar". Se
+  // escribe en el campo, no se envía: quien escribe decide.
+  const { id, borrador } = useLocalSearchParams<{ id: string; borrador?: string }>();
   const { profile } = useAuth();
   const me = profile?.id ?? '';
   const state = useConversation(id);
   const { conversation, messages, loading, blocked, iBlocked } = state;
 
-  const [draft, setDraft] = useState('');
+  const [draft, setDraft] = useState(() => (typeof borrador === 'string' ? borrador.slice(0, 500) : ''));
   const [sending, setSending] = useState(false);
   const [answering, setAnswering] = useState(false);
   const [menu, setMenu] = useState<Menu>('closed');

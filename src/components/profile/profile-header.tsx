@@ -1,11 +1,11 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import type { ReactNode } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Avatar, Text } from '@/components/ui';
 import type { Profile } from '@/lib/database.types';
 import { joinedLabel, profileName, type ProfileCounts as Counts } from '@/lib/profiles';
-import { colors, screenPadding, spacing } from '@/theme';
+import { colors, radius, screenPadding, spacing } from '@/theme';
 
 import { ProfileCounts } from './profile-counts';
 
@@ -21,17 +21,36 @@ export function ProfileHeader({
   profile,
   counts,
   countsLoading,
+  onPressAvatar,
 }: {
   profile: Profile;
   counts: Counts;
   countsLoading?: boolean;
+  /** Solo en el perfil propio: tocar la foto lleva a cambiarla (F5.1). */
+  onPressAvatar?: () => void;
 }) {
   const name = profileName(profile);
 
   return (
     <View style={styles.body}>
       <View style={styles.top}>
-        <Avatar name={name} uri={profile.avatar_url} size="lg" />
+        {onPressAvatar ? (
+          <Pressable
+            onPress={onPressAvatar}
+            accessibilityRole="button"
+            accessibilityLabel="Cambiar la foto de perfil"
+            style={({ pressed }) => pressed && styles.pressed}>
+            <Avatar name={name} uri={profile.avatar_url} size="lg" />
+            {/* Sin foto, el "+" dice que aquí se pone una, como en Instagram. */}
+            {profile.avatar_url ? null : (
+              <View style={styles.addBadge}>
+                <Ionicons name="add" size={14} color={colors.textInverse} />
+              </View>
+            )}
+          </Pressable>
+        ) : (
+          <Avatar name={name} uri={profile.avatar_url} size="lg" />
+        )}
         <ProfileCounts counts={counts} loading={countsLoading} />
       </View>
 
@@ -101,6 +120,22 @@ export function ProfileTopBar({
 }
 
 const styles = StyleSheet.create({
+  pressed: {
+    opacity: 0.7,
+  },
+  addBadge: {
+    position: 'absolute',
+    right: 0,
+    bottom: 0,
+    width: 24,
+    height: 24,
+    borderRadius: radius.full,
+    backgroundColor: colors.accent,
+    borderWidth: 2,
+    borderColor: colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   bar: {
     flexDirection: 'row',
     alignItems: 'center',
