@@ -415,7 +415,7 @@ procedencia + OpenAQ, cron y compartir con marca pasan a F4.8, F4.9 y F4.10.
       publicación. Mapa, Turismo Verde, Empleo y entidades conservan su
       estructura. Las dieciocho verificaciones en verde. Detalle en el
       [archivo de notas](notas-archivo-post-demo.md#2026-10-17--f46b-pasada-visual-instagram-en-verde).
-- [ ] **F4.7 comentarios y compartir** — migración **`009`**: `comments`
+- [x] **F4.7 comentarios y compartir** — migración **`009`**: `comments`
       (lectura libre, comentar en nombre propio, borra su autor o el de la
       publicación, nadie edita; el número es un agregado como los "me gusta")
       y `messages.shared_post_id`. La publicación vive en
@@ -433,8 +433,11 @@ procedencia + OpenAQ, cron y compartir con marca pasan a F4.8, F4.9 y F4.10.
       triggers al seguir, dar "me gusta", comentar o enviar una publicación
       por mensaje: nunca a uno mismo, ni con un bloqueo, ni repetidas. Solo
       las lee y las marca su destinatario. Los chats siguen en su bocadillo.
-      **Pendiente:** aplicar la `009`, pasar `npm run verify:f47` (capturas en
-      `docs/verificacion/f47/`) y la batería entera.
+      Verificado el 2026-11-08 sobre el proyecto de Supabase reconstruido, con
+      la `009` aplicada: `npm run verify:f47` en verde (RLS en negativo,
+      `notify()` sin RPC, comentarios, compartir por mensaje y la campana) y
+      las diecinueve verificaciones de `verify:all` en verde. Capturas en
+      `docs/verificacion/f47/`.
 - [ ] **F4.8 procedencia completa + OpenAQ** — lecturas con fuente, método,
       origen e instante (migración); OpenAQ donde haya estación; etiqueta del
       dato curado. OpenAQ pide clave: depende del criterio de fuentes de F4.3
