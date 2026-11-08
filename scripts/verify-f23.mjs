@@ -156,11 +156,13 @@ try {
     await waitForMap(page);
     ok('el mapa carga sin sesión');
 
+    // Desde F5.0 el mapa no lleva botón de cuenta encima (no corresponde a nada
+    // del mapa); la puerta a la cuenta es la pestaña Perfil, como en el resto.
     try {
-      await page.getByRole('button', { name: 'Iniciar sesión' }).first().waitFor({ timeout: 8000 });
-      ok('el mapa ofrece "Iniciar sesión" a quien no tiene cuenta');
+      await page.getByRole('tab', { name: 'Perfil' }).first().waitFor({ timeout: 8000 });
+      ok('sin cuenta, el mapa deja la puerta a la cuenta en la pestaña Perfil');
     } catch {
-      bad('falta el acceso a "Iniciar sesión" en el mapa sin sesión');
+      bad('falta la pestaña Perfil en el mapa sin sesión');
     }
 
     const count = await markers(page).count();

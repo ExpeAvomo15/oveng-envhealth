@@ -192,7 +192,7 @@ try {
     ok('la publicación más antigua no está en la primera página');
   }
 
-  // El pie "No hay más publicaciones" solo se pinta cuando el feed ha agotado
+  // El pie "Estás al día" (antes "No hay más publicaciones", F5.0) solo se pinta cuando el feed ha agotado
   // el cursor, y con 28 sembradas la primera página (20) nunca es la última:
   // verlo prueba que se pidió al menos una página más. No se busca una
   // publicación concreta porque, con la base llena de filas de otras pruebas,
@@ -201,7 +201,7 @@ try {
   let reachedEnd = false;
   for (let i = 0; i < 40 && !reachedEnd; i += 1) {
     await scrollFeed(1);
-    reachedEnd = await visible('No hay más publicaciones');
+    reachedEnd = await visible('Estás al día');
   }
 
   if (reachedEnd) {

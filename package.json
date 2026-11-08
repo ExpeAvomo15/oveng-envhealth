@@ -71,7 +71,10 @@
     "seed:entities": "node scripts/seed-entities.mjs",
     "seed:jobs": "node scripts/seed-jobs.mjs",
     "lint": "expo lint",
-    "brand:derivatives": "node scripts/brand-derivatives.mjs"
+    "brand:derivatives": "node scripts/brand-derivatives.mjs",
+    "capture:f50": "node --env-file=.env scripts/capture-f50.mjs",
+    "journey:f50": "node --env-file=.env scripts/journey-f50.mjs",
+    "postinstall": "node scripts/vendor-maplibre.mjs"
   },
   "private": true
 }

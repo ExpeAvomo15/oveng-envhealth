@@ -3,3 +3,4 @@ export { ImpactCard, type ImpactCardProps } from './impact-cards';
 export { ProfileCounts } from './profile-counts';
 export { ProfileHeader, ProfileTopBar } from './profile-header';
 export { ProfileTabs, type ProfileTab } from './profile-tabs';
+export { ProfilePosts, type ProfilePostsProps } from './profile-posts';

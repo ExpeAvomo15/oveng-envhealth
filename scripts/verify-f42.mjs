@@ -145,7 +145,9 @@ try {
     await page.goto(`${origin}/mapa`, { waitUntil: 'networkidle' });
     await waitForMap(page);
     try {
-      const label = await labelOf(page, /^Calidad del aire en el centro del mapa \(2,10 N · 9,90 E\)/);
+      // Desde F5.0 el encuadre encaja los límites del país (con Bioko) y el
+      // centro exacto depende de la pantalla: se comprueba que cae en el país.
+      const label = await labelOf(page, /^Calidad del aire en el centro del mapa \([1-3],\d\d N · (9|10),\d\d E\)/);
       ok(`centra en Guinea Ecuatorial: «${label}»`);
     } catch {
       bad('la primera carga sin permiso no centra en Guinea Ecuatorial');

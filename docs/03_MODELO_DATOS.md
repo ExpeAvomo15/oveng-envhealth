@@ -133,11 +133,11 @@ Un perfil por cuenta. No se crea desde la app: lo crea el trigger al registrarse
 | `verified`     | `boolean`     | Cuenta verificada (empresas e iniciativas). |
 | `created_at`   | `timestamptz` | |
 
-**Ojo: `verified` lo puede cambiar su dueño.** La política de update solo
-comprueba que seas tú, así que hoy podrías marcarte como verificado desde la
-app. Está anotado como limitación abajo: la verificación real necesita una
-columna protegida o una función aparte, y eso es trabajo de cuando exista el
-flujo de verificación.
+**Ojo: `verified` lo puede cambiar su dueño** mientras no se aplique la
+migración `010` (F5.0), que la congela con un trigger para todo rol que no sea
+`service_role`. La `010` pone también tope a `display_name` (60), `bio` (160),
+`location` (80) y `avatar_url` (500), los mismos que la app
+(`PROFILE_LIMITS`).
 
 ### posts
 
@@ -517,6 +517,7 @@ Viven en `supabase/migrations/`:
 | `007_post_entities.sql` | Lugar etiquetado en una publicación: `posts.entity_id` e índice (F4.4). |
 | `008_messages.sql` | Mensajes 1 a 1: `blocks`, `conversations`, `messages`, la función `is_blocked_between`, el trigger `touch_conversation` y la publicación de Realtime (F4.6). |
 | `009_comments.sql` | Comentarios, `messages.shared_post_id` para enviar una publicación por mensaje y `notifications` con sus triggers (F4.7). |
+| `010_profile_guards.sql` | `verified` solo lo cambia `service_role` (trigger) y topes de longitud en los textos de `profiles` (F5.0). **Escrita, pendiente de aplicar.** |
 
 Cada una va envuelta en `begin; … commit;`: si algo falla a mitad, no queda nada
 aplicado a medias.
@@ -549,6 +550,14 @@ medias, pero tampoco aplica la mitad buena.
     `messages`—. Hasta aplicarla, la app sigue funcionando: el feed cuenta 0
     comentarios, el chat lee sin la columna y la publicación dice "Los
     comentarios todavía no están disponibles". Después, `npm run verify:f47`.
+12. Repetir con `010_profile_guards.sql` (F5.0). Si alguna fila de `profiles` ya
+    se pasa de un tope (60 el nombre, 160 la biografía, 80 la ubicación, 500 la
+    URL del avatar), falla entera y no aplica nada: recortarla antes. La app
+    funciona igual sin ella. Para comprobarla, en el SQL Editor con una cuenta
+    cualquiera:
+    `update public.profiles set verified = true where id = '<UUID>';` hecho
+    como `authenticated` (como en el paso 5 de la verificación) debe dejar
+    `verified` en `false`.
 
 Si el paso 4 devuelve un error de permisos al crear políticas sobre
 `storage.objects`, crear las mismas reglas desde **Storage → Policies** en el
@@ -937,10 +946,10 @@ razonamiento; las demás siguen abiertas en el backlog de @docs/plan.md.
    estructuradas pertenecen a las entidades y a las capas del mapa, no al
    contenido social. Ver la decisión en el
    [archivo de notas, F1.4](notas-archivo-f0-f2.md#2026-09-18--f14-composición-de-publicaciones).
-3. **`verified` es escribible por su dueño.** Cualquiera puede marcarse como
-   cuenta verificada editando su perfil desde la app. Hace falta sacarla de la
-   política de update —con un trigger que impida cambiarla, o moviéndola a otra
-   tabla— cuando exista el flujo de verificación.
+3. **`verified` es escribible por su dueño** hasta aplicar la `010`. Con ella,
+   un trigger la congela para todo rol que no sea `service_role`: la insignia
+   solo se pone desde el servidor. El flujo de verificación (quién la pide y
+   quién la concede) sigue en el backlog.
 4. ~~**`likes` no es la valoración comunitaria.**~~ **Resuelto en F2.1/F2.4:**
    `likes` sigue siendo el "me gusta" de una publicación, y la valoración de la
    visión es `entity_ratings` —de 1 a 5 con comentario, una por persona y

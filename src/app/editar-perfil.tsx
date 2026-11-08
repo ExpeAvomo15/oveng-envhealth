@@ -7,10 +7,10 @@ import { Avatar, Button, Callout, Screen, Text, TextField } from '@/components/u
 import { useAuth } from '@/hooks/use-auth';
 import type { Profile } from '@/lib/database.types';
 import { pickAvatarImage, uploadAvatar } from '@/lib/avatars';
-import { profileName, updateProfile } from '@/lib/profiles';
+import { PROFILE_LIMITS, profileName, updateProfile } from '@/lib/profiles';
 import { colors, radius, spacing } from '@/theme';
 
-const BIO_MAX_LENGTH = 160;
+const BIO_MAX_LENGTH = PROFILE_LIMITS.bio;
 
 export default function EditProfileScreen() {
   const { profile } = useAuth();
@@ -146,6 +146,7 @@ function EditProfileForm({ profile }: { profile: Profile }) {
           }}
           placeholder="Tu nombre"
           autoCapitalize="words"
+          maxLength={PROFILE_LIMITS.displayName}
           error={nameEmpty ? 'El nombre visible no puede quedar vacío.' : null}
         />
 
@@ -172,6 +173,7 @@ function EditProfileForm({ profile }: { profile: Profile }) {
           }}
           placeholder="Dónde vives o dónde actúas"
           autoCapitalize="words"
+          maxLength={PROFILE_LIMITS.location}
         />
 
         <View style={styles.readonly}>

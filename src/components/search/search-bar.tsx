@@ -51,7 +51,7 @@ export function SearchBar({ value, onChange, autoFocus = false }: SearchBarProps
       ) : null}
 
       <Pressable
-        onPress={() => showToast('Los filtros avanzados llegan después de la demo.')}
+        onPress={() => showToast('Los filtros avanzados llegarán pronto.')}
         accessibilityRole="button"
         accessibilityLabel="Filtros"
         style={({ pressed }) => [styles.filters, pressed && styles.pressed]}>

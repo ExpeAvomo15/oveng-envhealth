@@ -10,6 +10,7 @@ import {
   validateUsername,
   type UsernameAvailability,
 } from '@/lib/usernames';
+import { PROFILE_LIMITS } from '@/lib/profiles';
 import { spacing } from '@/theme';
 
 const PASSWORD_MIN_LENGTH = 8;
@@ -219,6 +220,7 @@ export default function RegisterScreen() {
             }}
             placeholder="Bosque Vivo"
             autoCapitalize="words"
+            maxLength={PROFILE_LIMITS.displayName}
             autoComplete="name"
             hint="Como quieres que te vean las demás cuentas."
           />

@@ -454,6 +454,25 @@ procedencia + OpenAQ, cron y compartir con marca pasan a F4.8, F4.9 y F4.10.
       entidades pre-renderizadas primero, función en el borde con dominio
       propio después. Detalle en @docs/07_CRECIMIENTO.md.
 
+## F5 — Camino a v1
+
+El listón lo fija el norte de producto (AGENTS.md y @docs/00_VISION.md):
+**"OVENG es el Instagram de las causas y amantes del medioambiente"**. F5 pule
+lo que hay contra ese listón antes de enseñarlo a desconocidos; no construye
+funcionalidad nueva.
+
+- [x] **F5.0 auditoría senior pre-v1 y correcciones** — auditoría con
+      Playwright contra la demo publicada (`capture:f50`, `journey:f50`) y
+      corrección de lo IMPORTANTE: mapa rediseñado (chips, pines separados,
+      encuadre con Bioko, tarjeta plegable, atribución visible, worker sin 404,
+      MapLibre fuera del bundle principal: 3,07 → 1,95 MB), lista de
+      publicaciones en el perfil, feed vacío con salidas, ruta inexistente en
+      español, contraste AA, peticiones duplicadas fuera. `verify:all` de 13 a
+      **19 de 19**. Migración **`010`** (`verified` y topes de `profiles`)
+      **escrita, sin aplicar**. Informe y veredicto en `docs/auditoria-v1.md`:
+      **todavía no es v1** (red vacía, denunciar y moderar, `010`, SMTP con
+      dominio propio).
+
 ## Backlog post-demo
 
 Todo lo que se dejó fuera **a propósito**, agrupado y sin repetir. Nada de esto

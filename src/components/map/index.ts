@@ -9,6 +9,7 @@ export { EntitySheet, type EntitySheetProps } from './entity-sheet';
 export { EnvironmentalMap } from './environmental-map';
 export { MapSearchResults, type MapSearchResultsProps } from './map-search-results';
 export {
+  INITIAL_BOUNDS,
   INITIAL_VIEW,
   type EnvironmentalMapProps,
   inBounds,

@@ -26,11 +26,11 @@ export function EnvironmentalMap(_props: EnvironmentalMapProps) {
       </View>
 
       <Text variant="subtitle" style={styles.centered}>
-        Mapa disponible en la versión web de la demo
+        Mapa disponible en la versión web
       </Text>
       <Text variant="caption" color="textSecondary" style={styles.centered}>
         El mapa ambiental se construyó con MapLibre GL JS. La versión nativa
-        llegará después de la demo; mientras tanto, las entidades se exploran
+        llegará más adelante; mientras tanto, las entidades se exploran
         desde Buscar.
       </Text>
     </View>

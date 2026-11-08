@@ -3,8 +3,10 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 
-import { ProfileHeader, ProfileTabs, ProfileTopBar, type ProfileTab } from '@/components/profile';
+import { ProfileHeader, ProfilePosts, ProfileTabs, ProfileTopBar, type ProfileTab } from '@/components/profile';
 import { Button, Callout, Screen, Text } from '@/components/ui';
+
+import { NotFoundState } from '@/components/ui/not-found-state';
 import { useAuth } from '@/hooks/use-auth';
 import type { Profile } from '@/lib/database.types';
 import {
@@ -51,7 +53,7 @@ async function loadPublicProfile(
 export default function PublicProfileScreen() {
   const router = useRouter();
   const { username } = useLocalSearchParams<{ username: string }>();
-  const { profile: viewer, session } = useAuth();
+  const { session } = useAuth();
 
   /**
    * Todo lo que describe el perfil visitado, junto al nombre de usuario al que
@@ -65,7 +67,9 @@ export default function PublicProfileScreen() {
   const [error, setError] = useState<string | null>(null);
   const [tab, setTab] = useState<ProfileTab>('publicaciones');
 
-  const viewerId = viewer?.id ?? null;
+  // De la sesión, no del perfil, que llega después: con `viewer.id` la pantalla
+  // se cargaba dos veces, como anónima y con cuenta (F5.0, T-1).
+  const viewerId = session?.user.id ?? null;
   const current = loaded?.username === username ? loaded : null;
 
   const profile = current?.profile ?? null;
@@ -187,14 +191,12 @@ export default function PublicProfileScreen() {
 
   if (notFound || !profile) {
     return (
-      <Screen>
-        <View style={styles.notFound}>
-          <Text variant="title">Esa cuenta no existe</Text>
-          <Text variant="body" color="textSecondary">
-            No hay ningún perfil con el nombre @{username}.
-          </Text>
-          <Button label="Volver" variant="secondary" onPress={() => router.back()} />
-        </View>
+      <Screen scroll={false}>
+        <NotFoundState
+          icon="person-outline"
+          title="Esa cuenta no existe"
+          detail={`No hay ningún perfil con el nombre @${username}.`}
+        />
       </Screen>
     );
   }
@@ -275,23 +277,21 @@ export default function PublicProfileScreen() {
 
       <ProfileTabs active={tab} onChange={setTab} />
 
-      <View style={styles.empty}>
-        <View style={styles.emptyIcon}>
-          <Ionicons
-            name={tab === 'publicaciones' ? 'document-text-outline' : 'bookmark-outline'}
-            size={28}
-            color={colors.accent}
-          />
+      {tab === 'publicaciones' ? (
+        <ProfilePosts authorId={profile.id} viewerId={viewerId} own={isOwnProfile} version={counts.posts} />
+      ) : (
+        <View style={styles.empty}>
+          <View style={styles.emptyIcon}>
+            <Ionicons name="bookmark-outline" size={28} color={colors.accent} />
+          </View>
+          <Text variant="subtitle" style={styles.centered}>
+            Guardados
+          </Text>
+          <Text variant="caption" color="textSecondary" style={styles.centered}>
+            Los guardados de otras cuentas son privados.
+          </Text>
         </View>
-        <Text variant="subtitle" style={styles.centered}>
-          {tab === 'publicaciones' ? 'Todavía no hay publicaciones' : 'Guardados'}
-        </Text>
-        <Text variant="caption" color="textSecondary" style={styles.centered}>
-          {tab === 'publicaciones'
-            ? 'Cuando esta cuenta publique, lo verás aquí.'
-            : 'Los guardados de otras cuentas son privados.'}
-        </Text>
-      </View>
+      )}
     </Screen>
   );
 }

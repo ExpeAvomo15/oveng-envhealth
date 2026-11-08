@@ -1,5 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { Map as MapLibreMap, type StyleSpecification } from 'maplibre-gl';
+import Constants from 'expo-constants';
+import type { Map as MapLibreMap, StyleSpecification } from 'maplibre-gl';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 
@@ -8,7 +9,7 @@ import { Text } from '@/components/ui';
 import type { EntityResult } from '@/lib/entities';
 import { colors, radius, shadows, spacing } from '@/theme';
 
-import { INITIAL_VIEW, type EnvironmentalMapProps } from './types';
+import { INITIAL_BOUNDS, type EnvironmentalMapProps } from './types';
 
 import 'maplibre-gl/dist/maplibre-gl.css';
 
@@ -46,6 +47,41 @@ const OSM_STYLE: StyleSpecification = {
   },
   layers: [{ id: 'osm', type: 'raster', source: 'osm' }],
 };
+
+/**
+ * Lo que tapan buscador y chips arriba y la tarjeta abajo: el encuadre inicial
+ * lo descuenta para que nada quede debajo (F5.0).
+ */
+const FIT_PADDING = { top: 120, bottom: 200, left: 32, right: 32 };
+
+/** Límites del encuadre inicial, en el formato de MapLibre. */
+const INITIAL_LNGLAT_BOUNDS: [[number, number], [number, number]] = [
+  [INITIAL_BOUNDS.west, INITIAL_BOUNDS.south],
+  [INITIAL_BOUNDS.east, INITIAL_BOUNDS.north],
+];
+
+/**
+ * Dónde está el worker de MapLibre. MapLibre 6 lo busca junto a su propio
+ * módulo con `import.meta.url`, que Metro no conserva: pedía un archivo que no
+ * existe (404 y dos errores de consola en cada visita). `postinstall` lo copia
+ * a `public/vendor/maplibre/` (scripts/vendor-maplibre.mjs).
+ */
+function workerUrl(): string {
+  // El subpath de Pages (`experiments.baseUrl`), del manifiesto embebido.
+  const base = (Constants.expoConfig?.experiments?.baseUrl ?? '').replace(/\/$/, '');
+  return new URL(`${base}/vendor/maplibre/maplibre-gl-worker.mjs`, window.location.origin).href;
+}
+
+/** Pantalla táctil: ahí se pellizca, y "+" y "−" sobran. */
+function isCoarsePointer(): boolean {
+  return typeof window !== 'undefined' && window.matchMedia?.('(pointer: coarse)').matches === true;
+}
+
+/** Dos pines a menos de esto (px) se tapan y se separan. */
+const OVERLAP_PX = 40;
+
+/** Diámetro de un pin con su borde: el corro deja este hueco entre vecinos. */
+const PIN_PX = 44;
 
 /**
  * Mapa ambiental (web).
@@ -95,55 +131,69 @@ export function EnvironmentalMap({
     const container = containerRef.current;
     if (!container) return;
 
-    const map = new MapLibreMap({
-      container,
-      style: OSM_STYLE,
-      center: [INITIAL_VIEW.lng, INITIAL_VIEW.lat],
-      zoom: INITIAL_VIEW.zoom,
-      attributionControl: {
-        compact: true,
-        // El aire de la tarjeta flotante (F4.1): las condiciones de Open-Meteo
-        // piden atribuir a CAMS y a Open-Meteo de forma visible.
-        customAttribution:
-          'Aire: <a href="https://atmosphere.copernicus.eu/">CAMS de Copernicus</a> vía <a href="https://open-meteo.com/">Open-Meteo</a>',
-      },
-      // Sin rotación: un mapa de datos girado desorienta y no aporta nada.
-      dragRotate: false,
-      pitchWithRotate: false,
+    /**
+     * MapLibre se carga **al abrir el mapa**, no con la app (F5.0): son ~1,1 MB
+     * del bundle que cualquier ruta descargaba aunque nadie abriera el mapa.
+     */
+    let disposed = false;
+    let cleanup: (() => void) | null = null;
+
+    import('maplibre-gl').then((maplibre) => {
+      if (disposed) return;
+      maplibre.setWorkerUrl(workerUrl());
+
+      const map = new maplibre.Map({
+        container,
+        style: OSM_STYLE,
+        bounds: INITIAL_LNGLAT_BOUNDS,
+        fitBoundsOptions: { padding: FIT_PADDING },
+        // La atribución la pinta la pantalla en una línea propia, siempre a la
+        // vista: el control de MapLibre quedaba debajo de la tarjeta (F5.0).
+        attributionControl: false,
+        // Sin rotación: un mapa de datos girado desorienta y no aporta nada.
+        dragRotate: false,
+        pitchWithRotate: false,
+        touchPitch: false,
+      });
+
+      mapRef.current = map;
+
+      const onMove = () => {
+        setTick((value) => value + 1);
+        const center = map.getCenter();
+        const bounds = map.getBounds();
+        onCenterChangeRef.current?.(
+          { lat: center.lat, lng: center.lng },
+          {
+            north: bounds.getNorth(),
+            south: bounds.getSouth(),
+            east: bounds.getEast(),
+            west: bounds.getWest(),
+          },
+        );
+      };
+
+      map.on('move', onMove);
+      // `setMap` va dentro del callback de carga, no en el cuerpo del efecto: es
+      // asíncrono y además es cuando el mapa puede proyectar de verdad.
+      map.once('load', () => {
+        setMap(map);
+        onMove();
+      });
+
+      // Se destruye al desmontar: sin esto, cambiar de pestaña deja vivos el
+      // canvas de WebGL y sus escuchas, y volver al mapa crea otro encima.
+      cleanup = () => {
+        map.off('move', onMove);
+        map.remove();
+        mapRef.current = null;
+        setMap(null);
+      };
     });
 
-    mapRef.current = map;
-
-    const onMove = () => {
-      setTick((value) => value + 1);
-      const center = map.getCenter();
-      const bounds = map.getBounds();
-      onCenterChangeRef.current?.(
-        { lat: center.lat, lng: center.lng },
-        {
-          north: bounds.getNorth(),
-          south: bounds.getSouth(),
-          east: bounds.getEast(),
-          west: bounds.getWest(),
-        },
-      );
-    };
-
-    map.on('move', onMove);
-    // `setMap` va dentro del callback de carga, no en el cuerpo del efecto: es
-    // asíncrono y además es cuando el mapa puede proyectar de verdad.
-    map.once('load', () => {
-      setMap(map);
-      onMove();
-    });
-
-    // Se destruye al desmontar: sin esto, cambiar de pestaña deja vivos el
-    // canvas de WebGL y sus escuchas, y volver al mapa crea otro encima.
     return () => {
-      map.off('move', onMove);
-      map.remove();
-      mapRef.current = null;
-      setMap(null);
+      disposed = true;
+      cleanup?.();
     };
   }, []);
 
@@ -186,12 +236,10 @@ export function EnvironmentalMap({
   }
 
   function recenter() {
-    mapRef.current?.flyTo({
-      center: [INITIAL_VIEW.lng, INITIAL_VIEW.lat],
-      zoom: INITIAL_VIEW.zoom,
-      duration: 800,
-    });
+    mapRef.current?.fitBounds(INITIAL_LNGLAT_BOUNDS, { padding: FIT_PADDING, duration: 800 });
   }
+
+  const [touch] = useState(isCoarsePointer);
 
   return (
     <View style={styles.container}>
@@ -246,9 +294,13 @@ export function EnvironmentalMap({
             busy={locating}
           />
         ) : null}
-        <MapButton label="Acercar" icon="add" onPress={() => zoomBy(1)} />
-        <MapButton label="Alejar" icon="remove" onPress={() => zoomBy(-1)} />
         <MapButton label="Centrar en Guinea Ecuatorial" icon="locate" onPress={recenter} />
+        {touch ? null : (
+          <>
+            <MapButton label="Acercar" icon="add" onPress={() => zoomBy(1)} />
+            <MapButton label="Alejar" icon="remove" onPress={() => zoomBy(-1)} />
+          </>
+        )}
       </View>
     </View>
   );
@@ -257,16 +309,47 @@ export function EnvironmentalMap({
 /**
  * Proyecta las entidades al encuadre actual. `_tick` no se usa dentro: está en
  * la firma para que quien la llame dependa de él (ver `pins`).
+ *
+ * **Los pines que se tapan se separan** (F5.0). A zoom de país, Río Ntem y
+ * Bata, o Monte Alén y su iniciativa, caían uno encima del otro: se veía uno y
+ * el otro no se podía tocar. Los que quedan a menos de `OVERLAP_PX` se reparten
+ * en un corro alrededor de su punto medio; al acercarse, se separan solos y
+ * cada uno vuelve a su sitio exacto. No se agrupan en una burbuja con número
+ * porque con catorce pines cada uno sigue siendo tocable y nombrable, que es lo
+ * que se pierde al agrupar.
  */
 function projectPins(map: MapLibreMap | null, entities: EntityResult[], _tick: number) {
   if (!map) return [];
 
-  return entities
+  const points = entities
     .filter((entity) => entity.lat !== null && entity.lng !== null)
     .map((entity) => {
       const point = map.project([entity.lng as number, entity.lat as number]);
       return { entity, x: point.x, y: point.y };
     });
+
+  const groups: (typeof points)[] = [];
+  for (const point of points) {
+    const group = groups.find((members) =>
+      members.some((other) => Math.hypot(other.x - point.x, other.y - point.y) < OVERLAP_PX),
+    );
+    if (group) group.push(point);
+    else groups.push([point]);
+  }
+
+  return groups.flatMap((members) => {
+    if (members.length === 1) return members;
+    const cx = members.reduce((sum, m) => sum + m.x, 0) / members.length;
+    const cy = members.reduce((sum, m) => sum + m.y, 0) / members.length;
+    // El radio justo para que quepan en el corro sin tocarse.
+    const r = Math.max(PIN_PX * 0.55, (members.length * PIN_PX) / (2 * Math.PI));
+    // Con dos, uno a cada lado; con más, empezando arriba.
+    const start = members.length === 2 ? 0 : -Math.PI / 2;
+    return members.map((m, index) => {
+      const angle = start + (2 * Math.PI * index) / members.length;
+      return { ...m, x: cx + r * Math.cos(angle), y: cy + r * Math.sin(angle) };
+    });
+  });
 }
 
 function projectPoint(map: MapLibreMap | null, point: { lat: number; lng: number } | null, _tick: number) {
@@ -361,12 +444,11 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: spacing.md,
     /*
-     * Por encima de la tarjeta inferior, no debajo. Estaban a `spacing.md` del
-     * borde y la tarjeta de calidad del aire los tapaba: el "−" y el de centrar
-     * no se veían. Este hueco deja sitio a la tarjeta más alta de las dos, que
-     * es la del marcador seleccionado.
+     * Arriba a la derecha, bajo buscador y chips, como en Google Maps (F5.0).
+     * Antes iban a 168 px del borde inferior para librar la tarjeta, que ahora
+     * se pliega y cambia de alto: anclados abajo, flotaban a media pantalla.
      */
-    bottom: 168,
+    top: 116,
     gap: spacing.sm,
   },
   controlButton: {

@@ -12,6 +12,16 @@ pegada a una comunidad que publica, comenta y se organiza a su alrededor. Por
 eso el producto es primero una red social y después un visor de datos: el feed
 es la puerta de entrada y el mapa es la profundidad.
 
+### El norte: el Instagram del medioambiente
+
+**OVENG es el Instagram de las causas y amantes del medioambiente.** Fijado en
+F5.0 como criterio para juzgar el producto: quien llega desde Instagram tiene
+que sentirse en casa —un feed fluido y denso, perfiles que son su lista de
+publicaciones, "me gusta", comentarios, mensajes y notificaciones sin
+fricción—. Lo que Instagram no tiene es lo que hace a OVENG: el dato ambiental
+vivo, el mapa, Turismo Verde y Empleo. Lo primero es el listón; lo segundo, el
+motivo para estar aquí y no allí.
+
 ### Qué lo diferencia
 
 - **Lo ambiental es contenido social, no un panel aparte.** Una medición, una

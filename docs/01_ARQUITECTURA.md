@@ -105,7 +105,7 @@ está dentro del bundle, que los assets llevan el subpath y que existe
 El plan gratuito pausa el proyecto tras ~7 días sin actividad, y la app cae
 entera. `keepalive.yml` hace cada dos días una lectura pública mínima con la
 clave publicable de Variables y falla —avisando por correo— si no responde.
-Causa y remedio en [notas.md](notas.md).
+Causa y remedio en el [archivo de notas](notas-archivo-post-demo.md#2026-10-17--cierre-latido-anti-pausa-y-editar-perfil).
 
 ### Secretos y configuración
 
@@ -166,12 +166,28 @@ En *Authentication*, y **antes** de dar el proyecto por bueno:
       email" sigue activado (el registro no devuelve sesión). `verify:f43`
       comprueba el `redirect_to` de recuperar contraseña.
 
-*(Opcional)* SMTP propio con Resend, 100 correos al día gratis: dominio
-propio verificado en Resend (registros DNS que indica), una API key, y en
-Supabase *Emails → SMTP Settings*: host `smtp.resend.com`, puerto `465`,
-usuario `resend`, contraseña la API key, remitente `no-reply@<tu dominio>`.
-Con SMTP propio el límite inicial es de 30 correos por hora y se ajusta en
-*Rate Limits*.
+- [ ] **SMTP propio: Resend** (*Authentication → Emails → SMTP Settings*).
+      **Obligatorio para v1** desde F5.0: sin él, recuperar contraseña solo
+      llega al equipo del proyecto y con dos correos por hora para todos.
+      - *Enable custom SMTP*: activado.
+      - *Sender email*: `no-reply@<dominio verificado en Resend>` (con el
+        dominio de pruebas `onboarding@resend.dev` Resend **solo entrega al
+        correo del dueño de la cuenta**: sirve para probar, no para v1).
+      - *Sender name*: `OVENG`.
+      - *Host* `smtp.resend.com` · *Port* `465` · *Username* `resend` ·
+        *Password*: la API key de Resend (*API Keys → Create*, permiso
+        *Sending access*). La clave vive **solo** en el dashboard de Supabase:
+        ni `.env`, ni el repositorio, ni Variables.
+      - *Minimum interval*: 60 s (el de Supabase por defecto).
+      - Después, en *Authentication → Rate Limits*, el envío de correos sube de
+        2 a 30 por hora; ajustarlo si hace falta.
+      - En Resend, el dominio (*Domains → Add Domain*) pide registros DNS (SPF
+        y DKIM, y MX de rebotes en el subdominio de envío) y queda *Verified*
+        cuando se propagan. Un proyecto nuevo de Supabase **no hereda** el
+        SMTP: hay que volver a rellenarlo.
+- [ ] **Comprobarlo de verdad:** pedir "¿Olvidaste tu contraseña?" para una
+      cuenta real **que no sea del equipo**, recibir el correo (mirar spam),
+      abrir el enlace en el mismo navegador y entrar con la nueva.
 
 ### Trunk-based en `main`
 

@@ -128,6 +128,27 @@ const user = createClient(url, anonKey, {
   auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
 });
 
+// La mitad sin cuenta abre una publicación y el perfil de su autor: con la base
+// vacía no habría ninguna (F5.0: una comprobación no supone el estado de la
+// base). Una autora de prueba publica una; la limpieza final la borra.
+{
+  const author = createClient(url, anonKey, { auth: { persistSession: false, autoRefreshToken: false } });
+  const { data, error } = await author.auth.signUp({
+    email: `oveng-demoautora-${stamp}@ovengtest.dev`,
+    password: `Verif-${stamp}-Autora`,
+    options: { data: { username: `autora${stamp}`.slice(0, 30), display_name: 'Autora de la demo' } },
+  });
+  if (error || !data.session) {
+    console.log(`  ✗ no se pudo crear la autora de prueba: ${error?.message ?? 'sin sesión'}`);
+  } else {
+    await author.from('posts').insert({
+      author_id: data.user.id,
+      content: `Jornada de limpieza en la playa de Bata este sábado ${stamp} 🌊 #limpieza`,
+      hashtags: ['limpieza'],
+    });
+  }
+}
+
 try {
   // =========================================================================
   // SIN SESIÓN — cómo llega cualquiera

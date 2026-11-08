@@ -21,6 +21,7 @@ import {
 import { ProvenanceLine } from '@/components/air';
 import { Badge, Button, Callout, Screen, Text } from '@/components/ui';
 import { showToast } from '@/components/ui/toast';
+import { NotFoundState } from '@/components/ui/not-found-state';
 import { useAuth } from '@/hooks/use-auth';
 import { useEntityAdmin } from '@/hooks/use-entity-admin';
 import type { EntityMetric } from '@/lib/database.types';
@@ -111,7 +112,7 @@ export default function EntityScreen() {
   const router = useRouter();
   const pathname = usePathname();
   const { slug } = useLocalSearchParams<{ slug: string }>();
-  const { profile: viewer, session } = useAuth();
+  const { session } = useAuth();
 
   const [loaded, setLoaded] = useState<Loaded | null>(null);
   const [busy, setBusy] = useState(false);
@@ -119,7 +120,9 @@ export default function EntityScreen() {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
 
-  const viewerId = viewer?.id ?? null;
+  // De la sesión, no del perfil, que llega después: con `viewer.id` la pantalla
+  // se cargaba dos veces, como anónima y con cuenta (F5.0, T-1).
+  const viewerId = session?.user.id ?? null;
   const current = loaded?.slug === slug ? loaded : null;
   const entity = current?.entity ?? null;
 
@@ -270,14 +273,12 @@ export default function EntityScreen() {
 
   if (!entity) {
     return (
-      <Screen>
-        <View style={styles.notFound}>
-          <Text variant="title">Esa entidad no existe</Text>
-          <Text variant="body" color="textSecondary">
-            No hay ninguna entidad con el identificador «{slug}».
-          </Text>
-          <Button label="Volver" variant="secondary" onPress={() => router.back()} />
-        </View>
+      <Screen scroll={false}>
+        <NotFoundState
+          icon="leaf-outline"
+          title="Esa página no existe"
+          detail={`No hay ningún lugar, empresa ni iniciativa con el identificador «${slug}».`}
+        />
       </Screen>
     );
   }

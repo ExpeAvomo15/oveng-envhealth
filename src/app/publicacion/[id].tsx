@@ -41,8 +41,9 @@ type Loaded = {
 export default function PublicationScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { profile } = useAuth();
-  const viewerId = profile?.id ?? null;
+  const { profile, session } = useAuth();
+  // De la sesión, no del perfil: así no se carga dos veces (F5.0, T-1).
+  const viewerId = session?.user.id ?? null;
 
   // Guardado con su id y su lector, como el detalle de antes: así `loading` se
   // deriva y la versión anónima no se pinta mientras llega la de la sesión.

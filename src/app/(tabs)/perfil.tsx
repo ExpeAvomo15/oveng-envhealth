@@ -7,10 +7,12 @@ import {
   AdministeredPages,
   ImpactCard,
   ProfileHeader,
+  ProfilePosts,
   ProfileTabs,
   ProfileTopBar,
   type ProfileTab,
 } from '@/components/profile';
+
 import { Button, Callout, Screen, Text } from '@/components/ui';
 import { useAuth } from '@/hooks/use-auth';
 import { EMPTY_COUNTS, getProfileCounts, type ProfileCounts as Counts } from '@/lib/profiles';
@@ -168,8 +170,8 @@ export default function ProfileScreen() {
         <ImpactCard
           icon="leaf"
           title="Tu impacto ambiental"
-          value="Excelente"
-          note="Llegará con la huella ecológica personal, después de la demo."
+          value="Aún sin medir"
+          note="Se medirá cuando puedas registrar lo que haces por el entorno."
         />
         <ImpactCard
           icon="star"
@@ -185,21 +187,27 @@ export default function ProfileScreen() {
 
       <ProfileTabs active={tab} onChange={setTab} />
 
-      <View style={styles.tabContent}>
-        {tab === 'publicaciones' ? (
-          <EmptyState
-            icon="document-text-outline"
-            title="Todavía no has publicado nada"
-            detail="Cuando crees tu primera publicación aparecerá aquí."
+      {tab === 'publicaciones' ? (
+        // Espera al contador: así, al volver de publicar, el número nuevo recarga
+        // la lista, y la primera carga no se pide dos veces.
+        userId && !countsLoading ? (
+          <ProfilePosts
+            authorId={userId}
+            viewerId={userId}
+            own
+            version={counts.posts}
+            onCreate={() => router.push('/crear')}
           />
-        ) : (
+        ) : null
+      ) : (
+        <View style={styles.tabContent}>
           <EmptyState
             icon="bookmark-outline"
             title="Guardados"
             detail="Próximamente: aquí tendrás las publicaciones que guardes."
           />
-        )}
-      </View>
+        </View>
+      )}
     </Screen>
   );
 }

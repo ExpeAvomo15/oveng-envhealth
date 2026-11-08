@@ -45,11 +45,13 @@ export function buildFeedRows(posts: FeedPost[], cards: FeedCards): FeedRow[] {
   if (cards.zone) extras.push({ kind: 'zone', key: 'zone' });
   if (cards.featured) extras.push({ kind: 'featured', key: 'featured' });
 
-  // Sin publicaciones, el estado vacío va delante: es el hueco del contenido
-  // social, y las tarjetas acompañan en vez de sustituirlo.
+  // Sin publicaciones, las tarjetas van **delante** del vacío (F5.0). La regla
+  // de no encabezar el feed con datos protege a las publicaciones, y aquí no
+  // hay ninguna: con la red recién nacida, el dato de tu zona es lo único que
+  // ya sirve, y escondido bajo un "sé el primero" quedaba fuera de pantalla.
   if (posts.length === 0) {
-    rows.push({ kind: 'empty', key: 'empty' });
     rows.push(...extras);
+    rows.push({ kind: 'empty', key: 'empty' });
     return rows;
   }
 

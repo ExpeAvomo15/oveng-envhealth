@@ -116,6 +116,13 @@ export async function unfollowUser(followerId: string, followingId: string): Pro
   if (error) throw error;
 }
 
+/**
+ * Topes de los textos del perfil. Son los mismos `check` de la migración 010
+ * (F5.0): la interfaz no deja pasarse, y la base no lo acepta aunque alguien
+ * escriba con la clave publicable sin pasar por la app.
+ */
+export const PROFILE_LIMITS = { displayName: 60, bio: 160, location: 80 } as const;
+
 export type ProfileEdit = Pick<TablesUpdate<'profiles'>, 'display_name' | 'bio' | 'location' | 'avatar_url'>;
 
 /**

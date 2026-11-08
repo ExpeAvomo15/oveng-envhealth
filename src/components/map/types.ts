@@ -11,10 +11,21 @@ export function inBounds(bounds: MapBounds, lat: number, lng: number): boolean {
 }
 
 /**
- * Encuadre inicial: Guinea Ecuatorial, con Bata y Monte Alén dentro y Bioko
- * asomando por arriba. Las coordenadas salen del seed de F2.1.
+ * Encuadre inicial: Guinea Ecuatorial **entera**, Bioko incluida (F5.0).
+ *
+ * Antes era un centro y un zoom fijos, y lo que entraba dependía de la
+ * pantalla: en un móvil Malabo —la capital, con cuatro entidades— se quedaba
+ * fuera, y en escritorio sus pines caían debajo del buscador. Ahora el mapa
+ * encaja estos límites descontando lo que tapan buscador, chips y tarjeta.
  */
-export const INITIAL_VIEW = { lat: 2.1, lng: 9.9, zoom: 7.2 };
+export const INITIAL_BOUNDS = { west: 8.4, south: 0.85, east: 11.4, north: 3.85 };
+
+/** El centro de esos límites, y un zoom de respaldo antes de medir la pantalla. */
+export const INITIAL_VIEW = {
+  lat: (INITIAL_BOUNDS.north + INITIAL_BOUNDS.south) / 2,
+  lng: (INITIAL_BOUNDS.east + INITIAL_BOUNDS.west) / 2,
+  zoom: 7,
+};
 
 export type EnvironmentalMapProps = {
   /** Entidades ya filtradas por categoría y por texto. */

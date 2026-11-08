@@ -53,7 +53,7 @@ const DEBOUNCE_MS = 300;
  */
 export default function SearchScreen() {
   const router = useRouter();
-  const { profile: viewer, session } = useAuth();
+  const { session } = useAuth();
   // Las etiquetas del feed navegan aquí con el término ya puesto.
   const { q } = useLocalSearchParams<{ q?: string }>();
 
@@ -77,7 +77,9 @@ export default function SearchScreen() {
   const [followedPeople, setFollowedPeople] = useState<Set<string>>(new Set());
   const [busyId, setBusyId] = useState<string | null>(null);
 
-  const viewerId = viewer?.id ?? null;
+  // De la sesión, no del perfil, que llega después: con `viewer.id` la pantalla
+  // se cargaba dos veces, como anónima y con cuenta (F5.0, T-1).
+  const viewerId = session?.user.id ?? null;
   /**
    * Hay búsqueda activa con texto, con categoría **o con un chip que no sea
    * "Todo"**: pulsar "Empresas" sin escribir nada pide ver las empresas, que es

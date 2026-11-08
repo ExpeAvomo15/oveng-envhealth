@@ -99,6 +99,15 @@ for (const key of ['a', 'b', 'c']) {
 }
 ok(`A @${accounts.a.username}, B @${accounts.b.username} y C @${accounts.c.username}`);
 
+// B publica algo: el bocadillo «Enviar mensaje a …» vive en las publicaciones
+// del feed, y la base puede estar vacía (F5.0: no suponer su estado).
+{
+  const { error } = await users.b
+    .from('posts')
+    .insert({ author_id: ids.b, content: `Publicación de B para el chat ${stamp}`, hashtags: [] });
+  if (error) bad(`B no pudo publicar: ${error.message}`);
+}
+
 const pair = (x, y) => (ids[x] < ids[y] ? { user_low: ids[x], user_high: ids[y] } : { user_low: ids[y], user_high: ids[x] });
 
 // --- 3. Build ------------------------------------------------------------------------------------

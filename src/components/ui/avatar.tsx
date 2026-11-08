@@ -23,7 +23,12 @@ export type AvatarProps = {
 
 /** Iniciales de hasta dos palabras: "Bosque Vivo" → "BV". */
 function initials(name: string): string {
-  const words = name.trim().split(/\s+/).filter(Boolean);
+  // Solo palabras que empiezan por letra: "Ana Verde (prueba)" es "AV", no "A(" (F5.0).
+  const words = name
+    .trim()
+    .split(/\s+/)
+    .filter((word) => /^\p{L}/u.test(word));
+  if (words.length === 0) return Array.from(name.trim())[0] ?? '';
   const first = words[0]?.[0] ?? '';
   const second = words.length > 1 ? (words[words.length - 1]?.[0] ?? '') : '';
   return (first + second).toUpperCase();

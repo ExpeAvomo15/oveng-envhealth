@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useIsFocused, useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, StyleSheet, TextInput, View } from 'react-native';
+import { ActivityIndicator, Linking, Pressable, StyleSheet, TextInput, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import {
@@ -21,12 +21,11 @@ import {
   type MapCenter,
 } from '@/components/map';
 import { TabBar } from '@/components/navigation/tab-bar';
-import { Button, Callout, Text } from '@/components/ui';
+import { Callout, Text } from '@/components/ui';
 import { showToast } from '@/components/ui/toast';
-import { useAuth } from '@/hooks/use-auth';
 import { useFontFamily } from '@/hooks/use-fonts';
 import { useLiveNature, useLiveSoil } from '@/hooks/use-live';
-import { useLiveAir } from '@/hooks/use-live-air';
+import { useLiveAir, type LiveAir } from '@/hooks/use-live-air';
 import { usePlaceSearch } from '@/hooks/use-place-search';
 import type { Place } from '@/lib/geocoding';
 import {
@@ -38,7 +37,9 @@ import {
 } from '@/lib/geolocation';
 import type { EntityMetric, EnvironmentalCategoryName } from '@/lib/database.types';
 import { getMetricByEntity, searchEntities, type EntityResult } from '@/lib/entities';
-import { colors, noWebFocusRing, radius, spacing, typography } from '@/theme';
+import { colors, noWebFocusRing, radius, shadows, spacing, typography } from '@/theme';
+
+const openUrl = (url: string) => void Linking.openURL(url);
 
 /** Lo que el mapa tiene que estar quieto antes de pedir el aire de su centro. */
 const SETTLE_MS = 600;
@@ -76,7 +77,6 @@ export default function MapScreen() {
   /** `?entidad=<slug>`: "Ver en el mapa" desde el perfil de un lugar (F4.4). */
   const { entidad } = useLocalSearchParams<{ entidad?: string }>();
   const fontFamily = useFontFamily();
-  const { session } = useAuth();
 
   /**
    * El mapa solo existe mientras se está mirando.
@@ -123,7 +123,11 @@ export default function MapScreen() {
     return () => clearTimeout(timer);
   }, [center, bounds]);
 
-  const liveAir = useLiveAir(settled);
+  // Hasta que el mapa dice dónde ha encajado (`bounds` llega con el primer
+  // movimiento), no se pide nada: el centro de partida no es el encuadre real y
+  // se pedía el aire dos veces (F5.0).
+  const liveAirRaw = useLiveAir(settledBounds ? settled : null);
+  const liveAir: LiveAir = settledBounds ? liveAirRaw : { status: 'loading' };
   // Solo se consulta la fuente de la capa elegida: sin capa, nada de suelo ni
   // de GBIF.
   const liveSoil = useLiveSoil(chosen === 'suelo' ? settled : null);
@@ -290,10 +294,21 @@ export default function MapScreen() {
     return best;
   }, [loaded, visible, center, selected]);
 
-  /** Tocar una capa la elige; tocar la elegida vuelve a todas. */
-  function chooseCategory(category: EnvironmentalCategoryName) {
-    setChosen((previous) => (previous === category ? null : category));
+  /** Elegir una capa; `null` ("Todo", o tocar la elegida) vuelve a todas. */
+  function chooseCategory(category: EnvironmentalCategoryName | null) {
+    setChosen(category);
+    // Al cambiar de capa se quiere ver su dato: la tarjeta se despliega.
+    setSheetOpen(true);
   }
+
+  /**
+   * La tarjeta de abajo se pliega (F5.0): fija, tapaba la franja inferior del
+   * mapa y algún pin, y no había forma de quitarla.
+   */
+  const [sheetOpen, setSheetOpen] = useState(true);
+  const { width } = useWindowDimensions();
+  /** En escritorio, la tarjeta es un panel de 420 px y no una franja de 1256. */
+  const wide = width >= 768;
 
   /** Lo que se ve de la capa elegida, para el agua y para contar entidades. */
   const inView = useMemo(
@@ -386,27 +401,50 @@ export default function MapScreen() {
             />
           ) : null}
 
-          <View style={styles.legendRow} pointerEvents="box-none">
-            {/*
-              Sin cuenta se puede mirar el mapa entero; lo que pide cuenta
-              —seguir, valorar, publicar— tiene su puerta aquí, no un muro
-              delante. Ver @docs/07_CRECIMIENTO.md.
-            */}
-            {session === null ? (
-              <Button
-                label="Iniciar sesión"
-                size="sm"
-                onPress={() => router.push('/welcome')}
-              />
-            ) : (
-              <View />
-            )}
-
-            <CategoryLegend chosen={chosen} onChoose={chooseCategory} />
-          </View>
+          {/*
+            Chips deslizables bajo el buscador, como en Google Maps (F5.0). Sin
+            botón de cuenta: sobre el mapa no correspondía a nada del mapa, y la
+            cuenta ya está en Perfil y en cada acción que la pide.
+          */}
+          <CategoryLegend chosen={chosen} onChoose={chooseCategory} />
         </View>
 
-        <View style={styles.overlayBottom} pointerEvents="box-none">
+        <View style={[styles.overlayBottom, wide && styles.overlayBottomWide]} pointerEvents="box-none">
+          {/*
+            Atribución propia, siempre a la vista: OpenStreetMap la exige y el
+            control de MapLibre quedaba debajo de la tarjeta (F5.0).
+          */}
+          <Text variant="micro" color="textSecondary" style={styles.attribution}>
+            © <Text variant="micro" color="textSecondary" style={styles.link} onPress={() => openUrl('https://www.openstreetmap.org/copyright')}>OpenStreetMap</Text>
+            {' · Aire: '}
+            <Text variant="micro" color="textSecondary" style={styles.link} onPress={() => openUrl('https://atmosphere.copernicus.eu/')}>CAMS de Copernicus</Text>
+            {' vía '}
+            <Text variant="micro" color="textSecondary" style={styles.link} onPress={() => openUrl('https://open-meteo.com/')}>Open-Meteo</Text>
+          </Text>
+
+          {!sheetOpen && !selected ? (
+            <Pressable
+              onPress={() => setSheetOpen(true)}
+              accessibilityRole="button"
+              accessibilityLabel="Ver los datos de la zona"
+              style={({ pressed }) => [styles.reopen, pressed && styles.pressed]}>
+              <Ionicons name="chevron-up" size={18} color={colors.accent} />
+              <Text variant="captionStrong" color="accent">
+                Ver los datos de la zona
+              </Text>
+            </Pressable>
+          ) : (
+          <View>
+          {selected ? null : (
+            <Pressable
+              onPress={() => setSheetOpen(false)}
+              accessibilityRole="button"
+              accessibilityLabel="Ocultar la tarjeta de datos"
+              hitSlop={8}
+              style={({ pressed }) => [styles.collapse, pressed && styles.pressed]}>
+              <Ionicons name="chevron-down" size={18} color={colors.textSecondary} />
+            </Pressable>
+          )}
           {error ? (
             <Callout tone="error">{error}</Callout>
           ) : selected ? (
@@ -438,6 +476,8 @@ export default function MapScreen() {
               fallback={nearestAir}
               onOpenFallback={openEntity}
             />
+          )}
+          </View>
           )}
         </View>
       </View>
@@ -490,17 +530,53 @@ const styles = StyleSheet.create({
     fontSize: typography.body.fontSize,
     paddingVertical: 0,
   },
-  legendRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    gap: spacing.sm,
-  },
   overlayBottom: {
     position: 'absolute',
     left: spacing.md,
     right: spacing.md,
-    bottom: spacing.md,
+    bottom: spacing.sm,
+    gap: spacing.xs,
+  },
+  overlayBottomWide: {
+    right: undefined,
+    width: 420,
+  },
+  attribution: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+    borderRadius: radius.sm,
+    backgroundColor: 'rgba(255, 255, 255, 0.85)',
+  },
+  link: {
+    textDecorationLine: 'underline',
+  },
+  reopen: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'center',
+    gap: spacing.xs,
+    minHeight: 40,
+    paddingHorizontal: spacing.lg,
+    borderRadius: radius.full,
+    backgroundColor: colors.surface,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.border,
+    ...shadows.card,
+  },
+  collapse: {
+    position: 'absolute',
+    top: spacing.xs,
+    right: spacing.xs,
+    zIndex: 1,
+    width: 32,
+    height: 32,
+    borderRadius: radius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pressed: {
+    opacity: 0.6,
   },
   empty: {
     padding: spacing.md,

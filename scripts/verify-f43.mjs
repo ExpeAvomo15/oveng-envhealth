@@ -177,6 +177,7 @@ try {
   step('3. El aire, en palabras: la palabra primero y el índice explicado');
 
   const visitor = await newVisitor();
+  let mapCenter = { lat: '2.10', lng: '9.90' };
   {
     const { page } = visitor;
     await page.goto(`${origin}/mapa`, { waitUntil: 'networkidle' });
@@ -192,6 +193,13 @@ try {
     else bad('la sigla «AQI» sigue a la vista en la tarjeta');
     await shot(page, '01-aire-en-palabras');
 
+    // El centro que usa la app, leído de la propia tarjeta. Desde F5.0 el
+    // encuadre encaja los límites del país y el centro depende de la pantalla:
+    // escribirlo a mano (2,10 · 9,90) comparaba con otro punto.
+    const where = await page.getByText(/Centro del mapa · [\d,]+ N · [\d,]+ E/).filter({ visible: true }).first().innerText();
+    const m = /([\d,]+) N · ([\d,]+) E/.exec(where);
+    mapCenter = { lat: m[1].replace(',', '.'), lng: m[2].replace(',', '.') };
+
     await explains(page, 'índice de calidad del aire', '¿Qué es el índice de calidad del aire?', '02-explicacion-aire');
     await explains(page, 'estimación satelital copernicus', '¿Qué es una estimación satelital?');
   }
@@ -205,7 +213,7 @@ try {
     await chooseLayer(page, 'Suelo');
     try {
       const label = await labelOf(page, /^Suelo en el centro del mapa: /, 20000);
-      const soil = await soilAt('2.10', '9.90');
+      const soil = await soilAt(mapCenter.lat, mapCenter.lng);
       const expected = Math.round(soil.current.soil_moisture_0_to_1cm * 100);
       const shown = Number(/(\d+) % de humedad/.exec(label)?.[1]);
       if (/aquí es mar/.test(label) || Math.abs(shown - expected) <= 2) ok(`Suelo: «${label}» (la API dice ${expected} %)`);
@@ -219,7 +227,7 @@ try {
     await chooseLayer(page, 'Biodiversidad');
     try {
       const label = await labelOf(page, /^Naturaleza registrada cerca del centro del mapa: /, 25000);
-      const nature = await natureAt('2.10', '9.90');
+      const nature = await natureAt(mapCenter.lat, mapCenter.lng);
       const shown = Number((/: ([\d.]+) observaciones/.exec(label)?.[1] ?? '').replace(/\./g, ''));
       if (shown === nature.count) ok(`Biodiversidad: «${label}» (GBIF dice ${nature.count})`);
       else bad(`Biodiversidad dice ${shown} y GBIF ${nature.count}`);

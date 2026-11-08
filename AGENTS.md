@@ -23,6 +23,17 @@ biodiversidad), valoraciones comunitarias y huella ecológica personal.
 - **Datos en vivo (F4):** @docs/08_DATOS_EN_VIVO.md — fuentes, arquitectura
   híbrida y procedencia siempre visible. Va tras F3, salvo F4.1.
 
+### Norte de producto
+
+**"OVENG es el Instagram de las causas y amantes del medioambiente."** Es el
+listón con el que se juzga cada pantalla (F5.0): todo lo que un usuario diario
+de Instagram da por hecho —fluidez, densidad, claridad, cero fricción, nada que
+no responda— tiene que estar a ese nivel. La capa verde (datos vivos, mapa,
+Turismo Verde, Empleo) es el **diferencial**, no la excusa para quedarse por
+debajo. Ante la duda: "¿un usuario de Instagram se sentiría en casa aquí, o
+notaría torpeza?". La última auditoría contra ese listón está en
+`docs/auditoria-v1.md`.
+
 ## Stack
 
 - React Native + Expo (SDK estable) + TypeScript estricto + expo-router

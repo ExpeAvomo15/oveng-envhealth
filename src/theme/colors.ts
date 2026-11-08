@@ -46,8 +46,11 @@ const neutral = {
   line: '#E3E8EF',
   /** Fondo de elemento inactivo / relleno sutil. */
   fill: '#EDF1F6',
-  /** Texto y iconos deshabilitados. */
-  muted: '#9AA4B2',
+  /**
+   * Texto terciario y deshabilitado. Era #9AA4B2 (2,5:1 sobre blanco) y lo usa
+   * la línea de procedencia: F5.0 lo oscureció a 4,7:1 para pasar WCAG AA.
+   */
+  muted: '#6B7480',
 } as const;
 
 export const colors = {

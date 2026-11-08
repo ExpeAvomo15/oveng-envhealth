@@ -38,3 +38,6 @@ expo-env.d.ts
 *.mobileprovision
 *.pem
 .tmp-verify/
+
+# Worker de MapLibre, copiado en postinstall (F5.0)
+public/vendor/

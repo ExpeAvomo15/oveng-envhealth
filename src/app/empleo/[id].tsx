@@ -115,7 +115,7 @@ export default function JobScreen() {
 
         {example ? (
           <Callout tone="info" title="Oferta de ejemplo">
-            La ha cargado OVENG para enseñar cómo se ve el empleo en la demo. No es una oferta real.
+            La ha cargado OVENG para enseñar cómo se verán las ofertas. No es una oferta real.
           </Callout>
         ) : null}
         {!job.active ? (

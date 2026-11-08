@@ -1,3 +1,4 @@
+import { Redirect } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 
 import { Avatar, Badge, Button, Card, Divider, Screen, Text } from '@/components/ui';
@@ -18,6 +19,9 @@ import {
  * con los mockups de docs/design/. En F1.2 la sustituye el feed (Inicio).
  */
 export default function DesignSystemScreen() {
+  // Referencia interna de F0.2: en la app publicada no existe (F5.0, A-2).
+  if (!__DEV__) return <Redirect href="/" />;
+
   return (
     <Screen>
       <View style={styles.header}>

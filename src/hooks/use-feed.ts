@@ -31,8 +31,11 @@ type LoadedFeed = {
 };
 
 export function useFeed(mode: FeedMode) {
-  const { profile } = useAuth();
-  const viewerId = profile?.id ?? null;
+  const { session } = useAuth();
+  // El id de la sesión, no el del perfil: está desde el primer render. Con
+  // `profile.id` el feed se pedía dos veces, como anónimo y otra al llegar el
+  // perfil (F5.0, T-1).
+  const viewerId = session?.user.id ?? null;
 
   /**
    * Página cargada, etiquetada con la combinación de lector y modo a la que

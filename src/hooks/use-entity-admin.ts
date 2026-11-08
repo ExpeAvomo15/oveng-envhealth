@@ -19,8 +19,9 @@ export type EntityAdminState = {
  * que cambiar de página o de sesión no enseña el de antes.
  */
 export function useEntityAdmin(entityId: string | null): EntityAdminState {
-  const { profile } = useAuth();
-  const userId = profile?.id ?? null;
+  const { session } = useAuth();
+  // De la sesión, no del perfil: así no se pide dos veces (F5.0, T-1).
+  const userId = session?.user.id ?? null;
   const key = `${entityId ?? ''}|${userId ?? ''}`;
 
   const [loaded, setLoaded] = useState<{ key: string; isAdmin: boolean; count: number } | null>(null);

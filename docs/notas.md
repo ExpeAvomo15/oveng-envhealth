@@ -28,10 +28,12 @@ El porqué de cada una, enlazado.
 - Seis categorías (unión de los mockups) con color fijo; una guarda de tipos rompe la compilación si base y theme divergen. [F2.1]
 - Migraciones a mano en el SQL Editor, `begin…commit`, no re-ejecutables. Una preferencia de vista no justifica una migración. [F0.3] [F2.5]
 - Feed: `select` anidado y cursor por `created_at`; sin lector no se pide `my_like`. [F1.5] [F2.6]
+- El id de quien mira sale de **la sesión**, no del perfil: si no, cada pantalla se carga dos veces. [F5.0]
 - Notificaciones: las crean **triggers** (sin INSERT desde la app, `notify()` sin EXECUTE para `anon`/`authenticated`); solo las lee su destinatario; los chats no van a la campana. [F4.7]
 - Comentarios: lectura libre; borra su autor **o el de la publicación**; nadie edita. El número es un agregado, como los "me gusta", no una columna. [F4.7]
 - Mensajes: lo **único privado**. RLS dice quién y `grant update (columna)` dice qué; Realtime aplica la misma RLS. Solicitud antes de conversar; denunciar y moderar, obligatorios antes de abrir al público. [F4.6]
 - "Tu zona" es **elegida**, no detectada, y una zona es un recuadro de coordenadas, no un país. [F2.5]
+- `verified` solo desde el servidor y topes en los textos de `profiles`: migración `010`, **pendiente de aplicar**. [F5.0]
 
 ### Interfaz
 
@@ -40,6 +42,9 @@ El porqué de cada una, enlazado.
 - Todo control que no hace nada **avisa**: nada pulsable sin respuesta. [F1.6] [F2.6]
 - Una publicación se comparte por **`/publicacion/[id]`** (pública, en frío por el `404.html`) o **por mensaje** como mini-tarjeta. OG tags solo genéricas mientras no haya servidor. [F4.7]
 - El dato ambiental va **entre** publicaciones (tras la tercera), no encabezando el feed. [F2.5]
+- **Norte: "el Instagram de las causas y amantes del medioambiente"** (AGENTS.md); última auditoría en `docs/auditoria-v1.md`. [F5.0]
+- Mapa: chips bajo el buscador, pines que se tapan **se separan**, encuadre por límites del país, tarjeta plegable y atribución propia. [F5.0]
+- Ningún botón repite el nombre del central de la barra ("Crear publicación"). [F5.0]
 - **"Instagram en verde"**: de Instagram, patrones (listas a sangre, chat agrupado, perfil compacto); de OVENG, paleta, Inter y radios. Lo secundario es `tonal`; el verde, la acción principal. [F4.6b]
 
 ### Rutas y despliegue
@@ -96,13 +101,53 @@ La lista mantenida es el **backlog de @docs/plan.md**. Fuera de ella, sueltos:
 
 - Consola: React #418 (hidratación, esperado por el guard) y un 404 de recurso sin identificar. [F1.2b]
 - Las capturas de pantalla completa pesan ~275 KB cada una en el historial. [F2.4]
-- El perfil enseña el contador de publicaciones y no la lista (backlog del plan).
 - Contraseña entre dispositivos: plantilla de email con `token_hash` + `verifyOtp`. Y el SMTP propio pide un dominio.
 - El clima (temperatura, lluvia) está a una llamada de Open-Meteo, sin clave, y no se enseña en ningún sitio.
 - Marca: falta el **SVG vectorial** (hoy son PNG), los PNG no van cuantizados y
   el icono y el splash nativos siguen siendo los de Expo.
 
 ---
+
+## 2026-11-08 — F5.0: auditoría senior pre-v1
+
+Encargo del autor: auditar la demo publicada contra el norte **"el Instagram
+de las causas y amantes del medioambiente"** (añadido a AGENTS.md y a
+00_VISION.md) y, después, corregir. El informe con cada hallazgo, su gravedad
+y su estado es `docs/auditoria-v1.md`; aquí solo las decisiones.
+
+### Decisiones
+
+- **Medir antes de opinar.** `capture:f50` (todas las rutas × móvil y
+  escritorio × con y sin sesión, consola, peticiones y red lenta) y
+  `journey:f50` (el recorrido de una persona nueva y los casos feos) quedan en
+  el repositorio: la siguiente auditoría compara con los mismos números.
+- **Pines que se tapan: se separan, no se agrupan.** Con catorce pines, una
+  burbuja con número esconde nombres y obliga a un toque más; separarlos en
+  corro deja cada uno tocable y vuelven a su sitio al acercarse. Agrupar se
+  replantea cuando haya cientos.
+- **Mapa sin botón de cuenta.** No correspondía a nada del mapa; la cuenta está
+  en Perfil y en cada acción que la pide. `verify:f23` cambia de intención en
+  ese punto: comprueba la pestaña Perfil, no el botón.
+- **Encuadre por límites, no por centro.** El centro fijo dejaba Malabo fuera
+  en un móvil. `verify:f42` ya no exige "2,10 N · 9,90 E" sino un centro dentro
+  del país.
+- **Atribución del mapa propia**, en una línea fija: el control de MapLibre
+  quedaba debajo de la tarjeta, y OSM exige que se vea.
+- **MapLibre se carga al abrir el mapa** (`import()` dinámico) y su worker se
+  copia en `postinstall` a `public/vendor/maplibre/` (no se commitea).
+- **Feed vacío: datos de zona primero.** La regla de no encabezar el feed con
+  datos protege a las publicaciones; sin ninguna, el dato es lo único útil.
+  Al final de un feed corto, "Estás al día" y adónde ir, en vez de "No hay más
+  publicaciones".
+- **El id de quien mira sale de la sesión, no del perfil.** Con `profile.id`
+  cada pantalla pública se cargaba dos veces.
+- **`textMuted` pasa AA** (#9AA4B2 → #6B7480): lo usa la línea de procedencia.
+- **Migración `010` escrita, sin aplicar**: `verified` solo desde el servidor y
+  topes en los textos de `profiles`. Es lo único de seguridad que no podía
+  esperar a abrir a desconocidos.
+- **Ningún botón se llama igual que el central de la barra.** "Crear
+  publicación" en el feed vacío chocaba con él: confunde al lector de pantalla
+  y tumbaba `verify:ui` y `verify:f14` con la base vacía.
 
 ## 2026-11-08 — Incidente: registro roto en el proyecto de Supabase nuevo
 
@@ -135,160 +180,3 @@ cualquier push a `main` o `gh workflow run deploy.yml`, y se comprueba en el
 bundle publicado. **Va en la checklist**: tras cambiar las Variables, redesplegar.
 
 ---
-
-## 2026-10-17 — F4.7: comentarios y compartir
-
-Encargo del autor: completar el vocabulario de Instagram del feed reutilizando
-lo que ya funcionaba (likes optimistas, RLS de posts, el chat, la pasada
-visual de F4.6b). Renumerado: lo que era F4.7–F4.9 pasa a F4.8–F4.10.
-
-### Decisiones
-
-- **El número de comentarios no es una columna.** El encargo pedía columna con
-  trigger "o lo que ya funcione"; lo que funciona son los "me gusta", contados
-  con un agregado de PostgREST en la misma consulta. Se hace igual: sin
-  trigger que mantener ni número que se pueda desincronizar.
-- **Sin tiempo real en comentarios.** El canal del chat es genérico, pero
-  reutilizarlo no sale gratis: obliga a meter una tabla **pública** en la
-  publicación de Realtime y a abrir un canal por cada visitante que lee, con
-  cuenta o sin ella. Se cargan al abrir y lo propio aparece al instante. Si los
-  comentarios se convierten en conversación, se replantea.
-- **La ruta es `/publicacion/[id]`** y `/post/[id]` redirige: los enlaces que
-  ya se compartieron siguen funcionando. El detalle y el enlace compartido son
-  la misma pantalla —la publicación con sus comentarios—.
-- **Borrar, con confirmación en la fila** ("···" → "Sí, borrar"), no con un
-  diálogo del sistema, que en web no existe. Lo ofrece la app a quien RLS deja:
-  autor del comentario o de la publicación.
-- **Compartir abre una hoja**, como Instagram: dentro, "Enviar por mensaje" a
-  las conversaciones **aceptadas** (una a una; varias a la vez, al backlog);
-  fuera, "Compartir en otras apps" solo si el navegador tiene Web Share —en un
-  escritorio no la hay y el botón no se enseña— y "Copiar enlace" siempre.
-- **La publicación compartida es un mensaje con texto.** El `check` de
-  `messages` exige cuerpo, así que lleva "Publicación compartida" y
-  `shared_post_id`: la bandeja enseña ese texto de vista previa, la burbuja la
-  mini-tarjeta, y si la publicación se borra (`on delete set null`) queda el
-  texto. La mini-tarjeta es blanca con borde en los dos lados: es contenido,
-  no lo que escribe quien la envía.
-- **Sin la `009` no se rompe nada**, como el feed sin la `007`: cada consulta
-  que la necesita lo detecta por el error de PostgREST y se repite sin ella.
-  Con dos migraciones opcionales en el feed ya no vale cualquier `PGRST200`:
-  se mira **qué** relación falta.
-
-### Notificaciones: la campana
-
-Encargo añadido a la misma tarea, y en la misma `009` (no estaba aplicada).
-
-- **Las escribe la base, no la app.** Un trigger por acción (seguir, "me
-  gusta", comentar, enviar una publicación por mensaje) llama a `notify()`.
-  Si las creara el cliente, cualquiera podría fabricarlas con la clave
-  anónima; sin política de INSERT, no hay por dónde.
-- **`notify()` sin EXECUTE para `anon` ni `authenticated`.** Supabase lo da por
-  defecto a toda función nueva de `public`: con un `revoke … from public` a
-  secas, cualquiera la habría llamado por RPC y notificado a quien quisiera.
-  `verify:f47` lo prueba.
-- **Dedupe:** el mismo actor, tipo y publicación no se repite en 24 h; en
-  comentarios, 10 minutos —cada uno es contenido nuevo, pero una ráfaga se lee
-  como una—. Tampoco se notifica con un bloqueo de por medio.
-- **Compartir avisa al autor de la publicación**, sin decirle a quién se
-  envió: la conversación es privada.
-- **Tiempo real, aquí sí:** reutiliza el canal del chat, y la tabla es privada
-  —Realtime aplica su RLS—, así que no abre nada a quien lee sin cuenta. Es lo
-  que en los comentarios no salía barato.
-- **Abrir la pantalla las marca todas leídas**; las filas guardan cómo
-  llegaron, para que "Nuevas" se vea en esa visita.
-- Los mensajes **no** van a la campana: tienen su bocadillo. Push reales, al
-  backlog (post-F3).
-
-### OG tags
-
-Genéricas de OVENG en `+html.tsx` y en `public/404.html`, por donde entra en
-Pages el enlace de una publicación. Por publicación (su texto y su foto) **no
-se puede en Pages**: los rastreadores no ejecutan JavaScript y la ruta no
-tiene HTML propio. Llega con un servidor (F4.9 o una función en el borde;
-@docs/07_CRECIMIENTO.md).
-
-### Verificación
-
-`verify:f47` está escrito —comentarios, compartir y notificaciones— y **no se
-ha pasado**: necesita la `009`, que se
-aplica a mano. Sin ella, `verify:f15`, `verify:f46`, `verify:mvp` y
-`verify:demo` en verde, y probado en el navegador lo que no la necesita: el
-enlace en frío sin cuenta (entra por el 404 y aterriza en la publicación), la
-hoja sin cuenta, "Copiar enlace" con su aviso, el id que no existe y la
-redirección de `/post/`. Tres verificaciones cambian de localizador, no de
-intención: el detalle ya no dice "Los comentarios llegan pronto" sino
-"Comentarios", y la ruta es `/publicacion/`.
-
-De paso: `verify:mvp` deja su publicación en el feed público hasta que corre la
-limpieza con la clave (borra el perfil, y la publicación cae en cascada). Sin
-la clave exportada, se queda a la vista.
-
----
-
-## 2026-10-17 — Cierre: latido anti-pausa y editar perfil
-
-Dos arreglos, sin funcionalidad nueva.
-
-### Supabase se pausó, y con él la app entera
-
-**Causa.** El plan gratuito de Supabase **pausa un proyecto tras unos siete
-días sin actividad**. Esta semana pasó: sin visitas ni sesiones de trabajo, el
-proyecto quedó pausado y la demo publicada se quedó sin nada que leer —feed,
-mapa, perfiles, todo sale de ahí—. El autor lo reanudó a mano desde el
-dashboard. Durante una fase sin código (F3 son conversaciones) es justo lo que
-va a volver a pasar.
-
-**Remedio.** `.github/workflows/keepalive.yml`: cada dos días (06:17 UTC; un
-minuto suelto porque en punto GitHub retrasa los cron) hace
-`GET /rest/v1/entities?select=slug&limit=1` con la clave publicable de
-Variables, la misma que lleva el bundle. Es una lectura pública y legítima
-—lo que pide cualquier visitante al abrir el mapa—, sin secretos nuevos. Si no
-responde 200 con una fila, **el job falla**: GitHub avisa por correo, y uno se
-entera por ahí y no por la app caída. Dos días deja margen para que fallen dos
-latidos seguidos antes de la pausa.
-
-**Lo que no cubre.** GitHub **desactiva los cron de un repositorio sin
-actividad durante 60 días** (avisa por correo antes). Mientras haya commits no
-pasa; si el repositorio se queda quieto dos meses, hay que reactivarlo en
-Actions. Y si el proyecto ya está pausado, el latido no lo despierta —eso
-solo se hace desde el dashboard—: falla y avisa.
-
-### Editar perfil por URL directa
-
-El bug anotado en F4.6b: abierta con la URL, la pantalla se pintaba antes de
-que llegara el perfil y el formulario inicializaba sus campos vacíos, que ya no
-cambiaban. Ahora la pantalla enseña "Cargando tu perfil…" hasta tener el
-perfil y solo entonces monta el formulario (`EditProfileForm`, con `key` por
-cuenta), que nace relleno. `verify:f13` lo recorre recargando
-`/editar-perfil`; contra el código anterior da tres fallos (nombre, biografía
-y aviso), así que la comprobación caza el bug.
-
-### Las cuentas de prueba se recogen solas
-
-Cada script de verificación y de capturas llama a `preCleanTestUsers()`
-(`scripts/lib/test-users.mjs`) **antes de crear nada**: lo que dejó una batería
-cortada a mitad se borra al empezar la siguiente. `cleanup:test-users` usa las
-mismas funciones y queda como herramienta de emergencia, con su simulacro.
-
-**La clave sigue solo en el shell.** Borrar de `auth.users` exige
-`service_role`, y esa clave no entra en `.env` —la limpieza se niega si la
-encuentra ahí—. Se exporta una vez por terminal antes de la batería. Sin ella,
-o con una clave pública por error, la verificación lo dice ("Limpieza previa
-omitida") y sigue: no poder barrer no es motivo para no verificar.
-
-**Y también al terminar** (`finishTestRun(código)`, en lugar del
-`process.exit` final): una verificación que acaba bien no deja **ninguna**
-cuenta @ovengtest.dev, no solo ninguna acumulada. Sale con el mismo código:
-limpiar no cambia el resultado. La limpieza previa se queda porque un script
-que se corta a mitad (Ctrl+C, un error al preparar) no llega a su final, pero
-el siguiente siempre llega a su principio. El precio de las dos es que **dos
-baterías a la vez se pisan**.
-
-`npm run verify:all` pasa las dieciocho con un solo build y termina
-consultando `auth.users`: falla si alguna verificación falla o si queda una
-sola cuenta de prueba.
-
-Probado sin clave (avisa y pasa), con la clave pública (avisa y pasa) y con un
-cliente simulado de 450 usuarios en tres páginas: lista los 150 de prueba, no
-toca ninguno real, vacía su storage y se niega a borrar un correo ajeno. El
-borrado contra Supabase real necesita la clave, que esta sesión no tiene.

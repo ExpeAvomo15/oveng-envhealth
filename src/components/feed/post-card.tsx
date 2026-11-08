@@ -88,10 +88,17 @@ export function PostCard({ post, onPressBody, variant = 'card', onPressComments 
       } else {
         await unlikePost(profile.id, post.id);
       }
-    } catch {
+    } catch (cause) {
       // Revertir es lo único honesto: el número que se ve tiene que ser el real.
       setOptimistic({ postId: post.id, liked: !next, likes });
-      showToast('No se ha podido guardar tu "me gusta".');
+      // Una sesión caducada se dice como tal: "no se ha podido" a secas no
+      // explica qué hacer (F5.0, I-8).
+      const expired = /jwt|token|401/i.test(String((cause as { message?: string })?.message ?? ''));
+      showToast(
+        expired
+          ? 'Tu sesión ha caducado. Vuelve a entrar para dar "me gusta".'
+          : 'No se ha podido guardar tu "me gusta".',
+      );
     } finally {
       setBusy(false);
     }

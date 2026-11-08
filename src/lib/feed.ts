@@ -301,3 +301,27 @@ export async function fetchPlacePosts(entityId: string, viewerId: string | null,
     .map(toFeedPost)
     .filter((post): post is FeedPost => post !== null);
 }
+
+/**
+ * Las publicaciones de una cuenta, las más nuevas primero (F5.0): la lista del
+ * perfil, que hasta ahora enseñaba el contador y "Todavía no hay
+ * publicaciones". Misma consulta que el feed, filtrada por autor; el índice
+ * `posts_author_created_at_idx` la sirve entera.
+ */
+export async function fetchAuthorPosts(authorId: string, viewerId: string | null, limit = FEED_PAGE_SIZE): Promise<FeedPost[]> {
+  const { data, error } = await runFeedQuery((select) => {
+    let query = supabase
+      .from('posts')
+      .select(select)
+      .eq('author_id', authorId)
+      .order('created_at', { ascending: false })
+      .limit(limit);
+    if (viewerId) query = query.eq('my_like.user_id', viewerId);
+    return query;
+  }, viewerId !== null);
+  if (error) throw error;
+
+  return ((data ?? []) as unknown as RawFeedRow[])
+    .map(toFeedPost)
+    .filter((post): post is FeedPost => post !== null);
+}
