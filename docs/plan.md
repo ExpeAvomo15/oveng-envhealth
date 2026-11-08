@@ -471,7 +471,7 @@ funcionalidad nueva.
       **19 de 19**. Migración **`010`** (`verified` y topes de `profiles`)
       **escrita, sin aplicar**. Informe y veredicto en `docs/auditoria-v1.md`:
       **todavía no es v1** (red vacía, denunciar y moderar, `010`, SMTP con
-      dominio propio).
+      dominio propio). Pendiente de pulido: arranque en red lenta (fuentes TTF).
 
 ## Backlog post-demo
 

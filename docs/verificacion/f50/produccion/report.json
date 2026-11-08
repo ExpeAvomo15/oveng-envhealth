@@ -1,0 +1,1371 @@
+{
+  "phase": "produccion",
+  "origin": "https://expeavomo15.github.io/oveng-envhealth",
+  "at": "2026-11-08T20:11:21.492Z",
+  "routes": [
+    {
+      "vp": "movil",
+      "mode": "anon",
+      "path": "/",
+      "finalPath": "/",
+      "idleMs": 4607,
+      "console": [],
+      "requests": [
+        "GET /rest/v1/posts?select=id%2Ccontent%2Cimage_url%2Chashtags%2Ccreated_at%2Cauthor%3Aprofiles%21posts_author_id_fkey%28id%2Cusername%2Cdisplay_name%2Cavatar_url%2Cverified%29%2C",
+        "GET /rest/v1/entities?select=*&lat=gte.-1.6&lat=lte.4&lng=gte.5&lng=lte.11.5&order=name.asc",
+        "GET /rest/v1/entity_metrics?select=*&entity_id=in.%28c6553eb6-507d-424c-9e98-bb6b8ce7af72%2Cfed35cfa-8d46-49a9-9014-d0d770313ec2%2C0be904e3-d295-445d-a70e-9aefee9ba618%2C2ecc8278-94c4-4d8",
+        "GET /rest/v1/entity_rating_summary?select=entity_id%2Caverage%2Cratings_count&entity_id=in.%28e199a447-a1a1-4935-8dd2-eb5523a24c2a%29",
+        "GET /rest/v1/entity_rating_summary?select=entity_id%2Caverage%2Cratings_count&entity_id=in.%283a37c2bc-de47-49d8-a515-932931b738ce%29",
+        "EXT air-quality-api.open-meteo.com/v1/air-quality"
+      ],
+      "failed": [],
+      "text": "  Entrar La red de quienes cuidan el medioambiente  AV Ana Verde (prueba) @f50bmw89pgzn · ahora  Hoy hemos limpiado la ribera del Ntem 🌿🐢 mw89pgzn. #Ntem #limpieza Texto largo para ver cómo corta. Texto largo para ver cómo corta. Texto largo para ver cómo corta. Texto largo para ver cómo corta. Texto largo para ver cómo corta. Texto largo para ver cómo corta. ver más  0  0   Datos ambien",
+      "map": false
+    },
+    {
+      "vp": "movil",
+      "mode": "anon",
+      "path": "/buscar",
+      "finalPath": "/buscar",
+      "idleMs": 1307,
+      "console": [],
+      "requests": [],
+      "failed": [],
+      "text": "Buscar   Todo Empleo Iniciativas Personas Turismo Verde Sugerencias  Energía renovable Empresas e iniciativas   Gestión de residuos Empresas e iniciativas   Calidad del aire Datos y monitoreo   Agricultura sostenible Empresas e iniciativas  Tendencias Energía renovable Reforestación Reciclaje Biodiversidad Cambio climático Economía circular  Inicio  Buscar  Crear  Mapa  Perfil",
+      "map": false
+    },
+    {
+      "vp": "movil",
+      "mode": "anon",
+      "path": "/mapa",
+      "finalPath": "/mapa",
+      "idleMs": 3237,
+      "console": [
+        "warning: [.WebGL-0x353c0137bc00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+        "warning: [.WebGL-0x353c0137bc00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+        "warning: [.WebGL-0x353c0137bc00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+        "warning: [.WebGL-0x353c0137bc00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat)"
+      ],
+      "requests": [
+        "GET /rest/v1/entities?select=*&order=verified.desc%2Cname.asc&limit=100",
+        "GET /rest/v1/entity_rating_summary?select=entity_id%2Caverage%2Cratings_count&entity_id=in.%28c6553eb6-507d-424c-9e98-bb6b8ce7af72%2Cfed35cfa-8d46-49a9-9014-d0d770313ec2%2C0be904e3-d295-445d-a70",
+        "GET /rest/v1/entity_metrics?select=*&metric=eq.aire&entity_id=in.%28c6553eb6-507d-424c-9e98-bb6b8ce7af72%2Cfed35cfa-8d46-49a9-9014-d0d770313ec2%2C0be904e3-d295-445d-a70e-9aefee9ba618%2C2e",
+        "GET /rest/v1/entity_metrics?select=*&metric=eq.agua&entity_id=in.%28c6553eb6-507d-424c-9e98-bb6b8ce7af72%2Cfed35cfa-8d46-49a9-9014-d0d770313ec2%2C0be904e3-d295-445d-a70e-9aefee9ba618%2C2e",
+        "EXT air-quality-api.open-meteo.com/v1/air-quality"
+      ],
+      "failed": [],
+      "text": "                              Todo Aire Agua Suelo Biodiversidad Energía Residuos © OpenStreetMap · Aire: CAMS de Copernicus vía Open-Meteo   Calidad del aire Buena Índice de calidad del aire: 30 (escala europea)  Centro del mapa · 1,98 N · 9,90 E 🛰️ Estimación satelital Copernicus · hace 11 min   Inicio  Buscar  Crear  Mapa  Perfil",
+      "map": true
+    },
+    {
+      "vp": "movil",
+      "mode": "anon",
+      "path": "/turismo-verde",
+      "finalPath": "/turismo-verde",
+      "idleMs": 1857,
+      "console": [],
+      "requests": [
+        "GET /rest/v1/entities?select=*&type=eq.lugar&order=verified.desc%2Cname.asc&limit=200",
+        "GET /rest/v1/entity_rating_summary?select=entity_id%2Caverage%2Cratings_count&entity_id=in.%289ab6d3ba-f5de-45d8-a128-454662aef61c%2C799957b5-f7a7-446b-922f-d4dfdf8d92cb%2C08d7d59b-577e-4cf6-9b0"
+      ],
+      "failed": [],
+      "text": " Turismo Verde 🌿 ¿Dónde quieres disfrutar de la naturaleza?  📍 Cerca de mí Guinea Ecuatorial Málaga y Andalucía Todos los rincones verdes  Acantilados de Maro-Cerro Gordo Acantilados y calas de agua clara entre Nerja y Granada. Báñate en las calas, o recorre la costa en kayak mirando el fondo. Nuevo  Cómo llegar   Caminito del Rey Pasarelas colgadas sobre el desfiladero de los Gaitanes, co",
+      "map": false
+    },
+    {
+      "vp": "movil",
+      "mode": "anon",
+      "path": "/entidad/rio-ntem",
+      "finalPath": "/entidad/rio-ntem",
+      "idleMs": 2821,
+      "console": [
+        "error: Failed to load resource: the server responded with a status of 404 ()"
+      ],
+      "requests": [
+        "GET /rest/v1/entities?select=*&slug=eq.rio-ntem",
+        "GET /rest/v1/entity_rating_summary?select=entity_id%2Caverage%2Cratings_count&entity_id=in.%28e199a447-a1a1-4935-8dd2-eb5523a24c2a%29",
+        "GET /rest/v1/entity_metrics?select=*&entity_id=eq.e199a447-a1a1-4935-8dd2-eb5523a24c2a&order=metric.asc",
+        "HEAD /rest/v1/entity_follows?select=*&entity_id=eq.e199a447-a1a1-4935-8dd2-eb5523a24c2a",
+        "GET /rest/v1/entity_ratings?select=entity_id%2Cuser_id%2Cscore%2Ccomment%2Ccreated_at%2Cauthor%3Aprofiles%28username%2Cdisplay_name%2Cavatar_url%29&entity_id=eq.e199a447-a1a1-4935-8dd2-eb",
+        "GET /rest/v1/entity_rating_summary?select=average%2Cratings_count&entity_id=eq.e199a447-a1a1-4935-8dd2-eb5523a24c2a",
+        "EXT air-quality-api.open-meteo.com/v1/air-quality",
+        "EXT api.open-meteo.com/v1/forecast",
+        "EXT api.gbif.org/v1/occurrence/search",
+        "GET /rest/v1/jobs?select=*%2Centity%3Aentities%21jobs_entity_id_fkey%28id%2Cslug%2Cname%2Ctype%2Ccategory%2Clocation_name%29&entity_id=eq.e199a447-a1a1-4935-8dd2-eb5523a24c2a&or",
+        "GET /rest/v1/posts?select=id%2Ccontent%2Cimage_url%2Chashtags%2Ccreated_at%2Cauthor%3Aprofiles%21posts_author_id_fkey%28id%2Cusername%2Cdisplay_name%2Cavatar_url%2Cverified%29%2C",
+        "HEAD /rest/v1/entity_admins?select=*&entity_id=eq.e199a447-a1a1-4935-8dd2-eb5523a24c2a&status=eq.approved"
+      ],
+      "failed": [
+        "404 https://expeavomo15.github.io/oveng-envhealth/entidad/rio-ntem",
+        "https://lutgqjvrxplwjrgtmvfg.supabase.co/rest/v1/entity_follows?select=*&entity_id=eq.e199a447-a1a1-4935-8dd2-eb5523a24c2a net::ERR_ABORTED",
+        "https://lutgqjvrxplwjrgtmvfg.supabase.co/rest/v1/entity_admins?select=*&entity_id=eq.e199a447-a1a1-4935-8dd2-eb5523a24c2a&status=eq.approved net::ERR_ABORTED"
+      ],
+      "text": "   Sé el primero en valorar Río Ntem  Turismo Verde Agua Muy bueno   Bata, Litoral · Guinea Ecuatorial 0 seguidores Inicia sesión para seguir y valorar El río que marca la frontera norte y desemboca en el Atlántico. Pasea por la orilla al atardecer, mira cómo vuelven las barcas de la pesca artesanal y súmate a una de sus jornadas de limpieza comunitaria. Lo que llevas, te lo llevas. ¿Trabaja",
+      "map": false
+    },
+    {
+      "vp": "movil",
+      "mode": "anon",
+      "path": "/entidad/parque-nacional-monte-alen",
+      "finalPath": "/entidad/parque-nacional-monte-alen",
+      "idleMs": 2670,
+      "console": [
+        "error: Failed to load resource: the server responded with a status of 404 ()"
+      ],
+      "requests": [
+        "GET /rest/v1/entities?select=*&slug=eq.parque-nacional-monte-alen",
+        "GET /rest/v1/entity_rating_summary?select=entity_id%2Caverage%2Cratings_count&entity_id=in.%28799957b5-f7a7-446b-922f-d4dfdf8d92cb%29",
+        "GET /rest/v1/entity_metrics?select=*&entity_id=eq.799957b5-f7a7-446b-922f-d4dfdf8d92cb&order=metric.asc",
+        "HEAD /rest/v1/entity_follows?select=*&entity_id=eq.799957b5-f7a7-446b-922f-d4dfdf8d92cb",
+        "GET /rest/v1/entity_ratings?select=entity_id%2Cuser_id%2Cscore%2Ccomment%2Ccreated_at%2Cauthor%3Aprofiles%28username%2Cdisplay_name%2Cavatar_url%29&entity_id=eq.799957b5-f7a7-446b-922f-d4",
+        "GET /rest/v1/entity_rating_summary?select=average%2Cratings_count&entity_id=eq.799957b5-f7a7-446b-922f-d4dfdf8d92cb",
+        "EXT air-quality-api.open-meteo.com/v1/air-quality",
+        "EXT api.open-meteo.com/v1/forecast",
+        "EXT api.gbif.org/v1/occurrence/search",
+        "GET /rest/v1/jobs?select=*%2Centity%3Aentities%21jobs_entity_id_fkey%28id%2Cslug%2Cname%2Ctype%2Ccategory%2Clocation_name%29&entity_id=eq.799957b5-f7a7-446b-922f-d4dfdf8d92cb&or",
+        "GET /rest/v1/posts?select=id%2Ccontent%2Cimage_url%2Chashtags%2Ccreated_at%2Cauthor%3Aprofiles%21posts_author_id_fkey%28id%2Cusername%2Cdisplay_name%2Cavatar_url%2Cverified%29%2C",
+        "HEAD /rest/v1/entity_admins?select=*&entity_id=eq.799957b5-f7a7-446b-922f-d4dfdf8d92cb&status=eq.approved"
+      ],
+      "failed": [
+        "404 https://expeavomo15.github.io/oveng-envhealth/entidad/parque-nacional-monte-alen",
+        "https://lutgqjvrxplwjrgtmvfg.supabase.co/rest/v1/entity_follows?select=*&entity_id=eq.799957b5-f7a7-446b-922f-d4dfdf8d92cb net::ERR_ABORTED",
+        "https://lutgqjvrxplwjrgtmvfg.supabase.co/rest/v1/entity_admins?select=*&entity_id=eq.799957b5-f7a7-446b-922f-d4dfdf8d92cb&status=eq.approved net::ERR_ABORTED"
+      ],
+      "text": "   Sé el primero en valorar Parque Nacional de Monte Alén  Turismo Verde Biodiversidad   Monte Alén, Centro Sur · Guinea Ecuatorial 0 seguidores Inicia sesión para seguir y valorar Corazón verde de la Guinea continental: 2.000 km² de selva primaria. Ven a caminar sus senderos con un guía local, escuchar más de 250 especies de aves al amanecer y, con suerte, ver huellas de elefantes de bosque",
+      "map": false
+    },
+    {
+      "vp": "movil",
+      "mode": "anon",
+      "path": "/empleo/cefc8ed0-bb05-4a7d-be8e-27614297e653",
+      "finalPath": "/empleo/cefc8ed0-bb05-4a7d-be8e-27614297e653",
+      "idleMs": 1544,
+      "console": [
+        "error: Failed to load resource: the server responded with a status of 404 ()"
+      ],
+      "requests": [
+        "GET /rest/v1/jobs?select=*%2Centity%3Aentities%21jobs_entity_id_fkey%28id%2Cslug%2Cname%2Ctype%2Ccategory%2Clocation_name%29&id=eq.cefc8ed0-bb05-4a7d-be8e-27614297e653"
+      ],
+      "failed": [
+        "404 https://expeavomo15.github.io/oveng-envhealth/empleo/cefc8ed0-bb05-4a7d-be8e-27614297e653"
+      ],
+      "text": " Oferta de empleo Técnico/a de instalaciones solares  EcoGuinea Empresa   Jornada completa  Malabo, Bioko Norte  Publicada hace 4 h Oferta de ejemplo La ha cargado OVENG para enseñar cómo se verán las ofertas. No es una oferta real. Sobre el trabajo Montarás y revisarás placas solares en casas, escuelas y centros de salud de Bioko. Buscamos a alguien con formación en electricidad o ganas de ",
+      "map": false
+    },
+    {
+      "vp": "movil",
+      "mode": "anon",
+      "path": "/publicacion/ea888d6f-7cb7-4e2c-94a9-dc92922c2c22",
+      "finalPath": "/publicacion/ea888d6f-7cb7-4e2c-94a9-dc92922c2c22",
+      "idleMs": 1559,
+      "console": [
+        "error: Failed to load resource: the server responded with a status of 404 ()"
+      ],
+      "requests": [
+        "GET /rest/v1/posts?select=id%2Ccontent%2Cimage_url%2Chashtags%2Ccreated_at%2Cauthor%3Aprofiles%21posts_author_id_fkey%28id%2Cusername%2Cdisplay_name%2Cavatar_url%2Cverified%29%2C",
+        "GET /rest/v1/comments?select=id%2Cpost_id%2Ccontent%2Ccreated_at%2Cauthor%3Aprofiles%21comments_user_id_fkey%28id%2Cusername%2Cdisplay_name%2Cavatar_url%29&post_id=eq.ea888d6f-7cb7-"
+      ],
+      "failed": [
+        "404 https://expeavomo15.github.io/oveng-envhealth/publicacion/ea888d6f-7cb7-4e2c-94a9-dc92922c2c22"
+      ],
+      "text": " Publicación AV Ana Verde (prueba) @f50bmw89pgzn · ahora  Hoy hemos limpiado la ribera del Ntem 🌿🐢 mw89pgzn. #Ntem #limpieza Texto largo para ver cómo corta. Texto largo para ver cómo corta. Texto largo para ver cómo corta. Texto largo para ver cómo corta. Texto largo para ver cómo corta. Texto largo para ver cómo corta.  0  0  Comentarios Aún no hay comentarios. Entra para escribir el prim",
+      "map": false
+    },
+    {
+      "vp": "movil",
+      "mode": "anon",
+      "path": "/publicacion/00000000-0000-4000-8000-000000000000",
+      "finalPath": "/publicacion/00000000-0000-4000-8000-000000000000",
+      "idleMs": 1527,
+      "console": [
+        "error: Failed to load resource: the server responded with a status of 404 ()"
+      ],
+      "requests": [
+        "GET /rest/v1/posts?select=id%2Ccontent%2Cimage_url%2Chashtags%2Ccreated_at%2Cauthor%3Aprofiles%21posts_author_id_fkey%28id%2Cusername%2Cdisplay_name%2Cavatar_url%2Cverified%29%2C",
+        "GET /rest/v1/comments?select=id%2Cpost_id%2Ccontent%2Ccreated_at%2Cauthor%3Aprofiles%21comments_user_id_fkey%28id%2Cusername%2Cdisplay_name%2Cavatar_url%29&post_id=eq.00000000-0000-"
+      ],
+      "failed": [
+        "404 https://expeavomo15.github.io/oveng-envhealth/publicacion/00000000-0000-4000-8000-000000000000"
+      ],
+      "text": " Esta publicación no existe Puede que quien la escribió la haya borrado, o que el enlace esté incompleto. Ir al inicio",
+      "map": false
+    },
+    {
+      "vp": "movil",
+      "mode": "anon",
+      "path": "/user/f50bmw89pgzn",
+      "finalPath": "/user/f50bmw89pgzn",
+      "idleMs": 2222,
+      "console": [
+        "error: Failed to load resource: the server responded with a status of 404 ()"
+      ],
+      "requests": [
+        "GET /rest/v1/profiles?select=*&username=eq.f50bmw89pgzn",
+        "HEAD /rest/v1/posts?select=*&author_id=eq.e3719e1a-a169-4545-b402-7199d89a18f0",
+        "HEAD /rest/v1/follows?select=*&following_id=eq.e3719e1a-a169-4545-b402-7199d89a18f0",
+        "HEAD /rest/v1/follows?select=*&follower_id=eq.e3719e1a-a169-4545-b402-7199d89a18f0",
+        "GET /rest/v1/posts?select=id%2Ccontent%2Cimage_url%2Chashtags%2Ccreated_at%2Cauthor%3Aprofiles%21posts_author_id_fkey%28id%2Cusername%2Cdisplay_name%2Cavatar_url%2Cverified%29%2C"
+      ],
+      "failed": [
+        "404 https://expeavomo15.github.io/oveng-envhealth/user/f50bmw89pgzn",
+        "https://lutgqjvrxplwjrgtmvfg.supabase.co/rest/v1/follows?select=*&follower_id=eq.e3719e1a-a169-4545-b402-7199d89a18f0 net::ERR_ABORTED",
+        "https://lutgqjvrxplwjrgtmvfg.supabase.co/rest/v1/follows?select=*&following_id=eq.e3719e1a-a169-4545-b402-7199d89a18f0 net::ERR_ABORTED",
+        "https://lutgqjvrxplwjrgtmvfg.supabase.co/rest/v1/posts?select=*&author_id=eq.e3719e1a-a169-4545-b402-7199d89a18f0 net::ERR_ABORTED"
+      ],
+      "text": " @f50bmw89pgzn AV 1 Publicaciones 0 Seguidores 0 Siguiendo Ana Verde (prueba)  Se unió en noviembre de 2026 Inicia sesión para seguir  Enviar mensaje Publicaciones Guardados AV Ana Verde (prueba) @f50bmw89pgzn · ahora  Hoy hemos limpiado la ribera del Ntem 🌿🐢 mw89pgzn. #Ntem #limpieza Texto largo para ver cómo corta. Texto largo para ver cómo corta. Texto largo para ver cómo corta. Texto lar",
+      "map": false
+    },
+    {
+      "vp": "movil",
+      "mode": "anon",
+      "path": "/user/nadie_existe_aqui",
+      "finalPath": "/user/nadie_existe_aqui",
+      "idleMs": 1818,
+      "console": [
+        "error: Failed to load resource: the server responded with a status of 404 ()"
+      ],
+      "requests": [
+        "GET /rest/v1/profiles?select=*&username=eq.nadie_existe_aqui"
+      ],
+      "failed": [
+        "404 https://expeavomo15.github.io/oveng-envhealth/user/nadie_existe_aqui"
+      ],
+      "text": " Esa cuenta no existe No hay ningún perfil con el nombre @nadie_existe_aqui. Ir al inicio Explorar el mapa",
+      "map": false
+    },
+    {
+      "vp": "movil",
+      "mode": "anon",
+      "path": "/entidad/no-existe",
+      "finalPath": "/entidad/no-existe",
+      "idleMs": 1552,
+      "console": [
+        "error: Failed to load resource: the server responded with a status of 404 ()"
+      ],
+      "requests": [
+        "GET /rest/v1/entities?select=*&slug=eq.no-existe"
+      ],
+      "failed": [
+        "404 https://expeavomo15.github.io/oveng-envhealth/entidad/no-existe"
+      ],
+      "text": " Esa página no existe No hay ningún lugar, empresa ni iniciativa con el identificador «no-existe». Ir al inicio Explorar el mapa",
+      "map": false
+    },
+    {
+      "vp": "movil",
+      "mode": "anon",
+      "path": "/restablecer",
+      "finalPath": "/restablecer",
+      "idleMs": 1280,
+      "console": [],
+      "requests": [],
+      "failed": [],
+      "text": "Nueva contraseña Elige una contraseña nueva para tu cuenta de OVENG. Falta el enlace Para elegir una contraseña nueva, abre el enlace que te enviamos por email. Pedir un enlace nuevo Ir al inicio",
+      "map": false
+    },
+    {
+      "vp": "movil",
+      "mode": "anon",
+      "path": "/welcome",
+      "finalPath": "/welcome",
+      "idleMs": 2417,
+      "console": [],
+      "requests": [],
+      "failed": [],
+      "text": "EnvHealth Tu entorno. Tu salud. Nuestro planeta. Conecta con personas, empresas e iniciativas que cuidan el entorno donde vives. Crear cuenta Iniciar sesión",
+      "map": false
+    },
+    {
+      "vp": "movil",
+      "mode": "anon",
+      "path": "/register",
+      "finalPath": "/register",
+      "idleMs": 1263,
+      "console": [],
+      "requests": [],
+      "failed": [],
+      "text": "Crear cuenta Únete a quienes cuidan su entorno. Email Contraseña Mostrar Al menos 8 caracteres. Nombre de usuario Minúsculas, números y guion bajo. Es tu nombre público. Nombre visible Como quieres que te vean las demás cuentas. Crear cuenta ¿Ya tienes cuenta? Iniciar sesión",
+      "map": false
+    },
+    {
+      "vp": "movil",
+      "mode": "anon",
+      "path": "/login",
+      "finalPath": "/login",
+      "idleMs": 1289,
+      "console": [],
+      "requests": [],
+      "failed": [],
+      "text": "Iniciar sesión Vuelve a tu entorno. Email Contraseña Mostrar ¿Olvidaste tu contraseña? Entrar ¿Todavía no tienes cuenta? Crear cuenta",
+      "map": false
+    },
+    {
+      "vp": "movil",
+      "mode": "anon",
+      "path": "/forgot-password",
+      "finalPath": "/forgot-password",
+      "idleMs": 1264,
+      "console": [],
+      "requests": [],
+      "failed": [],
+      "text": "Recuperar contraseña Te enviamos un enlace para que elijas una nueva. Email Enviar enlace Volver",
+      "map": false
+    },
+    {
+      "vp": "movil",
+      "mode": "anon",
+      "path": "/esta-ruta-no-existe",
+      "finalPath": "/esta-ruta-no-existe",
+      "idleMs": 1377,
+      "console": [
+        "error: Failed to load resource: the server responded with a status of 404 ()"
+      ],
+      "requests": [],
+      "failed": [
+        "404 https://expeavomo15.github.io/oveng-envhealth/esta-ruta-no-existe"
+      ],
+      "text": " Esta página no existe Puede que el enlace esté incompleto o que lo que buscabas ya no esté aquí. Ir al inicio Explorar el mapa  Inicio  Buscar  Crear  Mapa  Perfil",
+      "map": false
+    },
+    {
+      "vp": "movil",
+      "mode": "anon",
+      "path": "/notificaciones",
+      "finalPath": "/welcome",
+      "idleMs": 1236,
+      "console": [],
+      "requests": [],
+      "failed": [],
+      "text": "EnvHealth Tu entorno. Tu salud. Nuestro planeta. Conecta con personas, empresas e iniciativas que cuidan el entorno donde vives. Crear cuenta Iniciar sesión",
+      "map": false
+    },
+    {
+      "vp": "movil",
+      "mode": "anon",
+      "path": "/crear",
+      "finalPath": "/welcome",
+      "idleMs": 1252,
+      "console": [],
+      "requests": [],
+      "failed": [],
+      "text": "EnvHealth Tu entorno. Tu salud. Nuestro planeta. Conecta con personas, empresas e iniciativas que cuidan el entorno donde vives. Crear cuenta Iniciar sesión",
+      "map": false
+    },
+    {
+      "vp": "movil",
+      "mode": "anon",
+      "path": "/perfil",
+      "finalPath": "/welcome",
+      "idleMs": 1273,
+      "console": [],
+      "requests": [],
+      "failed": [],
+      "text": "EnvHealth Tu entorno. Tu salud. Nuestro planeta. Conecta con personas, empresas e iniciativas que cuidan el entorno donde vives. Crear cuenta Iniciar sesión",
+      "map": false
+    },
+    {
+      "vp": "movil",
+      "mode": "anon",
+      "path": "/design-system",
+      "finalPath": "/welcome",
+      "idleMs": 1245,
+      "console": [],
+      "requests": [],
+      "failed": [],
+      "text": "EnvHealth Tu entorno. Tu salud. Nuestro planeta. Conecta con personas, empresas e iniciativas que cuidan el entorno donde vives. Crear cuenta Iniciar sesión",
+      "map": false
+    },
+    {
+      "vp": "movil",
+      "mode": "sesion",
+      "path": "/",
+      "finalPath": "/",
+      "idleMs": 2566,
+      "console": [],
+      "requests": [
+        "GET /rest/v1/posts?select=id%2Ccontent%2Cimage_url%2Chashtags%2Ccreated_at%2Cauthor%3Aprofiles%21posts_author_id_fkey%28id%2Cusername%2Cdisplay_name%2Cavatar_url%2Cverified%29%2C",
+        "GET /rest/v1/profiles?select=*&id=eq.f327511b-3d4e-4008-a663-ecc7626dc617",
+        "GET /rest/v1/entities?select=*&lat=gte.-1.6&lat=lte.4&lng=gte.5&lng=lte.11.5&order=name.asc",
+        "GET /rest/v1/entity_metrics?select=*&entity_id=in.%28c6553eb6-507d-424c-9e98-bb6b8ce7af72%2Cfed35cfa-8d46-49a9-9014-d0d770313ec2%2C0be904e3-d295-445d-a70e-9aefee9ba618%2C2ecc8278-94c4-4d8",
+        "GET /rest/v1/conversations?select=id%2Cstatus%2Crequested_by%2Clast_message_at%2Cuser_low%2Cuser_high%2Clow%3Aprofiles%21conversations_user_low_fkey%28id%2Cusername%2Cdisplay_name%2Cavat",
+        "HEAD /rest/v1/notifications?select=id&user_id=eq.f327511b-3d4e-4008-a663-ecc7626dc617&read=eq.false",
+        "GET /rest/v1/messages?select=conversation_id%2Csender_id%2Cbody%2Ccreated_at%2Cread_at&conversation_id=in.%2811d55200-0255-4bf6-8c02-0defa4a70081%29&order=created_at.desc&limit=1000",
+        "GET /rest/v1/entity_rating_summary?select=entity_id%2Caverage%2Cratings_count&entity_id=in.%28e199a447-a1a1-4935-8dd2-eb5523a24c2a%29",
+        "GET /rest/v1/entity_rating_summary?select=entity_id%2Caverage%2Cratings_count&entity_id=in.%283a37c2bc-de47-49d8-a515-932931b738ce%29",
+        "EXT air-quality-api.open-meteo.com/v1/air-quality"
+      ],
+      "failed": [
+        "https://lutgqjvrxplwjrgtmvfg.supabase.co/rest/v1/notifications?select=id&user_id=eq.f327511b-3d4e-4008-a663-ecc7626dc617&read=eq.false net::ERR_ABORTED"
+      ],
+      "text": " 1  RL Para ti Siguiendo  AV Ana Verde (prueba) @f50bmw89pgzn · 1 min  Hoy hemos limpiado la ribera del Ntem 🌿🐢 mw89pgzn. #Ntem #limpieza Texto largo para ver cómo corta. Texto largo para ver cómo corta. Texto largo para ver cómo corta. Texto largo para ver cómo corta. Texto largo para ver cómo corta. Texto largo para ver cómo corta. ver más  0  0   Datos ambientales de Guinea Ecuatorial",
+      "map": false
+    },
+    {
+      "vp": "movil",
+      "mode": "sesion",
+      "path": "/buscar",
+      "finalPath": "/buscar",
+      "idleMs": 1416,
+      "console": [],
+      "requests": [
+        "GET /rest/v1/profiles?select=*&id=eq.f327511b-3d4e-4008-a663-ecc7626dc617"
+      ],
+      "failed": [],
+      "text": "Buscar   Todo Empleo Iniciativas Personas Turismo Verde Sugerencias  Energía renovable Empresas e iniciativas   Gestión de residuos Empresas e iniciativas   Calidad del aire Datos y monitoreo   Agricultura sostenible Empresas e iniciativas  Tendencias Energía renovable Reforestación Reciclaje Biodiversidad Cambio climático Economía circular  Inicio  Buscar  Crear  Mapa  Perfil",
+      "map": false
+    },
+    {
+      "vp": "movil",
+      "mode": "sesion",
+      "path": "/mapa",
+      "finalPath": "/mapa",
+      "idleMs": 4148,
+      "console": [],
+      "requests": [
+        "GET /rest/v1/entities?select=*&order=verified.desc%2Cname.asc&limit=100",
+        "GET /rest/v1/profiles?select=*&id=eq.f327511b-3d4e-4008-a663-ecc7626dc617",
+        "GET /rest/v1/entity_rating_summary?select=entity_id%2Caverage%2Cratings_count&entity_id=in.%28c6553eb6-507d-424c-9e98-bb6b8ce7af72%2Cfed35cfa-8d46-49a9-9014-d0d770313ec2%2C0be904e3-d295-445d-a70",
+        "GET /rest/v1/entity_metrics?select=*&metric=eq.aire&entity_id=in.%28c6553eb6-507d-424c-9e98-bb6b8ce7af72%2Cfed35cfa-8d46-49a9-9014-d0d770313ec2%2C0be904e3-d295-445d-a70e-9aefee9ba618%2C2e",
+        "GET /rest/v1/entity_metrics?select=*&metric=eq.agua&entity_id=in.%28c6553eb6-507d-424c-9e98-bb6b8ce7af72%2Cfed35cfa-8d46-49a9-9014-d0d770313ec2%2C0be904e3-d295-445d-a70e-9aefee9ba618%2C2e",
+        "EXT air-quality-api.open-meteo.com/v1/air-quality"
+      ],
+      "failed": [],
+      "text": "                              Todo Aire Agua Suelo Biodiversidad Energía Residuos © OpenStreetMap · Aire: CAMS de Copernicus vía Open-Meteo   Calidad del aire Buena Índice de calidad del aire: 30 (escala europea)  Centro del mapa · 1,98 N · 9,90 E 🛰️ Estimación satelital Copernicus · hace 12 min   Inicio  Buscar  Crear  Mapa  Perfil",
+      "map": true
+    },
+    {
+      "vp": "movil",
+      "mode": "sesion",
+      "path": "/perfil",
+      "finalPath": "/perfil",
+      "idleMs": 2289,
+      "console": [],
+      "requests": [
+        "GET /rest/v1/profiles?select=*&id=eq.f327511b-3d4e-4008-a663-ecc7626dc617",
+        "GET /rest/v1/profiles?select=*&id=eq.f327511b-3d4e-4008-a663-ecc7626dc617",
+        "GET /rest/v1/profiles?select=*&id=eq.f327511b-3d4e-4008-a663-ecc7626dc617",
+        "HEAD /rest/v1/posts?select=*&author_id=eq.f327511b-3d4e-4008-a663-ecc7626dc617",
+        "HEAD /rest/v1/follows?select=*&following_id=eq.f327511b-3d4e-4008-a663-ecc7626dc617",
+        "HEAD /rest/v1/follows?select=*&follower_id=eq.f327511b-3d4e-4008-a663-ecc7626dc617",
+        "GET /rest/v1/entity_admins?select=created_at%2Centity%3Aentities%21entity_admins_entity_id_fkey%28id%2Cslug%2Cname%2Ctype%2Ccategory%29&user_id=eq.f327511b-3d4e-4008-a663-ecc7626dc617&st",
+        "GET /rest/v1/posts?select=id%2Ccontent%2Cimage_url%2Chashtags%2Ccreated_at%2Cauthor%3Aprofiles%21posts_author_id_fkey%28id%2Cusername%2Cdisplay_name%2Cavatar_url%2Cverified%29%2C"
+      ],
+      "failed": [
+        "https://lutgqjvrxplwjrgtmvfg.supabase.co/rest/v1/follows?select=*&follower_id=eq.f327511b-3d4e-4008-a663-ecc7626dc617 net::ERR_ABORTED",
+        "https://lutgqjvrxplwjrgtmvfg.supabase.co/rest/v1/posts?select=*&author_id=eq.f327511b-3d4e-4008-a663-ecc7626dc617 net::ERR_ABORTED",
+        "https://lutgqjvrxplwjrgtmvfg.supabase.co/rest/v1/follows?select=*&following_id=eq.f327511b-3d4e-4008-a663-ecc7626dc617 net::ERR_ABORTED"
+      ],
+      "text": "@f50amw89pgzn  RL 0 Publicaciones 0 Seguidores 0 Siguiendo Recién llegada  Se unió en noviembre de 2026 Editar perfil  Tu impacto ambiental Aún sin medir Se medirá cuando puedas registrar lo que haces por el entorno.  Puntos OVENG 0 Se ganan participando en iniciativas. Publicaciones Guardados  Todavía no has publicado nada Cuenta qué está pasando en tu entorno: una limpieza, un paseo, algo q",
+      "map": false
+    },
+    {
+      "vp": "movil",
+      "mode": "sesion",
+      "path": "/editar-perfil",
+      "finalPath": "/editar-perfil",
+      "idleMs": 1445,
+      "console": [],
+      "requests": [
+        "GET /rest/v1/profiles?select=*&id=eq.f327511b-3d4e-4008-a663-ecc7626dc617"
+      ],
+      "failed": [],
+      "text": "Editar perfil  RL Cambiar foto Nombre visible Biografía 0/160 Ubicación Nombre de usuario @f50amw89pgzn El nombre de usuario no se puede cambiar por ahora. Guardar cambios Cancelar",
+      "map": false
+    },
+    {
+      "vp": "movil",
+      "mode": "sesion",
+      "path": "/crear",
+      "finalPath": "/crear",
+      "idleMs": 1308,
+      "console": [],
+      "requests": [
+        "GET /rest/v1/profiles?select=*&id=eq.f327511b-3d4e-4008-a663-ecc7626dc617"
+      ],
+      "failed": [],
+      "text": " Crear publicación Publicar RL Recién llegada @f50amw89pgzn  Etiquetar un lugar  Añadir imagen",
+      "map": false
+    },
+    {
+      "vp": "movil",
+      "mode": "sesion",
+      "path": "/notificaciones",
+      "finalPath": "/notificaciones",
+      "idleMs": 1755,
+      "console": [],
+      "requests": [
+        "GET /rest/v1/profiles?select=*&id=eq.f327511b-3d4e-4008-a663-ecc7626dc617",
+        "GET /rest/v1/notifications?select=id%2Ctype%2Cread%2Ccreated_at%2Cactor%3Aprofiles%21notifications_actor_id_fkey%28id%2Cusername%2Cdisplay_name%2Cavatar_url%29%2Cpost%3Aposts%21notificat"
+      ],
+      "failed": [],
+      "text": " Notificaciones  Todavía no hay nada Aquí verás la actividad: me gusta, comentarios y nuevos seguidores.",
+      "map": false
+    },
+    {
+      "vp": "movil",
+      "mode": "sesion",
+      "path": "/mensajes",
+      "finalPath": "/mensajes/",
+      "idleMs": 2025,
+      "console": [],
+      "requests": [
+        "GET /rest/v1/profiles?select=*&id=eq.f327511b-3d4e-4008-a663-ecc7626dc617",
+        "GET /rest/v1/conversations?select=id%2Cstatus%2Crequested_by%2Clast_message_at%2Cuser_low%2Cuser_high%2Clow%3Aprofiles%21conversations_user_low_fkey%28id%2Cusername%2Cdisplay_name%2Cavat",
+        "GET /rest/v1/messages?select=conversation_id%2Csender_id%2Cbody%2Ccreated_at%2Cread_at&conversation_id=in.%2811d55200-0255-4bf6-8c02-0defa4a70081%29&order=created_at.desc&limit=1000"
+      ],
+      "failed": [],
+      "text": " Mensajes Chats Solicitudes (1)  Todavía no tienes conversaciones Envía una solicitud de mensaje desde el perfil de alguien. Cuando la acepte, podréis hablar aquí.",
+      "map": false
+    },
+    {
+      "vp": "movil",
+      "mode": "sesion",
+      "path": "/mensajes/11d55200-0255-4bf6-8c02-0defa4a70081",
+      "finalPath": "/mensajes/11d55200-0255-4bf6-8c02-0defa4a70081",
+      "idleMs": 2413,
+      "console": [
+        "error: Failed to load resource: the server responded with a status of 404 ()"
+      ],
+      "requests": [
+        "GET /rest/v1/profiles?select=*&id=eq.f327511b-3d4e-4008-a663-ecc7626dc617",
+        "GET /rest/v1/conversations?select=id%2Cstatus%2Crequested_by%2Clast_message_at%2Cuser_low%2Cuser_high%2Clow%3Aprofiles%21conversations_user_low_fkey%28id%2Cusername%2Cdisplay_name%2Cavat",
+        "GET /rest/v1/messages?select=*%2Cshared_post%3Aposts%21messages_shared_post_id_fkey%28id%2Ccontent%2Cimage_url%2Cauthor%3Aprofiles%21posts_author_id_fkey%28username%2Cdisplay_name%2",
+        "GET /rest/v1/blocks?select=blocked_id&blocker_id=eq.f327511b-3d4e-4008-a663-ecc7626dc617&blocked_id=eq.e3719e1a-a169-4545-b402-7199d89a18f0",
+        "POST /rest/v1/rpc/is_blocked_between",
+        "PATCH /rest/v1/messages?conversation_id=eq.11d55200-0255-4bf6-8c02-0defa4a70081&sender_id=neq.f327511b-3d4e-4008-a663-ecc7626dc617&read_at=is.null"
+      ],
+      "failed": [
+        "404 https://expeavomo15.github.io/oveng-envhealth/mensajes/11d55200-0255-4bf6-8c02-0defa4a70081"
+      ],
+      "text": " AV Ana Verde (prueba)  Hoy 21:11 AV Hola 👋 ¿vienes el sábado?  Ana Verde (prueba) quiere hablar contigo. Si aceptas, podréis escribiros. Si rechazas, no se lo diremos. Aceptar Rechazar",
+      "map": false
+    },
+    {
+      "vp": "movil",
+      "mode": "sesion",
+      "path": "/publicacion/ea888d6f-7cb7-4e2c-94a9-dc92922c2c22",
+      "finalPath": "/publicacion/ea888d6f-7cb7-4e2c-94a9-dc92922c2c22",
+      "idleMs": 1692,
+      "console": [
+        "error: Failed to load resource: the server responded with a status of 404 ()"
+      ],
+      "requests": [
+        "GET /rest/v1/posts?select=id%2Ccontent%2Cimage_url%2Chashtags%2Ccreated_at%2Cauthor%3Aprofiles%21posts_author_id_fkey%28id%2Cusername%2Cdisplay_name%2Cavatar_url%2Cverified%29%2C",
+        "GET /rest/v1/comments?select=id%2Cpost_id%2Ccontent%2Ccreated_at%2Cauthor%3Aprofiles%21comments_user_id_fkey%28id%2Cusername%2Cdisplay_name%2Cavatar_url%29&post_id=eq.ea888d6f-7cb7-",
+        "GET /rest/v1/profiles?select=*&id=eq.f327511b-3d4e-4008-a663-ecc7626dc617"
+      ],
+      "failed": [
+        "404 https://expeavomo15.github.io/oveng-envhealth/publicacion/ea888d6f-7cb7-4e2c-94a9-dc92922c2c22"
+      ],
+      "text": " Publicación AV Ana Verde (prueba) @f50bmw89pgzn · 1 min  Hoy hemos limpiado la ribera del Ntem 🌿🐢 mw89pgzn. #Ntem #limpieza Texto largo para ver cómo corta. Texto largo para ver cómo corta. Texto largo para ver cómo corta. Texto largo para ver cómo corta. Texto largo para ver cómo corta. Texto largo para ver cómo corta.  0  0  Comentarios Aún no hay comentarios. Escribe el primero. RL Publ",
+      "map": false
+    },
+    {
+      "vp": "movil",
+      "mode": "sesion",
+      "path": "/user/f50bmw89pgzn",
+      "finalPath": "/user/f50bmw89pgzn",
+      "idleMs": 2458,
+      "console": [
+        "error: Failed to load resource: the server responded with a status of 404 ()"
+      ],
+      "requests": [
+        "GET /rest/v1/profiles?select=*&username=eq.f50bmw89pgzn",
+        "GET /rest/v1/profiles?select=*&id=eq.f327511b-3d4e-4008-a663-ecc7626dc617",
+        "HEAD /rest/v1/posts?select=*&author_id=eq.e3719e1a-a169-4545-b402-7199d89a18f0",
+        "HEAD /rest/v1/follows?select=*&following_id=eq.e3719e1a-a169-4545-b402-7199d89a18f0",
+        "HEAD /rest/v1/follows?select=*&follower_id=eq.e3719e1a-a169-4545-b402-7199d89a18f0",
+        "GET /rest/v1/follows?select=follower_id&follower_id=eq.f327511b-3d4e-4008-a663-ecc7626dc617&following_id=eq.e3719e1a-a169-4545-b402-7199d89a18f0",
+        "GET /rest/v1/posts?select=id%2Ccontent%2Cimage_url%2Chashtags%2Ccreated_at%2Cauthor%3Aprofiles%21posts_author_id_fkey%28id%2Cusername%2Cdisplay_name%2Cavatar_url%2Cverified%29%2C"
+      ],
+      "failed": [
+        "404 https://expeavomo15.github.io/oveng-envhealth/user/f50bmw89pgzn",
+        "https://lutgqjvrxplwjrgtmvfg.supabase.co/rest/v1/posts?select=*&author_id=eq.e3719e1a-a169-4545-b402-7199d89a18f0 net::ERR_ABORTED",
+        "https://lutgqjvrxplwjrgtmvfg.supabase.co/rest/v1/follows?select=*&following_id=eq.e3719e1a-a169-4545-b402-7199d89a18f0 net::ERR_ABORTED",
+        "https://lutgqjvrxplwjrgtmvfg.supabase.co/rest/v1/follows?select=*&follower_id=eq.e3719e1a-a169-4545-b402-7199d89a18f0 net::ERR_ABORTED"
+      ],
+      "text": " @f50bmw89pgzn AV 1 Publicaciones 0 Seguidores 0 Siguiendo Ana Verde (prueba)  Se unió en noviembre de 2026  Seguir  Enviar mensaje Publicaciones Guardados AV Ana Verde (prueba) @f50bmw89pgzn · 1 min  Hoy hemos limpiado la ribera del Ntem 🌿🐢 mw89pgzn. #Ntem #limpieza Texto largo para ver cómo corta. Texto largo para ver cómo corta. Texto largo para ver cómo corta. Texto largo para ver cómo ",
+      "map": false
+    },
+    {
+      "vp": "movil",
+      "mode": "sesion",
+      "path": "/entidad/rio-ntem",
+      "finalPath": "/entidad/rio-ntem",
+      "idleMs": 2876,
+      "console": [
+        "error: Failed to load resource: the server responded with a status of 404 ()"
+      ],
+      "requests": [
+        "GET /rest/v1/entities?select=*&slug=eq.rio-ntem",
+        "GET /rest/v1/profiles?select=*&id=eq.f327511b-3d4e-4008-a663-ecc7626dc617",
+        "GET /rest/v1/entity_rating_summary?select=entity_id%2Caverage%2Cratings_count&entity_id=in.%28e199a447-a1a1-4935-8dd2-eb5523a24c2a%29",
+        "GET /rest/v1/entity_metrics?select=*&entity_id=eq.e199a447-a1a1-4935-8dd2-eb5523a24c2a&order=metric.asc",
+        "HEAD /rest/v1/entity_follows?select=*&entity_id=eq.e199a447-a1a1-4935-8dd2-eb5523a24c2a",
+        "GET /rest/v1/entity_follows?select=entity_id&user_id=eq.f327511b-3d4e-4008-a663-ecc7626dc617&entity_id=in.%28e199a447-a1a1-4935-8dd2-eb5523a24c2a%29",
+        "GET /rest/v1/entity_ratings?select=entity_id%2Cuser_id%2Cscore%2Ccomment%2Ccreated_at%2Cauthor%3Aprofiles%28username%2Cdisplay_name%2Cavatar_url%29&entity_id=eq.e199a447-a1a1-4935-8dd2-eb",
+        "GET /rest/v1/entity_rating_summary?select=average%2Cratings_count&entity_id=eq.e199a447-a1a1-4935-8dd2-eb5523a24c2a",
+        "GET /rest/v1/entity_ratings?select=score%2Ccomment&entity_id=eq.e199a447-a1a1-4935-8dd2-eb5523a24c2a&user_id=eq.f327511b-3d4e-4008-a663-ecc7626dc617",
+        "EXT air-quality-api.open-meteo.com/v1/air-quality",
+        "EXT api.open-meteo.com/v1/forecast",
+        "EXT api.gbif.org/v1/occurrence/search",
+        "GET /rest/v1/jobs?select=*%2Centity%3Aentities%21jobs_entity_id_fkey%28id%2Cslug%2Cname%2Ctype%2Ccategory%2Clocation_name%29&entity_id=eq.e199a447-a1a1-4935-8dd2-eb5523a24c2a&or",
+        "GET /rest/v1/posts?select=id%2Ccontent%2Cimage_url%2Chashtags%2Ccreated_at%2Cauthor%3Aprofiles%21posts_author_id_fkey%28id%2Cusername%2Cdisplay_name%2Cavatar_url%2Cverified%29%2C",
+        "GET /rest/v1/entity_admins?select=entity_id&entity_id=eq.e199a447-a1a1-4935-8dd2-eb5523a24c2a&user_id=eq.f327511b-3d4e-4008-a663-ecc7626dc617&status=eq.approved",
+        "HEAD /rest/v1/entity_admins?select=*&entity_id=eq.e199a447-a1a1-4935-8dd2-eb5523a24c2a&status=eq.approved"
+      ],
+      "failed": [
+        "404 https://expeavomo15.github.io/oveng-envhealth/entidad/rio-ntem",
+        "https://lutgqjvrxplwjrgtmvfg.supabase.co/rest/v1/entity_follows?select=*&entity_id=eq.e199a447-a1a1-4935-8dd2-eb5523a24c2a net::ERR_ABORTED",
+        "https://lutgqjvrxplwjrgtmvfg.supabase.co/rest/v1/entity_admins?select=*&entity_id=eq.e199a447-a1a1-4935-8dd2-eb5523a24c2a&status=eq.approved net::ERR_ABORTED"
+      ],
+      "text": "   Sé el primero en valorar Río Ntem  Turismo Verde Agua Muy bueno   Bata, Litoral · Guinea Ecuatorial 0 seguidores Seguir Valorar El río que marca la frontera norte y desemboca en el Atlántico. Pasea por la orilla al atardecer, mira cómo vuelven las barcas de la pesca artesanal y súmate a una de sus jornadas de limpieza comunitaria. Lo que llevas, te lo llevas. ¿Trabajas aquí? Nadie adminis",
+      "map": false
+    },
+    {
+      "vp": "movil",
+      "mode": "sesion",
+      "path": "/turismo-verde",
+      "finalPath": "/turismo-verde",
+      "idleMs": 1915,
+      "console": [],
+      "requests": [
+        "GET /rest/v1/entities?select=*&type=eq.lugar&order=verified.desc%2Cname.asc&limit=200",
+        "GET /rest/v1/profiles?select=*&id=eq.f327511b-3d4e-4008-a663-ecc7626dc617",
+        "GET /rest/v1/entity_rating_summary?select=entity_id%2Caverage%2Cratings_count&entity_id=in.%289ab6d3ba-f5de-45d8-a128-454662aef61c%2C799957b5-f7a7-446b-922f-d4dfdf8d92cb%2C08d7d59b-577e-4cf6-9b0"
+      ],
+      "failed": [],
+      "text": " Turismo Verde 🌿 ¿Dónde quieres disfrutar de la naturaleza?  📍 Cerca de mí Guinea Ecuatorial Málaga y Andalucía Todos los rincones verdes  Acantilados de Maro-Cerro Gordo Acantilados y calas de agua clara entre Nerja y Granada. Báñate en las calas, o recorre la costa en kayak mirando el fondo. Nuevo  Cómo llegar   Caminito del Rey Pasarelas colgadas sobre el desfiladero de los Gaitanes, co",
+      "map": false
+    },
+    {
+      "vp": "movil",
+      "mode": "sesion",
+      "path": "/oferta",
+      "finalPath": "/oferta",
+      "idleMs": 1250,
+      "console": [],
+      "requests": [
+        "GET /rest/v1/profiles?select=*&id=eq.f327511b-3d4e-4008-a663-ecc7626dc617"
+      ],
+      "failed": [],
+      "text": "Publicar oferta No encontramos la página La página o la oferta ya no existe. Volver",
+      "map": false
+    },
+    {
+      "vp": "movil",
+      "mode": "sesion",
+      "path": "/design-system",
+      "finalPath": "/",
+      "idleMs": 2128,
+      "console": [],
+      "requests": [
+        "GET /rest/v1/profiles?select=*&id=eq.f327511b-3d4e-4008-a663-ecc7626dc617",
+        "GET /rest/v1/posts?select=id%2Ccontent%2Cimage_url%2Chashtags%2Ccreated_at%2Cauthor%3Aprofiles%21posts_author_id_fkey%28id%2Cusername%2Cdisplay_name%2Cavatar_url%2Cverified%29%2C",
+        "GET /rest/v1/entities?select=*&lat=gte.-1.6&lat=lte.4&lng=gte.5&lng=lte.11.5&order=name.asc",
+        "GET /rest/v1/conversations?select=id%2Cstatus%2Crequested_by%2Clast_message_at%2Cuser_low%2Cuser_high%2Clow%3Aprofiles%21conversations_user_low_fkey%28id%2Cusername%2Cdisplay_name%2Cavat",
+        "HEAD /rest/v1/notifications?select=id&user_id=eq.f327511b-3d4e-4008-a663-ecc7626dc617&read=eq.false",
+        "GET /rest/v1/entity_metrics?select=*&entity_id=in.%28c6553eb6-507d-424c-9e98-bb6b8ce7af72%2Cfed35cfa-8d46-49a9-9014-d0d770313ec2%2C0be904e3-d295-445d-a70e-9aefee9ba618%2C2ecc8278-94c4-4d8",
+        "GET /rest/v1/messages?select=conversation_id%2Csender_id%2Cbody%2Ccreated_at%2Cread_at&conversation_id=in.%2811d55200-0255-4bf6-8c02-0defa4a70081%29&order=created_at.desc&limit=1000",
+        "GET /rest/v1/entity_rating_summary?select=entity_id%2Caverage%2Cratings_count&entity_id=in.%28e199a447-a1a1-4935-8dd2-eb5523a24c2a%29",
+        "GET /rest/v1/entity_rating_summary?select=entity_id%2Caverage%2Cratings_count&entity_id=in.%283a37c2bc-de47-49d8-a515-932931b738ce%29",
+        "EXT air-quality-api.open-meteo.com/v1/air-quality"
+      ],
+      "failed": [
+        "https://lutgqjvrxplwjrgtmvfg.supabase.co/rest/v1/notifications?select=id&user_id=eq.f327511b-3d4e-4008-a663-ecc7626dc617&read=eq.false net::ERR_ABORTED"
+      ],
+      "text": " 1  RL Para ti Siguiendo  AV Ana Verde (prueba) @f50bmw89pgzn · 1 min  Hoy hemos limpiado la ribera del Ntem 🌿🐢 mw89pgzn. #Ntem #limpieza Texto largo para ver cómo corta. Texto largo para ver cómo corta. Texto largo para ver cómo corta. Texto largo para ver cómo corta. Texto largo para ver cómo corta. Texto largo para ver cómo corta. ver más  0  0   Datos ambientales de Guinea Ecuatorial",
+      "map": false
+    },
+    {
+      "vp": "escritorio",
+      "mode": "anon",
+      "path": "/",
+      "finalPath": "/",
+      "idleMs": 9801,
+      "console": [],
+      "requests": [
+        "GET /rest/v1/posts?select=id%2Ccontent%2Cimage_url%2Chashtags%2Ccreated_at%2Cauthor%3Aprofiles%21posts_author_id_fkey%28id%2Cusername%2Cdisplay_name%2Cavatar_url%2Cverified%29%2C",
+        "GET /rest/v1/entities?select=*&lat=gte.-1.6&lat=lte.4&lng=gte.5&lng=lte.11.5&order=name.asc",
+        "GET /rest/v1/entity_metrics?select=*&entity_id=in.%28c6553eb6-507d-424c-9e98-bb6b8ce7af72%2Cfed35cfa-8d46-49a9-9014-d0d770313ec2%2C0be904e3-d295-445d-a70e-9aefee9ba618%2C2ecc8278-94c4-4d8",
+        "GET /rest/v1/entity_rating_summary?select=entity_id%2Caverage%2Cratings_count&entity_id=in.%28e199a447-a1a1-4935-8dd2-eb5523a24c2a%29",
+        "GET /rest/v1/entity_rating_summary?select=entity_id%2Caverage%2Cratings_count&entity_id=in.%283a37c2bc-de47-49d8-a515-932931b738ce%29",
+        "EXT air-quality-api.open-meteo.com/v1/air-quality"
+      ],
+      "failed": [],
+      "text": "  Entrar La red de quienes cuidan el medioambiente  AV Ana Verde (prueba) @f50bmw89pgzn · 2 min  Hoy hemos limpiado la ribera del Ntem 🌿🐢 mw89pgzn. #Ntem #limpieza Texto largo para ver cómo corta. Texto largo para ver cómo corta. Texto largo para ver cómo corta. Texto largo para ver cómo corta. Texto largo para ver cómo corta. Texto largo para ver cómo corta. ver más  0  0   Datos ambien",
+      "map": false
+    },
+    {
+      "vp": "escritorio",
+      "mode": "anon",
+      "path": "/buscar",
+      "finalPath": "/buscar",
+      "idleMs": 1500,
+      "console": [],
+      "requests": [],
+      "failed": [],
+      "text": "Buscar   Todo Empleo Iniciativas Personas Turismo Verde Sugerencias  Energía renovable Empresas e iniciativas   Gestión de residuos Empresas e iniciativas   Calidad del aire Datos y monitoreo   Agricultura sostenible Empresas e iniciativas  Tendencias Energía renovable Reforestación Reciclaje Biodiversidad Cambio climático Economía circular  Inicio  Buscar  Crear  Mapa  Perfil",
+      "map": false
+    },
+    {
+      "vp": "escritorio",
+      "mode": "anon",
+      "path": "/mapa",
+      "finalPath": "/mapa",
+      "idleMs": 5462,
+      "console": [],
+      "requests": [
+        "GET /rest/v1/entities?select=*&order=verified.desc%2Cname.asc&limit=100",
+        "GET /rest/v1/entity_rating_summary?select=entity_id%2Caverage%2Cratings_count&entity_id=in.%28c6553eb6-507d-424c-9e98-bb6b8ce7af72%2Cfed35cfa-8d46-49a9-9014-d0d770313ec2%2C0be904e3-d295-445d-a70",
+        "GET /rest/v1/entity_metrics?select=*&metric=eq.aire&entity_id=in.%28c6553eb6-507d-424c-9e98-bb6b8ce7af72%2Cfed35cfa-8d46-49a9-9014-d0d770313ec2%2C0be904e3-d295-445d-a70e-9aefee9ba618%2C2e",
+        "GET /rest/v1/entity_metrics?select=*&metric=eq.agua&entity_id=in.%28c6553eb6-507d-424c-9e98-bb6b8ce7af72%2Cfed35cfa-8d46-49a9-9014-d0d770313ec2%2C0be904e3-d295-445d-a70e-9aefee9ba618%2C2e",
+        "EXT air-quality-api.open-meteo.com/v1/air-quality"
+      ],
+      "failed": [],
+      "text": "                                Todo Aire Agua Suelo Biodiversidad Energía Residuos © OpenStreetMap · Aire: CAMS de Copernicus vía Open-Meteo   Calidad del aire Buena Índice de calidad del aire: 30 (escala europea)  Centro del mapa · 2,06 N · 9,90 E 🛰️ Estimación satelital Copernicus · hace 13 min   Inicio  Buscar  Crear  Mapa  Perfil",
+      "map": true
+    },
+    {
+      "vp": "escritorio",
+      "mode": "anon",
+      "path": "/turismo-verde",
+      "finalPath": "/turismo-verde",
+      "idleMs": 1840,
+      "console": [],
+      "requests": [
+        "GET /rest/v1/entities?select=*&type=eq.lugar&order=verified.desc%2Cname.asc&limit=200",
+        "GET /rest/v1/entity_rating_summary?select=entity_id%2Caverage%2Cratings_count&entity_id=in.%289ab6d3ba-f5de-45d8-a128-454662aef61c%2C799957b5-f7a7-446b-922f-d4dfdf8d92cb%2C08d7d59b-577e-4cf6-9b0"
+      ],
+      "failed": [],
+      "text": " Turismo Verde 🌿 ¿Dónde quieres disfrutar de la naturaleza?  📍 Cerca de mí Guinea Ecuatorial Málaga y Andalucía Todos los rincones verdes  Acantilados de Maro-Cerro Gordo Acantilados y calas de agua clara entre Nerja y Granada. Báñate en las calas, o recorre la costa en kayak mirando el fondo. Nuevo  Cómo llegar   Caminito del Rey Pasarelas colgadas sobre el desfiladero de los Gaitanes, co",
+      "map": false
+    },
+    {
+      "vp": "escritorio",
+      "mode": "anon",
+      "path": "/entidad/rio-ntem",
+      "finalPath": "/entidad/rio-ntem",
+      "idleMs": 3088,
+      "console": [
+        "error: Failed to load resource: the server responded with a status of 404 ()"
+      ],
+      "requests": [
+        "GET /rest/v1/entities?select=*&slug=eq.rio-ntem",
+        "GET /rest/v1/entity_rating_summary?select=entity_id%2Caverage%2Cratings_count&entity_id=in.%28e199a447-a1a1-4935-8dd2-eb5523a24c2a%29",
+        "GET /rest/v1/entity_metrics?select=*&entity_id=eq.e199a447-a1a1-4935-8dd2-eb5523a24c2a&order=metric.asc",
+        "HEAD /rest/v1/entity_follows?select=*&entity_id=eq.e199a447-a1a1-4935-8dd2-eb5523a24c2a",
+        "GET /rest/v1/entity_ratings?select=entity_id%2Cuser_id%2Cscore%2Ccomment%2Ccreated_at%2Cauthor%3Aprofiles%28username%2Cdisplay_name%2Cavatar_url%29&entity_id=eq.e199a447-a1a1-4935-8dd2-eb",
+        "GET /rest/v1/entity_rating_summary?select=average%2Cratings_count&entity_id=eq.e199a447-a1a1-4935-8dd2-eb5523a24c2a",
+        "EXT air-quality-api.open-meteo.com/v1/air-quality",
+        "EXT api.open-meteo.com/v1/forecast",
+        "EXT api.gbif.org/v1/occurrence/search",
+        "GET /rest/v1/jobs?select=*%2Centity%3Aentities%21jobs_entity_id_fkey%28id%2Cslug%2Cname%2Ctype%2Ccategory%2Clocation_name%29&entity_id=eq.e199a447-a1a1-4935-8dd2-eb5523a24c2a&or",
+        "GET /rest/v1/posts?select=id%2Ccontent%2Cimage_url%2Chashtags%2Ccreated_at%2Cauthor%3Aprofiles%21posts_author_id_fkey%28id%2Cusername%2Cdisplay_name%2Cavatar_url%2Cverified%29%2C",
+        "HEAD /rest/v1/entity_admins?select=*&entity_id=eq.e199a447-a1a1-4935-8dd2-eb5523a24c2a&status=eq.approved"
+      ],
+      "failed": [
+        "404 https://expeavomo15.github.io/oveng-envhealth/entidad/rio-ntem",
+        "https://lutgqjvrxplwjrgtmvfg.supabase.co/rest/v1/entity_follows?select=*&entity_id=eq.e199a447-a1a1-4935-8dd2-eb5523a24c2a net::ERR_ABORTED",
+        "https://lutgqjvrxplwjrgtmvfg.supabase.co/rest/v1/entity_admins?select=*&entity_id=eq.e199a447-a1a1-4935-8dd2-eb5523a24c2a&status=eq.approved net::ERR_ABORTED"
+      ],
+      "text": "   Sé el primero en valorar Río Ntem  Turismo Verde Agua Muy bueno   Bata, Litoral · Guinea Ecuatorial 0 seguidores Inicia sesión para seguir y valorar El río que marca la frontera norte y desemboca en el Atlántico. Pasea por la orilla al atardecer, mira cómo vuelven las barcas de la pesca artesanal y súmate a una de sus jornadas de limpieza comunitaria. Lo que llevas, te lo llevas. ¿Trabaja",
+      "map": false
+    },
+    {
+      "vp": "escritorio",
+      "mode": "anon",
+      "path": "/entidad/parque-nacional-monte-alen",
+      "finalPath": "/entidad/parque-nacional-monte-alen",
+      "idleMs": 2846,
+      "console": [
+        "error: Failed to load resource: the server responded with a status of 404 ()"
+      ],
+      "requests": [
+        "GET /rest/v1/entities?select=*&slug=eq.parque-nacional-monte-alen",
+        "GET /rest/v1/entity_rating_summary?select=entity_id%2Caverage%2Cratings_count&entity_id=in.%28799957b5-f7a7-446b-922f-d4dfdf8d92cb%29",
+        "GET /rest/v1/entity_metrics?select=*&entity_id=eq.799957b5-f7a7-446b-922f-d4dfdf8d92cb&order=metric.asc",
+        "HEAD /rest/v1/entity_follows?select=*&entity_id=eq.799957b5-f7a7-446b-922f-d4dfdf8d92cb",
+        "GET /rest/v1/entity_ratings?select=entity_id%2Cuser_id%2Cscore%2Ccomment%2Ccreated_at%2Cauthor%3Aprofiles%28username%2Cdisplay_name%2Cavatar_url%29&entity_id=eq.799957b5-f7a7-446b-922f-d4",
+        "GET /rest/v1/entity_rating_summary?select=average%2Cratings_count&entity_id=eq.799957b5-f7a7-446b-922f-d4dfdf8d92cb",
+        "EXT air-quality-api.open-meteo.com/v1/air-quality",
+        "EXT api.open-meteo.com/v1/forecast",
+        "EXT api.gbif.org/v1/occurrence/search",
+        "GET /rest/v1/jobs?select=*%2Centity%3Aentities%21jobs_entity_id_fkey%28id%2Cslug%2Cname%2Ctype%2Ccategory%2Clocation_name%29&entity_id=eq.799957b5-f7a7-446b-922f-d4dfdf8d92cb&or",
+        "GET /rest/v1/posts?select=id%2Ccontent%2Cimage_url%2Chashtags%2Ccreated_at%2Cauthor%3Aprofiles%21posts_author_id_fkey%28id%2Cusername%2Cdisplay_name%2Cavatar_url%2Cverified%29%2C",
+        "HEAD /rest/v1/entity_admins?select=*&entity_id=eq.799957b5-f7a7-446b-922f-d4dfdf8d92cb&status=eq.approved"
+      ],
+      "failed": [
+        "404 https://expeavomo15.github.io/oveng-envhealth/entidad/parque-nacional-monte-alen",
+        "https://lutgqjvrxplwjrgtmvfg.supabase.co/rest/v1/entity_follows?select=*&entity_id=eq.799957b5-f7a7-446b-922f-d4dfdf8d92cb net::ERR_ABORTED",
+        "https://lutgqjvrxplwjrgtmvfg.supabase.co/rest/v1/entity_admins?select=*&entity_id=eq.799957b5-f7a7-446b-922f-d4dfdf8d92cb&status=eq.approved net::ERR_ABORTED"
+      ],
+      "text": "   Sé el primero en valorar Parque Nacional de Monte Alén  Turismo Verde Biodiversidad   Monte Alén, Centro Sur · Guinea Ecuatorial 0 seguidores Inicia sesión para seguir y valorar Corazón verde de la Guinea continental: 2.000 km² de selva primaria. Ven a caminar sus senderos con un guía local, escuchar más de 250 especies de aves al amanecer y, con suerte, ver huellas de elefantes de bosque",
+      "map": false
+    },
+    {
+      "vp": "escritorio",
+      "mode": "anon",
+      "path": "/empleo/cefc8ed0-bb05-4a7d-be8e-27614297e653",
+      "finalPath": "/empleo/cefc8ed0-bb05-4a7d-be8e-27614297e653",
+      "idleMs": 1669,
+      "console": [
+        "error: Failed to load resource: the server responded with a status of 404 ()"
+      ],
+      "requests": [
+        "GET /rest/v1/jobs?select=*%2Centity%3Aentities%21jobs_entity_id_fkey%28id%2Cslug%2Cname%2Ctype%2Ccategory%2Clocation_name%29&id=eq.cefc8ed0-bb05-4a7d-be8e-27614297e653"
+      ],
+      "failed": [
+        "404 https://expeavomo15.github.io/oveng-envhealth/empleo/cefc8ed0-bb05-4a7d-be8e-27614297e653"
+      ],
+      "text": " Oferta de empleo Técnico/a de instalaciones solares  EcoGuinea Empresa   Jornada completa  Malabo, Bioko Norte  Publicada hace 4 h Oferta de ejemplo La ha cargado OVENG para enseñar cómo se verán las ofertas. No es una oferta real. Sobre el trabajo Montarás y revisarás placas solares en casas, escuelas y centros de salud de Bioko. Buscamos a alguien con formación en electricidad o ganas de ",
+      "map": false
+    },
+    {
+      "vp": "escritorio",
+      "mode": "anon",
+      "path": "/publicacion/ea888d6f-7cb7-4e2c-94a9-dc92922c2c22",
+      "finalPath": "/publicacion/ea888d6f-7cb7-4e2c-94a9-dc92922c2c22",
+      "idleMs": 1604,
+      "console": [
+        "error: Failed to load resource: the server responded with a status of 404 ()"
+      ],
+      "requests": [
+        "GET /rest/v1/posts?select=id%2Ccontent%2Cimage_url%2Chashtags%2Ccreated_at%2Cauthor%3Aprofiles%21posts_author_id_fkey%28id%2Cusername%2Cdisplay_name%2Cavatar_url%2Cverified%29%2C",
+        "GET /rest/v1/comments?select=id%2Cpost_id%2Ccontent%2Ccreated_at%2Cauthor%3Aprofiles%21comments_user_id_fkey%28id%2Cusername%2Cdisplay_name%2Cavatar_url%29&post_id=eq.ea888d6f-7cb7-"
+      ],
+      "failed": [
+        "404 https://expeavomo15.github.io/oveng-envhealth/publicacion/ea888d6f-7cb7-4e2c-94a9-dc92922c2c22"
+      ],
+      "text": " Publicación AV Ana Verde (prueba) @f50bmw89pgzn · 2 min  Hoy hemos limpiado la ribera del Ntem 🌿🐢 mw89pgzn. #Ntem #limpieza Texto largo para ver cómo corta. Texto largo para ver cómo corta. Texto largo para ver cómo corta. Texto largo para ver cómo corta. Texto largo para ver cómo corta. Texto largo para ver cómo corta.  0  0  Comentarios Aún no hay comentarios. Entra para escribir el prim",
+      "map": false
+    },
+    {
+      "vp": "escritorio",
+      "mode": "anon",
+      "path": "/publicacion/00000000-0000-4000-8000-000000000000",
+      "finalPath": "/publicacion/00000000-0000-4000-8000-000000000000",
+      "idleMs": 1870,
+      "console": [
+        "error: Failed to load resource: the server responded with a status of 404 ()"
+      ],
+      "requests": [
+        "GET /rest/v1/posts?select=id%2Ccontent%2Cimage_url%2Chashtags%2Ccreated_at%2Cauthor%3Aprofiles%21posts_author_id_fkey%28id%2Cusername%2Cdisplay_name%2Cavatar_url%2Cverified%29%2C",
+        "GET /rest/v1/comments?select=id%2Cpost_id%2Ccontent%2Ccreated_at%2Cauthor%3Aprofiles%21comments_user_id_fkey%28id%2Cusername%2Cdisplay_name%2Cavatar_url%29&post_id=eq.00000000-0000-"
+      ],
+      "failed": [
+        "404 https://expeavomo15.github.io/oveng-envhealth/publicacion/00000000-0000-4000-8000-000000000000"
+      ],
+      "text": " Esta publicación no existe Puede que quien la escribió la haya borrado, o que el enlace esté incompleto. Ir al inicio",
+      "map": false
+    },
+    {
+      "vp": "escritorio",
+      "mode": "anon",
+      "path": "/user/f50bmw89pgzn",
+      "finalPath": "/user/f50bmw89pgzn",
+      "idleMs": 2031,
+      "console": [
+        "error: Failed to load resource: the server responded with a status of 404 ()"
+      ],
+      "requests": [
+        "GET /rest/v1/profiles?select=*&username=eq.f50bmw89pgzn",
+        "HEAD /rest/v1/posts?select=*&author_id=eq.e3719e1a-a169-4545-b402-7199d89a18f0",
+        "HEAD /rest/v1/follows?select=*&following_id=eq.e3719e1a-a169-4545-b402-7199d89a18f0",
+        "HEAD /rest/v1/follows?select=*&follower_id=eq.e3719e1a-a169-4545-b402-7199d89a18f0",
+        "GET /rest/v1/posts?select=id%2Ccontent%2Cimage_url%2Chashtags%2Ccreated_at%2Cauthor%3Aprofiles%21posts_author_id_fkey%28id%2Cusername%2Cdisplay_name%2Cavatar_url%2Cverified%29%2C"
+      ],
+      "failed": [
+        "404 https://expeavomo15.github.io/oveng-envhealth/user/f50bmw89pgzn",
+        "https://lutgqjvrxplwjrgtmvfg.supabase.co/rest/v1/follows?select=*&following_id=eq.e3719e1a-a169-4545-b402-7199d89a18f0 net::ERR_ABORTED",
+        "https://lutgqjvrxplwjrgtmvfg.supabase.co/rest/v1/posts?select=*&author_id=eq.e3719e1a-a169-4545-b402-7199d89a18f0 net::ERR_ABORTED",
+        "https://lutgqjvrxplwjrgtmvfg.supabase.co/rest/v1/follows?select=*&follower_id=eq.e3719e1a-a169-4545-b402-7199d89a18f0 net::ERR_ABORTED"
+      ],
+      "text": " @f50bmw89pgzn AV 1 Publicaciones 0 Seguidores 0 Siguiendo Ana Verde (prueba)  Se unió en noviembre de 2026 Inicia sesión para seguir  Enviar mensaje Publicaciones Guardados AV Ana Verde (prueba) @f50bmw89pgzn · 2 min  Hoy hemos limpiado la ribera del Ntem 🌿🐢 mw89pgzn. #Ntem #limpieza Texto largo para ver cómo corta. Texto largo para ver cómo corta. Texto largo para ver cómo corta. Texto lar",
+      "map": false
+    },
+    {
+      "vp": "escritorio",
+      "mode": "anon",
+      "path": "/user/nadie_existe_aqui",
+      "finalPath": "/user/nadie_existe_aqui",
+      "idleMs": 1742,
+      "console": [
+        "error: Failed to load resource: the server responded with a status of 404 ()"
+      ],
+      "requests": [
+        "GET /rest/v1/profiles?select=*&username=eq.nadie_existe_aqui"
+      ],
+      "failed": [
+        "404 https://expeavomo15.github.io/oveng-envhealth/user/nadie_existe_aqui"
+      ],
+      "text": " Esa cuenta no existe No hay ningún perfil con el nombre @nadie_existe_aqui. Ir al inicio Explorar el mapa",
+      "map": false
+    },
+    {
+      "vp": "escritorio",
+      "mode": "anon",
+      "path": "/entidad/no-existe",
+      "finalPath": "/entidad/no-existe",
+      "idleMs": 1595,
+      "console": [
+        "error: Failed to load resource: the server responded with a status of 404 ()"
+      ],
+      "requests": [
+        "GET /rest/v1/entities?select=*&slug=eq.no-existe"
+      ],
+      "failed": [
+        "404 https://expeavomo15.github.io/oveng-envhealth/entidad/no-existe"
+      ],
+      "text": " Esa página no existe No hay ningún lugar, empresa ni iniciativa con el identificador «no-existe». Ir al inicio Explorar el mapa",
+      "map": false
+    },
+    {
+      "vp": "escritorio",
+      "mode": "anon",
+      "path": "/restablecer",
+      "finalPath": "/restablecer",
+      "idleMs": 1350,
+      "console": [],
+      "requests": [],
+      "failed": [],
+      "text": "Nueva contraseña Elige una contraseña nueva para tu cuenta de OVENG. Falta el enlace Para elegir una contraseña nueva, abre el enlace que te enviamos por email. Pedir un enlace nuevo Ir al inicio",
+      "map": false
+    },
+    {
+      "vp": "escritorio",
+      "mode": "anon",
+      "path": "/welcome",
+      "finalPath": "/welcome",
+      "idleMs": 1532,
+      "console": [],
+      "requests": [],
+      "failed": [],
+      "text": "EnvHealth Tu entorno. Tu salud. Nuestro planeta. Conecta con personas, empresas e iniciativas que cuidan el entorno donde vives. Crear cuenta Iniciar sesión",
+      "map": false
+    },
+    {
+      "vp": "escritorio",
+      "mode": "anon",
+      "path": "/register",
+      "finalPath": "/register",
+      "idleMs": 1733,
+      "console": [],
+      "requests": [],
+      "failed": [],
+      "text": "Crear cuenta Únete a quienes cuidan su entorno. Email Contraseña Mostrar Al menos 8 caracteres. Nombre de usuario Minúsculas, números y guion bajo. Es tu nombre público. Nombre visible Como quieres que te vean las demás cuentas. Crear cuenta ¿Ya tienes cuenta? Iniciar sesión",
+      "map": false
+    },
+    {
+      "vp": "escritorio",
+      "mode": "anon",
+      "path": "/login",
+      "finalPath": "/login",
+      "idleMs": 1241,
+      "console": [],
+      "requests": [],
+      "failed": [],
+      "text": "Iniciar sesión Vuelve a tu entorno. Email Contraseña Mostrar ¿Olvidaste tu contraseña? Entrar ¿Todavía no tienes cuenta? Crear cuenta",
+      "map": false
+    },
+    {
+      "vp": "escritorio",
+      "mode": "anon",
+      "path": "/forgot-password",
+      "finalPath": "/forgot-password",
+      "idleMs": 1211,
+      "console": [],
+      "requests": [],
+      "failed": [],
+      "text": "Recuperar contraseña Te enviamos un enlace para que elijas una nueva. Email Enviar enlace Volver",
+      "map": false
+    },
+    {
+      "vp": "escritorio",
+      "mode": "anon",
+      "path": "/esta-ruta-no-existe",
+      "finalPath": "/esta-ruta-no-existe",
+      "idleMs": 1318,
+      "console": [
+        "error: Failed to load resource: the server responded with a status of 404 ()"
+      ],
+      "requests": [],
+      "failed": [
+        "404 https://expeavomo15.github.io/oveng-envhealth/esta-ruta-no-existe"
+      ],
+      "text": " Esta página no existe Puede que el enlace esté incompleto o que lo que buscabas ya no esté aquí. Ir al inicio Explorar el mapa  Inicio  Buscar  Crear  Mapa  Perfil",
+      "map": false
+    },
+    {
+      "vp": "escritorio",
+      "mode": "anon",
+      "path": "/notificaciones",
+      "finalPath": "/welcome",
+      "idleMs": 1176,
+      "console": [],
+      "requests": [],
+      "failed": [],
+      "text": "EnvHealth Tu entorno. Tu salud. Nuestro planeta. Conecta con personas, empresas e iniciativas que cuidan el entorno donde vives. Crear cuenta Iniciar sesión",
+      "map": false
+    },
+    {
+      "vp": "escritorio",
+      "mode": "anon",
+      "path": "/crear",
+      "finalPath": "/welcome",
+      "idleMs": 1266,
+      "console": [],
+      "requests": [],
+      "failed": [],
+      "text": "EnvHealth Tu entorno. Tu salud. Nuestro planeta. Conecta con personas, empresas e iniciativas que cuidan el entorno donde vives. Crear cuenta Iniciar sesión",
+      "map": false
+    },
+    {
+      "vp": "escritorio",
+      "mode": "anon",
+      "path": "/perfil",
+      "finalPath": "/welcome",
+      "idleMs": 1246,
+      "console": [],
+      "requests": [],
+      "failed": [],
+      "text": "EnvHealth Tu entorno. Tu salud. Nuestro planeta. Conecta con personas, empresas e iniciativas que cuidan el entorno donde vives. Crear cuenta Iniciar sesión",
+      "map": false
+    },
+    {
+      "vp": "escritorio",
+      "mode": "anon",
+      "path": "/design-system",
+      "finalPath": "/welcome",
+      "idleMs": 1204,
+      "console": [],
+      "requests": [],
+      "failed": [],
+      "text": "EnvHealth Tu entorno. Tu salud. Nuestro planeta. Conecta con personas, empresas e iniciativas que cuidan el entorno donde vives. Crear cuenta Iniciar sesión",
+      "map": false
+    },
+    {
+      "vp": "escritorio",
+      "mode": "sesion",
+      "path": "/",
+      "finalPath": "/",
+      "idleMs": 1776,
+      "console": [],
+      "requests": [
+        "GET /rest/v1/posts?select=id%2Ccontent%2Cimage_url%2Chashtags%2Ccreated_at%2Cauthor%3Aprofiles%21posts_author_id_fkey%28id%2Cusername%2Cdisplay_name%2Cavatar_url%2Cverified%29%2C",
+        "GET /rest/v1/profiles?select=*&id=eq.f327511b-3d4e-4008-a663-ecc7626dc617",
+        "GET /rest/v1/entities?select=*&lat=gte.-1.6&lat=lte.4&lng=gte.5&lng=lte.11.5&order=name.asc",
+        "GET /rest/v1/entity_metrics?select=*&entity_id=in.%28c6553eb6-507d-424c-9e98-bb6b8ce7af72%2Cfed35cfa-8d46-49a9-9014-d0d770313ec2%2C0be904e3-d295-445d-a70e-9aefee9ba618%2C2ecc8278-94c4-4d8",
+        "GET /rest/v1/conversations?select=id%2Cstatus%2Crequested_by%2Clast_message_at%2Cuser_low%2Cuser_high%2Clow%3Aprofiles%21conversations_user_low_fkey%28id%2Cusername%2Cdisplay_name%2Cavat",
+        "HEAD /rest/v1/notifications?select=id&user_id=eq.f327511b-3d4e-4008-a663-ecc7626dc617&read=eq.false",
+        "GET /rest/v1/entity_rating_summary?select=entity_id%2Caverage%2Cratings_count&entity_id=in.%28e199a447-a1a1-4935-8dd2-eb5523a24c2a%29",
+        "GET /rest/v1/entity_rating_summary?select=entity_id%2Caverage%2Cratings_count&entity_id=in.%283a37c2bc-de47-49d8-a515-932931b738ce%29",
+        "GET /rest/v1/messages?select=conversation_id%2Csender_id%2Cbody%2Ccreated_at%2Cread_at&conversation_id=in.%2811d55200-0255-4bf6-8c02-0defa4a70081%29&order=created_at.desc&limit=1000",
+        "EXT air-quality-api.open-meteo.com/v1/air-quality"
+      ],
+      "failed": [
+        "https://lutgqjvrxplwjrgtmvfg.supabase.co/rest/v1/notifications?select=id&user_id=eq.f327511b-3d4e-4008-a663-ecc7626dc617&read=eq.false net::ERR_ABORTED"
+      ],
+      "text": " 1  RL Para ti Siguiendo  AV Ana Verde (prueba) @f50bmw89pgzn · 3 min  Hoy hemos limpiado la ribera del Ntem 🌿🐢 mw89pgzn. #Ntem #limpieza Texto largo para ver cómo corta. Texto largo para ver cómo corta. Texto largo para ver cómo corta. Texto largo para ver cómo corta. Texto largo para ver cómo corta. Texto largo para ver cómo corta. ver más  0  0   Datos ambientales de Guinea Ecuatorial",
+      "map": false
+    },
+    {
+      "vp": "escritorio",
+      "mode": "sesion",
+      "path": "/buscar",
+      "finalPath": "/buscar",
+      "idleMs": 1091,
+      "console": [],
+      "requests": [
+        "GET /rest/v1/profiles?select=*&id=eq.f327511b-3d4e-4008-a663-ecc7626dc617"
+      ],
+      "failed": [],
+      "text": "Buscar   Todo Empleo Iniciativas Personas Turismo Verde Sugerencias  Energía renovable Empresas e iniciativas   Gestión de residuos Empresas e iniciativas   Calidad del aire Datos y monitoreo   Agricultura sostenible Empresas e iniciativas  Tendencias Energía renovable Reforestación Reciclaje Biodiversidad Cambio climático Economía circular  Inicio  Buscar  Crear  Mapa  Perfil",
+      "map": false
+    },
+    {
+      "vp": "escritorio",
+      "mode": "sesion",
+      "path": "/mapa",
+      "finalPath": "/mapa",
+      "idleMs": 3845,
+      "console": [],
+      "requests": [
+        "GET /rest/v1/entities?select=*&order=verified.desc%2Cname.asc&limit=100",
+        "GET /rest/v1/profiles?select=*&id=eq.f327511b-3d4e-4008-a663-ecc7626dc617",
+        "GET /rest/v1/entity_rating_summary?select=entity_id%2Caverage%2Cratings_count&entity_id=in.%28c6553eb6-507d-424c-9e98-bb6b8ce7af72%2Cfed35cfa-8d46-49a9-9014-d0d770313ec2%2C0be904e3-d295-445d-a70",
+        "GET /rest/v1/entity_metrics?select=*&metric=eq.aire&entity_id=in.%28c6553eb6-507d-424c-9e98-bb6b8ce7af72%2Cfed35cfa-8d46-49a9-9014-d0d770313ec2%2C0be904e3-d295-445d-a70e-9aefee9ba618%2C2e",
+        "GET /rest/v1/entity_metrics?select=*&metric=eq.agua&entity_id=in.%28c6553eb6-507d-424c-9e98-bb6b8ce7af72%2Cfed35cfa-8d46-49a9-9014-d0d770313ec2%2C0be904e3-d295-445d-a70e-9aefee9ba618%2C2e",
+        "EXT air-quality-api.open-meteo.com/v1/air-quality"
+      ],
+      "failed": [],
+      "text": "                                Todo Aire Agua Suelo Biodiversidad Energía Residuos © OpenStreetMap · Aire: CAMS de Copernicus vía Open-Meteo   Calidad del aire Buena Índice de calidad del aire: 30 (escala europea)  Centro del mapa · 2,06 N · 9,90 E 🛰️ Estimación satelital Copernicus · hace 14 min   Inicio  Buscar  Crear  Mapa  Perfil",
+      "map": true
+    },
+    {
+      "vp": "escritorio",
+      "mode": "sesion",
+      "path": "/perfil",
+      "finalPath": "/perfil",
+      "idleMs": 2181,
+      "console": [],
+      "requests": [
+        "GET /rest/v1/profiles?select=*&id=eq.f327511b-3d4e-4008-a663-ecc7626dc617",
+        "GET /rest/v1/profiles?select=*&id=eq.f327511b-3d4e-4008-a663-ecc7626dc617",
+        "GET /rest/v1/profiles?select=*&id=eq.f327511b-3d4e-4008-a663-ecc7626dc617",
+        "HEAD /rest/v1/posts?select=*&author_id=eq.f327511b-3d4e-4008-a663-ecc7626dc617",
+        "HEAD /rest/v1/follows?select=*&following_id=eq.f327511b-3d4e-4008-a663-ecc7626dc617",
+        "HEAD /rest/v1/follows?select=*&follower_id=eq.f327511b-3d4e-4008-a663-ecc7626dc617",
+        "GET /rest/v1/entity_admins?select=created_at%2Centity%3Aentities%21entity_admins_entity_id_fkey%28id%2Cslug%2Cname%2Ctype%2Ccategory%29&user_id=eq.f327511b-3d4e-4008-a663-ecc7626dc617&st",
+        "GET /rest/v1/posts?select=id%2Ccontent%2Cimage_url%2Chashtags%2Ccreated_at%2Cauthor%3Aprofiles%21posts_author_id_fkey%28id%2Cusername%2Cdisplay_name%2Cavatar_url%2Cverified%29%2C"
+      ],
+      "failed": [
+        "https://lutgqjvrxplwjrgtmvfg.supabase.co/rest/v1/posts?select=*&author_id=eq.f327511b-3d4e-4008-a663-ecc7626dc617 net::ERR_ABORTED",
+        "https://lutgqjvrxplwjrgtmvfg.supabase.co/rest/v1/follows?select=*&follower_id=eq.f327511b-3d4e-4008-a663-ecc7626dc617 net::ERR_ABORTED",
+        "https://lutgqjvrxplwjrgtmvfg.supabase.co/rest/v1/follows?select=*&following_id=eq.f327511b-3d4e-4008-a663-ecc7626dc617 net::ERR_ABORTED"
+      ],
+      "text": "@f50amw89pgzn  RL 0 Publicaciones 0 Seguidores 0 Siguiendo Recién llegada  Se unió en noviembre de 2026 Editar perfil  Tu impacto ambiental Aún sin medir Se medirá cuando puedas registrar lo que haces por el entorno.  Puntos OVENG 0 Se ganan participando en iniciativas. Publicaciones Guardados  Todavía no has publicado nada Cuenta qué está pasando en tu entorno: una limpieza, un paseo, algo q",
+      "map": false
+    },
+    {
+      "vp": "escritorio",
+      "mode": "sesion",
+      "path": "/editar-perfil",
+      "finalPath": "/editar-perfil",
+      "idleMs": 1285,
+      "console": [],
+      "requests": [
+        "GET /rest/v1/profiles?select=*&id=eq.f327511b-3d4e-4008-a663-ecc7626dc617"
+      ],
+      "failed": [],
+      "text": "Editar perfil  RL Cambiar foto Nombre visible Biografía 0/160 Ubicación Nombre de usuario @f50amw89pgzn El nombre de usuario no se puede cambiar por ahora. Guardar cambios Cancelar",
+      "map": false
+    },
+    {
+      "vp": "escritorio",
+      "mode": "sesion",
+      "path": "/crear",
+      "finalPath": "/crear",
+      "idleMs": 3509,
+      "console": [],
+      "requests": [
+        "GET /rest/v1/profiles?select=*&id=eq.f327511b-3d4e-4008-a663-ecc7626dc617"
+      ],
+      "failed": [],
+      "text": " Crear publicación Publicar RL Recién llegada @f50amw89pgzn  Etiquetar un lugar  Añadir imagen",
+      "map": false
+    },
+    {
+      "vp": "escritorio",
+      "mode": "sesion",
+      "path": "/notificaciones",
+      "finalPath": "/notificaciones",
+      "idleMs": 3893,
+      "console": [],
+      "requests": [
+        "GET /rest/v1/profiles?select=*&id=eq.f327511b-3d4e-4008-a663-ecc7626dc617",
+        "GET /rest/v1/notifications?select=id%2Ctype%2Cread%2Ccreated_at%2Cactor%3Aprofiles%21notifications_actor_id_fkey%28id%2Cusername%2Cdisplay_name%2Cavatar_url%29%2Cpost%3Aposts%21notificat"
+      ],
+      "failed": [],
+      "text": " Notificaciones  Todavía no hay nada Aquí verás la actividad: me gusta, comentarios y nuevos seguidores.",
+      "map": false
+    },
+    {
+      "vp": "escritorio",
+      "mode": "sesion",
+      "path": "/mensajes",
+      "finalPath": "/mensajes/",
+      "idleMs": 2785,
+      "console": [],
+      "requests": [
+        "GET /rest/v1/profiles?select=*&id=eq.f327511b-3d4e-4008-a663-ecc7626dc617",
+        "GET /rest/v1/conversations?select=id%2Cstatus%2Crequested_by%2Clast_message_at%2Cuser_low%2Cuser_high%2Clow%3Aprofiles%21conversations_user_low_fkey%28id%2Cusername%2Cdisplay_name%2Cavat",
+        "GET /rest/v1/messages?select=conversation_id%2Csender_id%2Cbody%2Ccreated_at%2Cread_at&conversation_id=in.%2811d55200-0255-4bf6-8c02-0defa4a70081%29&order=created_at.desc&limit=1000"
+      ],
+      "failed": [],
+      "text": " Mensajes Chats Solicitudes (1)  Todavía no tienes conversaciones Envía una solicitud de mensaje desde el perfil de alguien. Cuando la acepte, podréis hablar aquí.",
+      "map": false
+    },
+    {
+      "vp": "escritorio",
+      "mode": "sesion",
+      "path": "/mensajes/11d55200-0255-4bf6-8c02-0defa4a70081",
+      "finalPath": "/mensajes/11d55200-0255-4bf6-8c02-0defa4a70081",
+      "idleMs": 2355,
+      "console": [
+        "error: Failed to load resource: the server responded with a status of 404 ()"
+      ],
+      "requests": [
+        "GET /rest/v1/profiles?select=*&id=eq.f327511b-3d4e-4008-a663-ecc7626dc617",
+        "GET /rest/v1/conversations?select=id%2Cstatus%2Crequested_by%2Clast_message_at%2Cuser_low%2Cuser_high%2Clow%3Aprofiles%21conversations_user_low_fkey%28id%2Cusername%2Cdisplay_name%2Cavat",
+        "GET /rest/v1/messages?select=*%2Cshared_post%3Aposts%21messages_shared_post_id_fkey%28id%2Ccontent%2Cimage_url%2Cauthor%3Aprofiles%21posts_author_id_fkey%28username%2Cdisplay_name%2",
+        "GET /rest/v1/blocks?select=blocked_id&blocker_id=eq.f327511b-3d4e-4008-a663-ecc7626dc617&blocked_id=eq.e3719e1a-a169-4545-b402-7199d89a18f0",
+        "POST /rest/v1/rpc/is_blocked_between"
+      ],
+      "failed": [
+        "404 https://expeavomo15.github.io/oveng-envhealth/mensajes/11d55200-0255-4bf6-8c02-0defa4a70081"
+      ],
+      "text": " AV Ana Verde (prueba)  Hoy 21:11 AV Hola 👋 ¿vienes el sábado?  Ana Verde (prueba) quiere hablar contigo. Si aceptas, podréis escribiros. Si rechazas, no se lo diremos. Aceptar Rechazar",
+      "map": false
+    },
+    {
+      "vp": "escritorio",
+      "mode": "sesion",
+      "path": "/publicacion/ea888d6f-7cb7-4e2c-94a9-dc92922c2c22",
+      "finalPath": "/publicacion/ea888d6f-7cb7-4e2c-94a9-dc92922c2c22",
+      "idleMs": 1600,
+      "console": [
+        "error: Failed to load resource: the server responded with a status of 404 ()"
+      ],
+      "requests": [
+        "GET /rest/v1/posts?select=id%2Ccontent%2Cimage_url%2Chashtags%2Ccreated_at%2Cauthor%3Aprofiles%21posts_author_id_fkey%28id%2Cusername%2Cdisplay_name%2Cavatar_url%2Cverified%29%2C",
+        "GET /rest/v1/comments?select=id%2Cpost_id%2Ccontent%2Ccreated_at%2Cauthor%3Aprofiles%21comments_user_id_fkey%28id%2Cusername%2Cdisplay_name%2Cavatar_url%29&post_id=eq.ea888d6f-7cb7-",
+        "GET /rest/v1/profiles?select=*&id=eq.f327511b-3d4e-4008-a663-ecc7626dc617"
+      ],
+      "failed": [
+        "404 https://expeavomo15.github.io/oveng-envhealth/publicacion/ea888d6f-7cb7-4e2c-94a9-dc92922c2c22"
+      ],
+      "text": " Publicación AV Ana Verde (prueba) @f50bmw89pgzn · 3 min  Hoy hemos limpiado la ribera del Ntem 🌿🐢 mw89pgzn. #Ntem #limpieza Texto largo para ver cómo corta. Texto largo para ver cómo corta. Texto largo para ver cómo corta. Texto largo para ver cómo corta. Texto largo para ver cómo corta. Texto largo para ver cómo corta.  0  0  Comentarios Aún no hay comentarios. Escribe el primero. RL Publ",
+      "map": false
+    },
+    {
+      "vp": "escritorio",
+      "mode": "sesion",
+      "path": "/user/f50bmw89pgzn",
+      "finalPath": "/user/f50bmw89pgzn",
+      "idleMs": 2324,
+      "console": [
+        "error: Failed to load resource: the server responded with a status of 404 ()"
+      ],
+      "requests": [
+        "GET /rest/v1/profiles?select=*&username=eq.f50bmw89pgzn",
+        "GET /rest/v1/profiles?select=*&id=eq.f327511b-3d4e-4008-a663-ecc7626dc617",
+        "HEAD /rest/v1/posts?select=*&author_id=eq.e3719e1a-a169-4545-b402-7199d89a18f0",
+        "HEAD /rest/v1/follows?select=*&following_id=eq.e3719e1a-a169-4545-b402-7199d89a18f0",
+        "HEAD /rest/v1/follows?select=*&follower_id=eq.e3719e1a-a169-4545-b402-7199d89a18f0",
+        "GET /rest/v1/follows?select=follower_id&follower_id=eq.f327511b-3d4e-4008-a663-ecc7626dc617&following_id=eq.e3719e1a-a169-4545-b402-7199d89a18f0",
+        "GET /rest/v1/posts?select=id%2Ccontent%2Cimage_url%2Chashtags%2Ccreated_at%2Cauthor%3Aprofiles%21posts_author_id_fkey%28id%2Cusername%2Cdisplay_name%2Cavatar_url%2Cverified%29%2C"
+      ],
+      "failed": [
+        "404 https://expeavomo15.github.io/oveng-envhealth/user/f50bmw89pgzn",
+        "https://lutgqjvrxplwjrgtmvfg.supabase.co/rest/v1/follows?select=*&following_id=eq.e3719e1a-a169-4545-b402-7199d89a18f0 net::ERR_ABORTED",
+        "https://lutgqjvrxplwjrgtmvfg.supabase.co/rest/v1/follows?select=*&follower_id=eq.e3719e1a-a169-4545-b402-7199d89a18f0 net::ERR_ABORTED",
+        "https://lutgqjvrxplwjrgtmvfg.supabase.co/rest/v1/posts?select=*&author_id=eq.e3719e1a-a169-4545-b402-7199d89a18f0 net::ERR_ABORTED"
+      ],
+      "text": " @f50bmw89pgzn AV 1 Publicaciones 0 Seguidores 0 Siguiendo Ana Verde (prueba)  Se unió en noviembre de 2026  Seguir  Enviar mensaje Publicaciones Guardados AV Ana Verde (prueba) @f50bmw89pgzn · 3 min  Hoy hemos limpiado la ribera del Ntem 🌿🐢 mw89pgzn. #Ntem #limpieza Texto largo para ver cómo corta. Texto largo para ver cómo corta. Texto largo para ver cómo corta. Texto largo para ver cómo ",
+      "map": false
+    },
+    {
+      "vp": "escritorio",
+      "mode": "sesion",
+      "path": "/entidad/rio-ntem",
+      "finalPath": "/entidad/rio-ntem",
+      "idleMs": 2831,
+      "console": [
+        "error: Failed to load resource: the server responded with a status of 404 ()"
+      ],
+      "requests": [
+        "GET /rest/v1/entities?select=*&slug=eq.rio-ntem",
+        "GET /rest/v1/profiles?select=*&id=eq.f327511b-3d4e-4008-a663-ecc7626dc617",
+        "GET /rest/v1/entity_rating_summary?select=entity_id%2Caverage%2Cratings_count&entity_id=in.%28e199a447-a1a1-4935-8dd2-eb5523a24c2a%29",
+        "GET /rest/v1/entity_metrics?select=*&entity_id=eq.e199a447-a1a1-4935-8dd2-eb5523a24c2a&order=metric.asc",
+        "HEAD /rest/v1/entity_follows?select=*&entity_id=eq.e199a447-a1a1-4935-8dd2-eb5523a24c2a",
+        "GET /rest/v1/entity_follows?select=entity_id&user_id=eq.f327511b-3d4e-4008-a663-ecc7626dc617&entity_id=in.%28e199a447-a1a1-4935-8dd2-eb5523a24c2a%29",
+        "GET /rest/v1/entity_ratings?select=entity_id%2Cuser_id%2Cscore%2Ccomment%2Ccreated_at%2Cauthor%3Aprofiles%28username%2Cdisplay_name%2Cavatar_url%29&entity_id=eq.e199a447-a1a1-4935-8dd2-eb",
+        "GET /rest/v1/entity_rating_summary?select=average%2Cratings_count&entity_id=eq.e199a447-a1a1-4935-8dd2-eb5523a24c2a",
+        "GET /rest/v1/entity_ratings?select=score%2Ccomment&entity_id=eq.e199a447-a1a1-4935-8dd2-eb5523a24c2a&user_id=eq.f327511b-3d4e-4008-a663-ecc7626dc617",
+        "EXT air-quality-api.open-meteo.com/v1/air-quality",
+        "EXT api.open-meteo.com/v1/forecast",
+        "EXT api.gbif.org/v1/occurrence/search",
+        "GET /rest/v1/jobs?select=*%2Centity%3Aentities%21jobs_entity_id_fkey%28id%2Cslug%2Cname%2Ctype%2Ccategory%2Clocation_name%29&entity_id=eq.e199a447-a1a1-4935-8dd2-eb5523a24c2a&or",
+        "GET /rest/v1/posts?select=id%2Ccontent%2Cimage_url%2Chashtags%2Ccreated_at%2Cauthor%3Aprofiles%21posts_author_id_fkey%28id%2Cusername%2Cdisplay_name%2Cavatar_url%2Cverified%29%2C",
+        "GET /rest/v1/entity_admins?select=entity_id&entity_id=eq.e199a447-a1a1-4935-8dd2-eb5523a24c2a&user_id=eq.f327511b-3d4e-4008-a663-ecc7626dc617&status=eq.approved",
+        "HEAD /rest/v1/entity_admins?select=*&entity_id=eq.e199a447-a1a1-4935-8dd2-eb5523a24c2a&status=eq.approved"
+      ],
+      "failed": [
+        "404 https://expeavomo15.github.io/oveng-envhealth/entidad/rio-ntem",
+        "https://lutgqjvrxplwjrgtmvfg.supabase.co/rest/v1/entity_follows?select=*&entity_id=eq.e199a447-a1a1-4935-8dd2-eb5523a24c2a net::ERR_ABORTED",
+        "https://lutgqjvrxplwjrgtmvfg.supabase.co/rest/v1/entity_admins?select=*&entity_id=eq.e199a447-a1a1-4935-8dd2-eb5523a24c2a&status=eq.approved net::ERR_ABORTED"
+      ],
+      "text": "   Sé el primero en valorar Río Ntem  Turismo Verde Agua Muy bueno   Bata, Litoral · Guinea Ecuatorial 0 seguidores Seguir Valorar El río que marca la frontera norte y desemboca en el Atlántico. Pasea por la orilla al atardecer, mira cómo vuelven las barcas de la pesca artesanal y súmate a una de sus jornadas de limpieza comunitaria. Lo que llevas, te lo llevas. ¿Trabajas aquí? Nadie adminis",
+      "map": false
+    },
+    {
+      "vp": "escritorio",
+      "mode": "sesion",
+      "path": "/turismo-verde",
+      "finalPath": "/turismo-verde",
+      "idleMs": 2201,
+      "console": [],
+      "requests": [
+        "GET /rest/v1/entities?select=*&type=eq.lugar&order=verified.desc%2Cname.asc&limit=200",
+        "GET /rest/v1/profiles?select=*&id=eq.f327511b-3d4e-4008-a663-ecc7626dc617",
+        "GET /rest/v1/entity_rating_summary?select=entity_id%2Caverage%2Cratings_count&entity_id=in.%289ab6d3ba-f5de-45d8-a128-454662aef61c%2C799957b5-f7a7-446b-922f-d4dfdf8d92cb%2C08d7d59b-577e-4cf6-9b0"
+      ],
+      "failed": [],
+      "text": " Turismo Verde 🌿 ¿Dónde quieres disfrutar de la naturaleza?  📍 Cerca de mí Guinea Ecuatorial Málaga y Andalucía Todos los rincones verdes  Acantilados de Maro-Cerro Gordo Acantilados y calas de agua clara entre Nerja y Granada. Báñate en las calas, o recorre la costa en kayak mirando el fondo. Nuevo  Cómo llegar   Caminito del Rey Pasarelas colgadas sobre el desfiladero de los Gaitanes, co",
+      "map": false
+    },
+    {
+      "vp": "escritorio",
+      "mode": "sesion",
+      "path": "/oferta",
+      "finalPath": "/oferta",
+      "idleMs": 1252,
+      "console": [],
+      "requests": [
+        "GET /rest/v1/profiles?select=*&id=eq.f327511b-3d4e-4008-a663-ecc7626dc617"
+      ],
+      "failed": [],
+      "text": "Publicar oferta No encontramos la página La página o la oferta ya no existe. Volver",
+      "map": false
+    },
+    {
+      "vp": "escritorio",
+      "mode": "sesion",
+      "path": "/design-system",
+      "finalPath": "/",
+      "idleMs": 1734,
+      "console": [],
+      "requests": [
+        "GET /rest/v1/profiles?select=*&id=eq.f327511b-3d4e-4008-a663-ecc7626dc617",
+        "GET /rest/v1/posts?select=id%2Ccontent%2Cimage_url%2Chashtags%2Ccreated_at%2Cauthor%3Aprofiles%21posts_author_id_fkey%28id%2Cusername%2Cdisplay_name%2Cavatar_url%2Cverified%29%2C",
+        "GET /rest/v1/entities?select=*&lat=gte.-1.6&lat=lte.4&lng=gte.5&lng=lte.11.5&order=name.asc",
+        "GET /rest/v1/entity_metrics?select=*&entity_id=in.%28c6553eb6-507d-424c-9e98-bb6b8ce7af72%2Cfed35cfa-8d46-49a9-9014-d0d770313ec2%2C0be904e3-d295-445d-a70e-9aefee9ba618%2C2ecc8278-94c4-4d8",
+        "GET /rest/v1/conversations?select=id%2Cstatus%2Crequested_by%2Clast_message_at%2Cuser_low%2Cuser_high%2Clow%3Aprofiles%21conversations_user_low_fkey%28id%2Cusername%2Cdisplay_name%2Cavat",
+        "HEAD /rest/v1/notifications?select=id&user_id=eq.f327511b-3d4e-4008-a663-ecc7626dc617&read=eq.false",
+        "GET /rest/v1/messages?select=conversation_id%2Csender_id%2Cbody%2Ccreated_at%2Cread_at&conversation_id=in.%2811d55200-0255-4bf6-8c02-0defa4a70081%29&order=created_at.desc&limit=1000",
+        "GET /rest/v1/entity_rating_summary?select=entity_id%2Caverage%2Cratings_count&entity_id=in.%28e199a447-a1a1-4935-8dd2-eb5523a24c2a%29",
+        "GET /rest/v1/entity_rating_summary?select=entity_id%2Caverage%2Cratings_count&entity_id=in.%283a37c2bc-de47-49d8-a515-932931b738ce%29",
+        "EXT air-quality-api.open-meteo.com/v1/air-quality"
+      ],
+      "failed": [
+        "https://lutgqjvrxplwjrgtmvfg.supabase.co/rest/v1/notifications?select=id&user_id=eq.f327511b-3d4e-4008-a663-ecc7626dc617&read=eq.false net::ERR_ABORTED"
+      ],
+      "text": " 1  RL Para ti Siguiendo  AV Ana Verde (prueba) @f50bmw89pgzn · 3 min  Hoy hemos limpiado la ribera del Ntem 🌿🐢 mw89pgzn. #Ntem #limpieza Texto largo para ver cómo corta. Texto largo para ver cómo corta. Texto largo para ver cómo corta. Texto largo para ver cómo corta. Texto largo para ver cómo corta. Texto largo para ver cómo corta. ver más  0  0   Datos ambientales de Guinea Ecuatorial",
+      "map": false
+    },
+    {
+      "vp": "movil",
+      "mode": "lenta",
+      "path": "/",
+      "marks": [
+        "lenta-inicio-2000ms.png",
+        "lenta-inicio-5000ms.png",
+        "lenta-inicio-9000ms.png",
+        "lenta-inicio-15000ms.png"
+      ]
+    },
+    {
+      "vp": "movil",
+      "mode": "lenta",
+      "path": "/mapa",
+      "marks": [
+        "lenta-mapa-2000ms.png",
+        "lenta-mapa-5000ms.png",
+        "lenta-mapa-9000ms.png",
+        "lenta-mapa-15000ms.png"
+      ]
+    }
+  ]
+}

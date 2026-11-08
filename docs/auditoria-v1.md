@@ -344,7 +344,7 @@ por etiqueta; filtros avanzados; hoja del mapa arrastrable con gestos.
 | I-1 | Feed vacío | IMPORTANTE | **Arreglado**: datos de zona primero y "Mientras tanto, explora" (mapa, Turismo Verde, iniciativas); al final de un feed corto, "Estás al día" y adónde ir |
 | I-3 | Lista de publicaciones del perfil | IMPORTANTE | **Arreglado**: lista real de publicaciones en el perfil propio y en el ajeno |
 | I-4 | "Excelente" inventado | IMPORTANTE | **Arreglado**: "Aún sin medir" |
-| I-7 | Arranque en red lenta | IMPORTANTE | **Arreglado en parte**: MapLibre fuera de la primera carga (T-2); medido en producción, ver Re-verificación |
+| I-7 | Arranque en red lenta | IMPORTANTE | **Pendiente**: MapLibre ya no está en la primera carga, pero a 1,5 Mbps el feed sigue apareciendo hacia los 9 s; falta T-4 (fuentes) y un HTML inicial con marca |
 | M-1 | Encuadre del mapa | IMPORTANTE | **Arreglado**: encaja los límites del país con Bioko |
 | M-2 | Pines solapados | IMPORTANTE | **Arreglado**: los pines que se tapan se separan en corro (a zoom de país, un corro grande aún roza a un vecino) |
 | M-3 | Leyenda y botón de cuenta en el mapa | IMPORTANTE | **Arreglado**: chips deslizables; sin botón de cuenta |
@@ -391,7 +391,18 @@ Contra el build local con todos los cambios (`dist/`, servido como Pages):
 - Capturas en `docs/verificacion/f50/despues/` y `despues-recorrido/`, con los
   mismos nombres que en `antes/` para compararlas una a una.
 
-**En producción**, tras el despliegue: ver la última línea.
+**En producción** (commit `7a17742`, desplegado y medido con
+`capture:f50 --phase produccion`, en `docs/verificacion/f50/produccion/`):
+
+- El mapa, **cero errores de consola** en móvil y escritorio; el worker se
+  sirve (`/vendor/maplibre/…`, 200, `text/javascript`). Interactivo en 3–4 s en
+  móvil, como antes: la descarga aparte de MapLibre no se nota con buena red.
+- Ficha de entidad con sesión: 16 peticiones y ninguna duplicada (antes 22, 6
+  duplicadas). Perfil propio: aún pide el perfil tres veces (MENOR, pendiente).
+- **Red lenta (1,5 Mbps): sin mejora visible.** El feed sigue siendo spinner a
+  los 5 s y aparece hacia los 9 s, como antes: lo que pesa a esa velocidad son
+  las cuatro Inter en TTF e Ionicons (T-4) y el bundle que queda. I-7 queda
+  **pendiente** de T-4 y de un HTML inicial con la marca.
 
 
 ## Veredicto
