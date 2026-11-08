@@ -63,6 +63,7 @@ El porqué de cada una, enlazado.
 - Cada verificación **termina** borrando sus cuentas de prueba y **empieza** borrando las que queden (red de seguridad), si la clave está exportada en el shell; sin ella avisa y sigue. `verify:all` falla si queda residuo. Nunca dos baterías a la vez. [cierre-1017]
 - **Latido anti-pausa**: `keepalive.yml` lee una entidad cada dos días; el plan gratuito de Supabase pausa a los ~7 días sin actividad. [cierre-1017]
 - Supabase: URL base sin `/rest/v1`; "Confirm email" desactivado (reactivarlo exige SMTP propio); rechaza `@example.com`. [verif-f11]
+- **Un proyecto de Supabase nuevo no hereda la config de Auth**: se repasa la checklist de @docs/01_ARQUITECTURA.md (Confirm email OFF, Site URL, Redirect URLs). [incidente-1108]
 - Chromium usa librerías de `~/.local/chromium-deps`; un `git push` con `HTTP 408` se arregla con `http.postBuffer` y HTTP/1.1. [verif-f11] [F2.4]
 
 - Chromium sin interfaz necesita Noto Color Emoji en `~/.local/share/fonts` para pintar 🛰️ y 📋.
@@ -100,6 +101,38 @@ La lista mantenida es el **backlog de @docs/plan.md**. Fuera de ella, sueltos:
 - El clima (temperatura, lluvia) está a una llamada de Open-Meteo, sin clave, y no se enseña en ningún sitio.
 - Marca: falta el **SVG vectorial** (hoy son PNG), los PNG no van cuantizados y
   el icono y el splash nativos siguen siendo los de Expo.
+
+---
+
+## 2026-11-08 — Incidente: registro roto en el proyecto de Supabase nuevo
+
+**Causa.** El proyecto de Supabase se reconstruyó desde cero y el nuevo trae
+**"Confirm email" activado por defecto**. El anterior lo tenía desactivado
+desde F1. Las migraciones y los seeds reconstruyen el esquema y los datos, pero
+**no** la configuración de Auth, que vive en el dashboard. Con la confirmación
+activada, el registro no devuelve sesión y el correo integrado solo entrega al
+equipo del proyecto.
+
+**Remedio.** El autor la desactivó en el dashboard.
+
+**Para que no se repita.** Checklist de Auth (Confirm email OFF, Site URL y
+Redirect URLs, y `verify:auth` para comprobarlo) en
+[01_ARQUITECTURA.md](01_ARQUITECTURA.md#checklist-de-auth-al-crear-o-reconstruir-el-proyecto-de-supabase).
+Se repasa entera cada vez que se crea o se rehace un proyecto.
+
+**La batería tras la reconstrucción.** Con "Confirm email" activado, 1 de 19;
+desactivado, 17 de 19 en la pasada del autor y 18 de 19 en la siguiente. El
+único fallo que se repitió es de la **prueba**, no de la app: `verify:f42`
+exigía que «monte» devolviera lugares de España, Francia o EE. UU., y
+Open-Meteo ha cambiado su orden (ahora Colombia, México, Uruguay). Ahora
+comprueba la forma —«nombre, región, país»— y no el país. El segundo fallo de
+la pasada del autor no se reprodujo.
+
+**El deploy, pendiente.** Cambiar las *Variables* del repositorio no
+redespliega: Pages siguió sirviendo un bundle con el proyecto viejo
+(`xkglhfeqfpxjzkxrolom`) y la demo daba "no hay conexión". Se arregla con
+cualquier push a `main` o `gh workflow run deploy.yml`, y se comprueba en el
+bundle publicado. **Va en la checklist**: tras cambiar las Variables, redesplegar.
 
 ---
 

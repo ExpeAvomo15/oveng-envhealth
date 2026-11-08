@@ -137,20 +137,41 @@ contraseña nueva. Dos condiciones fuera del código:
   proveedores (Resend, Brevo, SES…) piden **un dominio verificado** para
   enviar a cualquiera: con la demo en `github.io` no lo hay.
 
-**Configuración en el dashboard** (Authentication):
+### Checklist de Auth al crear o reconstruir el proyecto de Supabase
 
-1. *URL Configuration* → **Site URL**:
-   `https://expeavomo15.github.io/oveng-envhealth/`
-2. *URL Configuration* → **Redirect URLs**, añadir:
-   `https://expeavomo15.github.io/oveng-envhealth/**` y, para desarrollo,
-   `http://localhost:8081/**`. Sin esto, Supabase ignora el `redirectTo` y manda
-   a la Site URL.
-3. *(Opcional)* SMTP propio con Resend, 100 correos al día gratis: dominio
-   propio verificado en Resend (registros DNS que indica), una API key, y en
-   Supabase *Emails → SMTP Settings*: host `smtp.resend.com`, puerto `465`,
-   usuario `resend`, contraseña la API key, remitente `no-reply@<tu dominio>`.
-   Con SMTP propio el límite inicial es de 30 correos por hora y se ajusta en
-   *Rate Limits*.
+**La configuración de Auth no vive en las migraciones**: es del dashboard, y un
+proyecto nuevo nace con los valores por defecto de Supabase, que no son los de
+OVENG. Aplicar las migraciones y los seeds no basta. Pasó al reconstruir el
+proyecto en noviembre de 2026 (ver [notas.md](notas.md)): "Confirm email" venía
+activado y el registro dejó de devolver sesión.
+
+En *Authentication*, y **antes** de dar el proyecto por bueno:
+
+- [ ] **Confirm email: OFF** (*Sign In / Providers → Email*). Un proyecto nuevo
+      lo trae **activado**. Con él, registrarse no inicia sesión, y el correo
+      integrado solo entrega al equipo del proyecto, dos por hora: nadie más
+      puede completar el alta. Reactivarlo exige SMTP propio (abajo).
+- [ ] **Site URL** (*URL Configuration*):
+      `https://expeavomo15.github.io/oveng-envhealth/`
+- [ ] **Redirect URLs** (*URL Configuration*), las dos:
+      `https://expeavomo15.github.io/oveng-envhealth/**` y, para desarrollo,
+      `http://localhost:8081/**`. Sin ellas, Supabase ignora el `redirectTo` y
+      el enlace de recuperar contraseña manda a la Site URL.
+- [ ] **Variables del repositorio** (*Settings → Secrets and variables →
+      Actions → Variables*): `EXPO_PUBLIC_SUPABASE_URL` y
+      `EXPO_PUBLIC_SUPABASE_ANON_KEY` del proyecto nuevo, y **redesplegar**
+      (`gh workflow run deploy.yml` o un push): cambiar una Variable no
+      reconstruye el bundle, y la demo sigue apuntando al proyecto viejo.
+- [ ] **Comprobarlo:** `npm run verify:auth` dice explícitamente si "Confirm
+      email" sigue activado (el registro no devuelve sesión). `verify:f43`
+      comprueba el `redirect_to` de recuperar contraseña.
+
+*(Opcional)* SMTP propio con Resend, 100 correos al día gratis: dominio
+propio verificado en Resend (registros DNS que indica), una API key, y en
+Supabase *Emails → SMTP Settings*: host `smtp.resend.com`, puerto `465`,
+usuario `resend`, contraseña la API key, remitente `no-reply@<tu dominio>`.
+Con SMTP propio el límite inicial es de 30 correos por hora y se ajusta en
+*Rate Limits*.
 
 ### Trunk-based en `main`
 

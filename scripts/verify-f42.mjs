@@ -212,7 +212,11 @@ try {
     }
     try {
       await page.getByText('Lugares del mundo').filter({ visible: true }).waitFor({ timeout: 8000 });
-      await page.getByRole('button', { name: /^Ir a .*(España|Francia|Estados Unidos)/ }).first().waitFor({ timeout: 10000 });
+      // Un lugar del mundo lleva «nombre, región, país»; una entidad, solo su
+      // nombre. No se fija el país: Open-Meteo cambia el orden de sus
+      // resultados (en 2026-11 «monte» pasó de España/Francia a Colombia,
+      // México y Uruguay) y la prueba fallaba con la app funcionando.
+      await page.getByRole('button', { name: /^Ir a [^,]+, [^,]+, [^,]+$/ }).first().waitFor({ timeout: 10000 });
       ok('y a la vez, lugares del mundo con su región y país');
     } catch {
       bad('«monte» no enseña los dos grupos');
